@@ -8,6 +8,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
 import { formatCurrency } from '../utils/formatCurrency';
 import { formatDateShort } from '../utils/formatDate';
+import { useAuthStore } from '../store/authStore';
 import dashboardBg from '../assets/tveco-dashboard-bg.jpg';
 
 function StatCard({ label, value, icon: Icon, color, delay, count }: {
@@ -39,17 +40,25 @@ function StatCard({ label, value, icon: Icon, color, delay, count }: {
 
 export function DashboardPage() {
   const { invoices, loading } = useInvoices();
+  const user = useAuthStore((s) => s.user);
   useClients();
 
-  const totalInvoiced = invoices.reduce((s, i) => s + i.total, 0);
-  const paid          = invoices.filter((i) => i.status === 'PAID').reduce((s, i) => s + i.total, 0);
-  const outstanding   = invoices.filter((i) => i.status === 'SENT').reduce((s, i) => s + i.total, 0);
-  const overdue       = invoices.filter((i) => i.status === 'OVERDUE').reduce((s, i) => s + i.total, 0);
-  const recent        = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
+  // Single pass over invoices for all aggregates
+  const { totalInvoiced, paid, outstanding, overdue, paidCount, outstandingCount, overdueCount } =
+    invoices.reduce(
+      (acc, inv) => {
+        acc.totalInvoiced += inv.total;
+        if (inv.status === 'PAID')    { acc.paid        += inv.total; acc.paidCount++; }
+        if (inv.status === 'SENT')    { acc.outstanding += inv.total; acc.outstandingCount++; }
+        if (inv.status === 'OVERDUE') { acc.overdue     += inv.total; acc.overdueCount++; }
+        return acc;
+      },
+      { totalInvoiced: 0, paid: 0, outstanding: 0, overdue: 0, paidCount: 0, outstandingCount: 0, overdueCount: 0 }
+    );
 
-  const paidCount        = invoices.filter((i) => i.status === 'PAID').length;
-  const outstandingCount = invoices.filter((i) => i.status === 'SENT').length;
-  const overdueCount     = invoices.filter((i) => i.status === 'OVERDUE').length;
+  const recent = [...invoices]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
 
   const stats = [
     { label: 'Total Invoiced', value: totalInvoiced, icon: TrendingUp,  color: '#FF6B00', delay: 0,    count: invoices.length },
@@ -62,7 +71,7 @@ export function DashboardPage() {
     <PageBackground image={dashboardBg} position="center 30%">
       <TopBar
         title="Dashboard"
-        subtitle="Welcome back, Thabo"
+        subtitle={`Welcome back${user?.email ? `, ${user.email.split('@')[0]}` : ''}`}
         actions={
           <Link to="/invoices/new" className="flex items-center gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity" style={{ background: '#FF6B00' }}>
             <Plus size={16} />

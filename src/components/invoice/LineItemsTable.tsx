@@ -49,7 +49,7 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
         <input
           {...register(`lineItems.${index}.description`)}
           placeholder="Detail / notes (optional)"
-          className="w-full bg-transparent border border-transparent rounded-lg px-3 py-1 text-xs text-brand-muted placeholder:text-brand-muted/50 focus:outline-none focus:border-brand-border transition-colors"
+          className="w-full bg-transparent border border-transparent rounded-lg px-3 py-1 text-xs text-brand-muted placeholder:text-brand-muted/50 outline-none focus:border-brand-border focus:shadow-[0_0_0_2px_rgba(255,107,0,0.12)] transition-colors"
         />
       </div>
 

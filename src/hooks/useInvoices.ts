@@ -1,13 +1,16 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useInvoiceStore } from '../store/invoiceStore';
 
 export function useInvoices() {
   const store = useInvoiceStore();
+  const fetched = useRef(false);
 
   useEffect(() => {
-    if (store.invoices.length === 0 && !store.loading) {
+    if (!fetched.current && store.invoices.length === 0 && !store.loading) {
+      fetched.current = true;
       store.fetchInvoices();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return store;

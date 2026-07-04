@@ -34,12 +34,14 @@ export function ClientCard({ client, invoices, onEdit, onDelete }: ClientCardPro
       <div className="space-y-1.5 mb-4">
         {client.email && (
           <div className="flex items-center gap-2 text-xs text-brand-muted">
-            <Mail size={12} className="shrink-0" /><span className="truncate">{client.email}</span>
+            <Mail size={12} className="shrink-0" />
+            <a href={`mailto:${client.email}`} className="truncate hover:text-[#FF6B00] transition-colors">{client.email}</a>
           </div>
         )}
         {client.phone && (
           <div className="flex items-center gap-2 text-xs text-brand-muted">
-            <Phone size={12} className="shrink-0" /><span>{client.phone}</span>
+            <Phone size={12} className="shrink-0" />
+            <a href={`tel:${client.phone}`} className="hover:text-[#FF6B00] transition-colors">{client.phone}</a>
           </div>
         )}
         {client.address && (

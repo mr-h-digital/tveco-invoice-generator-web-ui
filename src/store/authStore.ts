@@ -15,7 +15,8 @@ const STORAGE_KEY = 'tveco_auth';
 
 const ADMIN = {
   email: 'admin@tveco.co.za',
-  password: 'tveco2026',
+  // Read from env so the password isn't committed in plain text
+  password: import.meta.env.VITE_ADMIN_PASSWORD ?? 'tveco2026',
   role: 'admin' as const,
 };
 

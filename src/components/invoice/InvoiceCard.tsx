@@ -34,7 +34,7 @@ export function InvoiceCard({ invoice, onDuplicate, onDelete }: InvoiceCardProps
             <span className="font-head text-xs text-brand-muted">{invoice.invoiceNumber}</span>
             <Badge status={invoice.status} />
           </div>
-          <p className="font-head font-bold text-brand-white truncate group-hover:text-orange transition-colors" style={{ transition: 'color 0.15s' }}>
+          <p className="font-head font-bold text-brand-white truncate transition-colors group-hover:text-[#FF6B00]" style={{ transition: 'color 0.15s' }}>
             {invoice.clientSnapshot.companyName}
           </p>
           {invoice.clientSnapshot.contactName && (

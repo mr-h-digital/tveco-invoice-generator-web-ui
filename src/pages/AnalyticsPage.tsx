@@ -118,17 +118,24 @@ export function AnalyticsPage() {
   const { print }    = usePrint();
   const [monthsBack, setMonthsBack] = useState(7);
 
-  /* ── Derived data ── */
-  const monthly       = buildMonthlyRevenue(invoices, monthsBack);
-  const statusData    = buildStatusBreakdown(invoices);
-  const topClients    = buildTopClients(invoices, 6);
-  const topServices   = buildTopServices(invoices, 6);
-  const rate          = collectionRate(invoices);
-  const avg           = avgInvoiceValue(invoices);
-  const totalInvoiced = invoices.reduce((s, i) => s + i.total, 0);
-  const totalPaid     = invoices.filter((i) => i.status === 'PAID').reduce((s, i) => s + i.total, 0);
-  const totalOutstanding = invoices.filter((i) => i.status === 'SENT').reduce((s, i) => s + i.total, 0);
-  const totalOverdue  = invoices.filter((i) => i.status === 'OVERDUE').reduce((s, i) => s + i.total, 0);
+  /* ── Derived data — single pass for all totals ── */
+  const monthly    = buildMonthlyRevenue(invoices, monthsBack);
+  const statusData = buildStatusBreakdown(invoices);
+  const topClients = buildTopClients(invoices, 6);
+  const topServices = buildTopServices(invoices, 6);
+  const rate       = collectionRate(invoices);
+  const avg        = avgInvoiceValue(invoices);
+
+  const { totalInvoiced, totalPaid, totalOutstanding, totalOverdue } = invoices.reduce(
+    (acc, inv) => {
+      acc.totalInvoiced += inv.total;
+      if (inv.status === 'PAID')    acc.totalPaid        += inv.total;
+      if (inv.status === 'SENT')    acc.totalOutstanding += inv.total;
+      if (inv.status === 'OVERDUE') acc.totalOverdue     += inv.total;
+      return acc;
+    },
+    { totalInvoiced: 0, totalPaid: 0, totalOutstanding: 0, totalOverdue: 0 }
+  );
 
   const kpis = [
     { label: 'Total Invoiced',   value: formatCurrency(totalInvoiced),   sub: `${invoices.length} invoices`,    icon: TrendingUp,  color: C.orange, delay: 0    },
@@ -176,8 +183,8 @@ export function AnalyticsPage() {
       {/* ══ SCREEN VIEW ══════════════════════════════════════════════════ */}
       <div className="p-4 sm:p-6 lg:p-8 space-y-6 print:hidden">
 
-        {/* KPI grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        {/* KPI grid — 2 col mobile → 4 tablet → 4 desktop (2 rows of 4) */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {kpis.map((k) => <KpiCard key={k.label} {...k} />)}
         </div>
 

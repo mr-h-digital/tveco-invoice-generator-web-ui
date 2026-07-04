@@ -60,19 +60,24 @@ function StatCounter({ target, suffix, label, delay }: { target: number; suffix:
   const [count, setCount] = useState(0);
 
   useEffect(() => {
+    let interval: ReturnType<typeof setInterval> | null = null;
+
     const timer = setTimeout(() => {
       const duration = 1200;
       const steps = 40;
       const increment = target / steps;
       let current = 0;
-      const interval = setInterval(() => {
+      interval = setInterval(() => {
         current = Math.min(current + increment, target);
         setCount(Math.floor(current));
-        if (current >= target) clearInterval(interval);
+        if (current >= target && interval) clearInterval(interval);
       }, duration / steps);
-      return () => clearInterval(interval);
     }, delay * 1000);
-    return () => clearTimeout(timer);
+
+    return () => {
+      clearTimeout(timer);
+      if (interval) clearInterval(interval);
+    };
   }, [target, delay]);
 
   return (
