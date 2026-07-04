@@ -200,4 +200,15 @@
     break-inside: avoid;
     page-break-inside: avoid;
   }
+
+  /* Analytics print layout */
+  #analytics-print-area {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #analytics-print-area > div {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
 }
