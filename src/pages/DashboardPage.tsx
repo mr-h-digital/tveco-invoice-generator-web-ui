@@ -10,21 +10,26 @@ import { formatCurrency } from '../utils/formatCurrency';
 import { formatDateShort } from '../utils/formatDate';
 import dashboardBg from '../assets/tveco-dashboard-bg.jpg';
 
-function StatCard({ label, value, icon: Icon, color, delay }: {
-  label: string; value: number; icon: React.ElementType; color: string; delay: number;
+function StatCard({ label, value, icon: Icon, color, delay, count }: {
+  label: string; value: number; icon: React.ElementType; color: string; delay: number; count?: number;
 }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, duration: 0.4, ease: 'easeOut' }}
-      className="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-5"
+      className="bg-brand-card border border-brand-border rounded-xl p-4 sm:p-5 hover:border-brand-muted transition-colors"
     >
-      <div className="flex items-start justify-between mb-3 sm:mb-4">
-        <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0"
-          style={{ background: color + '20', color }}>
+      <div className="flex items-center justify-between mb-3 sm:mb-4">
+        <div
+          className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0"
+          style={{ background: color + '18', color }}
+        >
           <Icon size={17} />
         </div>
+        {count !== undefined && count > 0 && (
+          <span className="text-xs font-head text-brand-muted">{count} inv.</span>
+        )}
       </div>
       <p className="text-brand-muted text-xs sm:text-sm mb-1">{label}</p>
       <p className="font-head font-bold text-brand-white text-lg sm:text-2xl leading-tight">{formatCurrency(value)}</p>
@@ -42,11 +47,15 @@ export function DashboardPage() {
   const overdue       = invoices.filter((i) => i.status === 'OVERDUE').reduce((s, i) => s + i.total, 0);
   const recent        = [...invoices].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5);
 
+  const paidCount        = invoices.filter((i) => i.status === 'PAID').length;
+  const outstandingCount = invoices.filter((i) => i.status === 'SENT').length;
+  const overdueCount     = invoices.filter((i) => i.status === 'OVERDUE').length;
+
   const stats = [
-    { label: 'Total Invoiced', value: totalInvoiced, icon: TrendingUp,  color: '#FF6B00', delay: 0    },
-    { label: 'Paid',           value: paid,          icon: DollarSign,  color: '#22C55E', delay: 0.08 },
-    { label: 'Outstanding',    value: outstanding,   icon: Clock,       color: '#60A5FA', delay: 0.16 },
-    { label: 'Overdue',        value: overdue,       icon: AlertCircle, color: '#EF4444', delay: 0.24 },
+    { label: 'Total Invoiced', value: totalInvoiced, icon: TrendingUp,  color: '#FF6B00', delay: 0,    count: invoices.length },
+    { label: 'Paid',           value: paid,          icon: DollarSign,  color: '#22C55E', delay: 0.08, count: paidCount },
+    { label: 'Outstanding',    value: outstanding,   icon: Clock,       color: '#60A5FA', delay: 0.16, count: outstandingCount },
+    { label: 'Overdue',        value: overdue,       icon: AlertCircle, color: '#EF4444', delay: 0.24, count: overdueCount },
   ];
 
   return (
@@ -71,7 +80,7 @@ export function DashboardPage() {
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-brand-border">
             <h2 className="font-head font-bold text-brand-white text-sm sm:text-base">Recent Invoices</h2>
-            <Link to="/invoices" className="flex items-center gap-1 text-sm text-brand-muted hover:text-brand-white transition-colors" style={{ '--tw-text-opacity': '1' } as React.CSSProperties}>
+            <Link to="/invoices" className="flex items-center gap-1 text-sm text-brand-muted hover:text-orange transition-colors">
               View all <ArrowRight size={14} />
             </Link>
           </div>

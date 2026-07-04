@@ -2,7 +2,6 @@ import { useEffect, useCallback } from 'react';
 import { useFormContext, Controller, useWatch } from 'react-hook-form';
 import { ClientSelector } from '../clients/ClientSelector';
 import { LineItemsTable } from './LineItemsTable';
-import { useClientStore } from '../../store/clientStore';
 import type { InvoiceFormValues } from '../../schemas/invoiceSchema';
 import type { Client } from '../../types/client';
 import { calculateTotals } from '../../utils/invoiceTotals';
@@ -18,7 +17,6 @@ const DEFAULT_PAYMENT = {
 
 export function InvoiceForm() {
   const { register, control, setValue, formState: { errors } } = useFormContext<InvoiceFormValues>();
-  const clients = useClientStore((s) => s.clients);
 
   const [lineItems, discountType, discountValue, vatEnabled, vatRate, invoiceNumber] = useWatch({
     control,
@@ -59,8 +57,6 @@ export function InvoiceForm() {
     },
     [setValue]
   );
-
-  void clients;
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -107,28 +103,28 @@ export function InvoiceForm() {
         />
         <div className="grid grid-cols-1 gap-3 mt-4">
           <div>
-            <label className="field-label">Company Name *</label>
-            <input {...register('clientSnapshot.companyName')} className="input-field" placeholder="Client company name" />
+            <label htmlFor="client-company" className="field-label">Company Name *</label>
+            <input id="client-company" {...register('clientSnapshot.companyName')} className="input-field" placeholder="Client company name" autoComplete="organization" />
             {errors.clientSnapshot?.companyName && <p className="field-error">{errors.clientSnapshot.companyName.message}</p>}
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="field-label">Contact Name</label>
-              <input {...register('clientSnapshot.contactName')} className="input-field" />
+              <label htmlFor="client-contact" className="field-label">Contact Name</label>
+              <input id="client-contact" {...register('clientSnapshot.contactName')} className="input-field" autoComplete="name" />
             </div>
             <div>
-              <label className="field-label">Email</label>
-              <input {...register('clientSnapshot.email')} type="email" className="input-field" />
+              <label htmlFor="client-email" className="field-label">Email</label>
+              <input id="client-email" {...register('clientSnapshot.email')} type="email" className="input-field" autoComplete="email" inputMode="email" />
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="field-label">Phone</label>
-              <input {...register('clientSnapshot.phone')} className="input-field" />
+              <label htmlFor="client-phone" className="field-label">Phone</label>
+              <input id="client-phone" {...register('clientSnapshot.phone')} className="input-field" autoComplete="tel" inputMode="tel" />
             </div>
             <div>
-              <label className="field-label">Address / Country</label>
-              <input {...register('clientSnapshot.address')} className="input-field" />
+              <label htmlFor="client-address" className="field-label">Address / Country</label>
+              <input id="client-address" {...register('clientSnapshot.address')} className="input-field" autoComplete="street-address" />
             </div>
           </div>
         </div>

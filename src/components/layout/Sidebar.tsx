@@ -27,7 +27,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
 
   return (
     <aside
-      className="w-64 shrink-0 h-screen sticky top-0 flex flex-col border-r border-brand-border print:hidden"
+      className="relative w-64 shrink-0 h-screen sticky top-0 flex flex-col border-r border-brand-border print:hidden overflow-hidden"
       style={{ backgroundImage: `url(${navBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
       <div className="absolute inset-0 bg-brand-night/88 pointer-events-none" />
@@ -44,7 +44,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
       </div>
 
       {/* Nav */}
-      <nav className="relative flex-1 px-3 py-4 space-y-1">
+      <nav className="relative flex-1 px-3 py-4 space-y-1 overflow-y-auto">
         {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
