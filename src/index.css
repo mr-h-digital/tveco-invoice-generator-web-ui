@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-sans: 'Outfit', system-ui, sans-serif;
+
+  /* TVECO brand colours */
+  --color-orange: #FF6B00;
+  --color-orange-lt: #FF8C35;
+  --color-orange-dk: #CC5500;
+
+  --color-brand-night: #0A0C0F;
+  --color-brand-dark: #111318;
+  --color-brand-card: #181C23;
+  --color-brand-card2: #1E2530;
+  --color-brand-border: #252B35;
+  --color-brand-muted: #8A99AE;
+  --color-brand-text: #C8D4E0;
+  --color-brand-white: #F0F4F8;
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
+}
+
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  body {
+    background-color: #0A0C0F;
+    color: #C8D4E0;
+    font-family: 'Outfit', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    margin: 0;
+  }
+  #root {
+    min-height: 100svh;
+  }
+}
+
+@layer components {
+  .input-field {
+    width: 100%;
+    background-color: #1E2530;
+    border: 1px solid #252B35;
+    border-radius: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    font-size: 0.875rem;
+    color: #F0F4F8;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .input-field::placeholder {
+    color: #8A99AE;
+  }
+  .input-field:focus {
+    border-color: #FF6B00;
+  }
+  select.input-field {
+    appearance: none;
+    cursor: pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3E%3Cpath stroke='%238A99AE' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 16px;
+    padding-right: 32px;
+  }
+  .field-label {
+    display: block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.6875rem;
+    color: #8A99AE;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.375rem;
+  }
+  .field-error {
+    color: #EF4444;
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+  }
+}
+
+/* ═══ PRINT STYLES ═══════════════════════════════════════════════════════ */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 6mm;
+  }
+
+  html, body, #root,
+  body > div, body > div > div,
+  main, .flex-1 {
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    background: #ffffff !important;
+  }
+
+  .print\:hidden,
+  nav, aside, header,
+  .inv-watermark,
+  [data-sonner-toaster], [data-sonner-toast],
+  body > div:not(#root) {
+    display: none !important;
+  }
+
+  .invoice-detail-page-wrapper {
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  #invoice-print-area > div > div {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}

@@ -1,0 +1,95 @@
+import { NavLink } from 'react-router-dom';
+import { LayoutDashboard, FileText, Users, LogOut } from 'lucide-react';
+import { clsx } from 'clsx';
+import { toast } from 'sonner';
+import { useAuthStore } from '../../store/authStore';
+import tvecoLogo from '../../assets/tveco-logo.png';
+import mrhLogo from '../../assets/mrh-digital-logo.png';
+import navBg from '../../assets/tveco-nav-bg.jpg';
+
+const navItems = [
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/invoices', label: 'Invoices', icon: FileText },
+  { to: '/clients', label: 'Clients', icon: Users },
+];
+
+interface SidebarProps {
+  onNavClick?: () => void;
+}
+
+export function Sidebar({ onNavClick }: SidebarProps) {
+  const { user, logout } = useAuthStore();
+
+  function handleLogout() {
+    logout();
+    toast.success('Signed out');
+  }
+
+  return (
+    <aside
+      className="w-64 shrink-0 h-screen sticky top-0 flex flex-col border-r border-brand-border print:hidden"
+      style={{ backgroundImage: `url(${navBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+    >
+      <div className="absolute inset-0 bg-brand-night/88 pointer-events-none" />
+      {/* Logo */}
+      <div className="relative px-5 py-4 border-b border-brand-border/60">
+        <div className="flex items-center gap-3">
+          <img src={tvecoLogo} alt="TVECO" className="w-11 h-11 object-contain shrink-0"
+            style={{ filter: 'drop-shadow(0 0 8px rgba(255,107,0,0.3))' }} />
+          <div>
+            <p className="font-display text-xl text-brand-white leading-none tracking-wider">TVECO</p>
+            <p className="text-brand-muted text-xs leading-tight mt-0.5">Invoice Generator</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Nav */}
+      <nav className="relative flex-1 px-3 py-4 space-y-1">
+        {navItems.map(({ to, label, icon: Icon }) => (
+          <NavLink
+            key={to}
+            to={to}
+            onClick={onNavClick}
+            className={({ isActive }) =>
+              clsx(
+                'flex items-center gap-3 px-3 py-3 rounded-lg text-sm transition-colors',
+                isActive
+                  ? 'text-brand-dark font-medium'
+                  : 'text-brand-text hover:bg-white/5 hover:text-brand-white'
+              )
+            }
+            style={({ isActive }) => isActive ? { background: '#FF6B00', color: '#fff' } : {}}
+          >
+            <Icon size={18} />
+            {label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Bottom */}
+      <div className="relative px-3 pt-2 pb-3 border-t border-brand-border/60 space-y-3">
+        {/* User + logout */}
+        <div className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 group transition-colors">
+          <div className="min-w-0">
+            <p className="text-brand-text text-xs font-medium truncate">{user?.email ?? 'admin@tveco.co.za'}</p>
+            <p className="text-brand-muted text-xs opacity-70 capitalize">{user?.role ?? 'admin'}</p>
+          </div>
+          <button
+            onClick={handleLogout}
+            title="Sign out"
+            aria-label="Sign out"
+            className="p-2 rounded-md text-brand-muted hover:text-red-400 transition-colors"
+          >
+            <LogOut size={15} />
+          </button>
+        </div>
+
+        {/* MRH Digital credit */}
+        <div className="px-3 pb-1 flex items-center gap-2 opacity-50 hover:opacity-80 transition-opacity">
+          <span className="text-brand-muted text-[10px] shrink-0">Built by</span>
+          <img src={mrhLogo} alt="Mr. H Digital" className="h-5 w-auto object-contain" />
+        </div>
+      </div>
+    </aside>
+  );
+}
