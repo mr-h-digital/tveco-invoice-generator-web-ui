@@ -1,28 +1,119 @@
-# Dependencies
+# ── Dependencies ──────────────────────────────────────────────────────────────
 node_modules/
+.pnp
+.pnp.js
+.yarn/install-state.gz
 
-# Build output
+# ── Build output ───────────────────────────────────────────────────────────────
 dist/
+dist-ssr/
+build/
+out/
+.output/
 
-# Environment
+# ── Environment & secrets ──────────────────────────────────────────────────────
 .env
 .env.local
+.env.development
+.env.development.local
+.env.production
+.env.production.local
+.env.staging
+.env.staging.local
+.env.test
+.env.test.local
 .env.*.local
+*.pem
+*.key
+*.cert
 
-# Editor / OS
+# ── Claude Code & AI tooling ───────────────────────────────────────────────────
+.claude/
+.claude-flow/
+.claudeignore
+CLAUDE.md
+claude.json
+.cursorrules
+.cursorignore
+.aider*
+.continue/
+.codeium/
+.tabnine/
+.copilot/
+
+# ── Vite / TypeScript cache ────────────────────────────────────────────────────
+*.tsbuildinfo
+.vite/
+vite.config.ts.timestamp-*
+
+# ── Logs ───────────────────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ── Test coverage ──────────────────────────────────────────────────────────────
+coverage/
+*.lcov
+.nyc_output/
+playwright-report/
+test-results/
+
+# ── OS & editor artifacts ──────────────────────────────────────────────────────
+# macOS
 .DS_Store
+.DS_Store?
+._*
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+Icon?
+
+# Windows
 Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+
+# ── IDE & editor configs ───────────────────────────────────────────────────────
+# VSCode (keep extensions.json / settings shared if desired, exclude local overrides)
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.vscode/launch.json
+.vscode/*.code-workspace
+
+# JetBrains
+.idea/
+*.iml
+*.iws
+*.ipr
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
+*.sw?
 
-# Tooling
-.claude-flow/
+# Vim / Emacs
+*.swp
+*.swo
+.#*
+\#*#
 
-# Logs
-*.log
-npm-debug.log*
-
-# TypeScript cache
-*.tsbuildinfo
+# ── Misc ───────────────────────────────────────────────────────────────────────
+*.local
+.cache/
+.temp/
+.tmp/
+tmp/
+temp/
