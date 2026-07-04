@@ -30,6 +30,9 @@ interface Props {
   invoiceCount: number;
   clientCount: number;
   generatedDate: string;
+  periodLabel?: string;
+  periodFrom?: string;
+  periodTo?: string;
 }
 
 /* ── Design tokens ── */
@@ -119,6 +122,7 @@ export function AnalyticsPrintLayout({
   monthly, statusBreakdown, topClients, topServices,
   totalInvoiced, totalPaid, totalOutstanding, totalOverdue,
   collectionRate, avgValue, invoiceCount, clientCount, generatedDate,
+  periodLabel, periodFrom, periodTo,
 }: Props) {
 
   const paidPct        = totalInvoiced > 0 ? Math.round((totalPaid        / totalInvoiced) * 100) : 0;
@@ -150,6 +154,18 @@ export function AnalyticsPrintLayout({
           </div>
         </div>
         <div style={{ textAlign: 'right' }}>
+          {periodLabel && (
+            <>
+              <div style={{ fontFamily: head, fontSize: 8, color: orange, letterSpacing: '0.12em', textTransform: 'uppercase' as const, marginBottom: 2 }}>Period</div>
+              <div style={{ fontFamily: head, fontWeight: 700, fontSize: 12, color: '#F0F4F8' }}>{periodLabel}</div>
+              {periodFrom && periodTo && (
+                <div style={{ fontFamily: body, fontSize: 9, color: '#8A99AE', marginTop: 1 }}>
+                  {formatDate(periodFrom)} – {formatDate(periodTo)}
+                </div>
+              )}
+              <div style={{ height: 1, background: 'rgba(255,107,0,0.25)', margin: '6px 0' }} />
+            </>
+          )}
           <div style={{ fontFamily: head, fontSize: 8, color: orange, letterSpacing: '0.12em', textTransform: 'uppercase' as const, marginBottom: 3 }}>Generated</div>
           <div style={{ fontFamily: head, fontWeight: 600, fontSize: 11, color: '#F0F4F8' }}>{formatDate(generatedDate)}</div>
           <div style={{ fontFamily: body, fontSize: 9, color: '#8A99AE', marginTop: 2 }}>Timeline Vehicle Export Co. (Pty) Ltd</div>

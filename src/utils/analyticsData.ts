@@ -1,5 +1,73 @@
-import { format, parseISO, startOfMonth, isValid } from 'date-fns';
+import { format, parseISO, startOfMonth, isValid, subMonths, startOfYear, subYears } from 'date-fns';
 import type { Invoice } from '../types/invoice';
+
+/* ── Date range helpers ───────────────────────────────────────────────── */
+export interface DateRange {
+  from: string;   // ISO date yyyy-MM-dd
+  to:   string;   // ISO date yyyy-MM-dd
+  label: string;  // display label
+}
+
+export function todayStr(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+/** Filter invoices to those issued within [from, to] inclusive */
+export function filterByDateRange(invoices: Invoice[], range: DateRange): Invoice[] {
+  const from = parseISO(range.from);
+  const to   = parseISO(range.to);
+  return invoices.filter((inv) => {
+    try {
+      const d = parseISO(inv.issueDate);
+      return isValid(d) && d >= from && d <= to;
+    } catch { return false; }
+  });
+}
+
+/** Pre-built quick-select presets */
+export function buildPresets(): DateRange[] {
+  const today = new Date();
+  const y = today.getFullYear();
+  const todayStr = today.toISOString().split('T')[0];
+
+  return [
+    {
+      label: 'This Month',
+      from:  format(startOfMonth(today), 'yyyy-MM-dd'),
+      to:    todayStr,
+    },
+    {
+      label: 'Last 3 Months',
+      from:  format(subMonths(today, 3), 'yyyy-MM-dd'),
+      to:    todayStr,
+    },
+    {
+      label: 'Last 6 Months',
+      from:  format(subMonths(today, 6), 'yyyy-MM-dd'),
+      to:    todayStr,
+    },
+    {
+      label: 'Last 12 Months',
+      from:  format(subMonths(today, 12), 'yyyy-MM-dd'),
+      to:    todayStr,
+    },
+    {
+      label: `This Year (${y})`,
+      from:  format(startOfYear(today), 'yyyy-MM-dd'),
+      to:    todayStr,
+    },
+    {
+      label: `Last Year (${y - 1})`,
+      from:  format(startOfYear(subYears(today, 1)), 'yyyy-MM-dd'),
+      to:    format(new Date(y - 1, 11, 31), 'yyyy-MM-dd'),
+    },
+    {
+      label: 'All Time',
+      from:  '2020-01-01',
+      to:    todayStr,
+    },
+  ];
+}
 
 /* ── Revenue by month ─────────────────────────────────────────────────── */
 export interface MonthRevenue {
@@ -10,16 +78,20 @@ export interface MonthRevenue {
   overdue: number;
 }
 
-export function buildMonthlyRevenue(invoices: Invoice[], monthsBack = 7): MonthRevenue[] {
+export function buildMonthlyRevenue(invoices: Invoice[], range?: DateRange): MonthRevenue[] {
   const map = new Map<string, MonthRevenue>();
 
-  // Seed the last N months so empty months still appear
-  for (let i = monthsBack - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(1);
-    d.setMonth(d.getMonth() - i);
-    const key = format(d, 'MMM yy');
-    map.set(key, { month: key, invoiced: 0, paid: 0, outstanding: 0, overdue: 0 });
+  // Seed every month between from→to so empty months still appear
+  const fromDate = range ? parseISO(range.from) : subMonths(new Date(), 6);
+  const toDate   = range ? parseISO(range.to)   : new Date();
+
+  const cursor = new Date(startOfMonth(fromDate));
+  while (cursor <= toDate) {
+    const key = format(cursor, 'MMM yy');
+    if (!map.has(key)) {
+      map.set(key, { month: key, invoiced: 0, paid: 0, outstanding: 0, overdue: 0 });
+    }
+    cursor.setMonth(cursor.getMonth() + 1);
   }
 
   invoices.forEach((inv) => {
@@ -27,7 +99,7 @@ export function buildMonthlyRevenue(invoices: Invoice[], monthsBack = 7): MonthR
       const d = parseISO(inv.issueDate);
       if (!isValid(d)) return;
       const key = format(startOfMonth(d), 'MMM yy');
-      if (!map.has(key)) return;          // outside our window
+      if (!map.has(key)) return;
       const row = map.get(key)!;
       row.invoiced += inv.total;
       if (inv.status === 'PAID')    row.paid        += inv.total;

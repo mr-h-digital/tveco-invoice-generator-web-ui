@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Printer, TrendingUp, DollarSign, Clock, AlertCircle, Users, FileText, Target, BarChart2 } from 'lucide-react';
 import {
@@ -10,12 +10,14 @@ import { useClients } from '../hooks/useClients';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
 import { AnalyticsPrintLayout } from '../components/analytics/AnalyticsPrintLayout';
+import { DateRangeFilter } from '../components/analytics/DateRangeFilter';
 import { usePrint } from '../hooks/usePrint';
 import { formatCurrency } from '../utils/formatCurrency';
 import { todayISO } from '../utils/formatDate';
 import {
   buildMonthlyRevenue, buildStatusBreakdown, buildTopClients, buildTopServices,
-  collectionRate, avgInvoiceValue,
+  collectionRate, avgInvoiceValue, buildPresets, filterByDateRange,
+  type DateRange,
 } from '../utils/analyticsData';
 import dashboardBg from '../assets/tveco-dashboard-bg.jpg';
 
@@ -116,36 +118,43 @@ export function AnalyticsPage() {
   const { invoices } = useInvoices();
   const { clients }  = useClients();
   const { print }    = usePrint();
-  const [monthsBack, setMonthsBack] = useState(7);
 
-  /* ── Derived data — single pass for all totals ── */
-  const monthly    = buildMonthlyRevenue(invoices, monthsBack);
-  const statusData = buildStatusBreakdown(invoices);
-  const topClients = buildTopClients(invoices, 6);
-  const topServices = buildTopServices(invoices, 6);
-  const rate       = collectionRate(invoices);
-  const avg        = avgInvoiceValue(invoices);
+  // Default to "Last 6 Months" preset
+  const defaultRange: DateRange = buildPresets()[2];
+  const [range, setRange] = useState<DateRange>(defaultRange);
 
-  const { totalInvoiced, totalPaid, totalOutstanding, totalOverdue } = invoices.reduce(
-    (acc, inv) => {
-      acc.totalInvoiced += inv.total;
-      if (inv.status === 'PAID')    acc.totalPaid        += inv.total;
-      if (inv.status === 'SENT')    acc.totalOutstanding += inv.total;
-      if (inv.status === 'OVERDUE') acc.totalOverdue     += inv.total;
-      return acc;
-    },
-    { totalInvoiced: 0, totalPaid: 0, totalOutstanding: 0, totalOverdue: 0 }
-  );
+  // Filter invoices to selected date range
+  const filtered = useMemo(() => filterByDateRange(invoices, range), [invoices, range]);
+
+  /* ── Derived data — all computed from the filtered set ── */
+  const monthly     = useMemo(() => buildMonthlyRevenue(filtered, range), [filtered, range]);
+  const statusData  = useMemo(() => buildStatusBreakdown(filtered), [filtered]);
+  const topClients  = useMemo(() => buildTopClients(filtered, 6), [filtered]);
+  const topServices = useMemo(() => buildTopServices(filtered, 6), [filtered]);
+  const rate        = useMemo(() => collectionRate(filtered), [filtered]);
+  const avg         = useMemo(() => avgInvoiceValue(filtered), [filtered]);
+
+  const { totalInvoiced, totalPaid, totalOutstanding, totalOverdue } = useMemo(() =>
+    filtered.reduce(
+      (acc, inv) => {
+        acc.totalInvoiced += inv.total;
+        if (inv.status === 'PAID')    acc.totalPaid        += inv.total;
+        if (inv.status === 'SENT')    acc.totalOutstanding += inv.total;
+        if (inv.status === 'OVERDUE') acc.totalOverdue     += inv.total;
+        return acc;
+      },
+      { totalInvoiced: 0, totalPaid: 0, totalOutstanding: 0, totalOverdue: 0 }
+    ), [filtered]);
 
   const kpis = [
-    { label: 'Total Invoiced',   value: formatCurrency(totalInvoiced),   sub: `${invoices.length} invoices`,    icon: TrendingUp,  color: C.orange, delay: 0    },
-    { label: 'Total Collected',  value: formatCurrency(totalPaid),        sub: `${rate}% collection rate`,       icon: DollarSign,  color: C.green,  delay: 0.06 },
-    { label: 'Outstanding',      value: formatCurrency(totalOutstanding), sub: 'awaiting payment',               icon: Clock,       color: C.blue,   delay: 0.12 },
-    { label: 'Overdue',          value: formatCurrency(totalOverdue),     sub: 'requires attention',             icon: AlertCircle, color: C.red,    delay: 0.18 },
-    { label: 'Avg. Invoice',     value: formatCurrency(avg),              sub: 'per invoice',                    icon: BarChart2,   color: C.orange, delay: 0.24 },
-    { label: 'Active Clients',   value: String(clients.length),           sub: `${topClients.length} with revenue`, icon: Users,    color: C.purple, delay: 0.30 },
-    { label: 'Total Invoices',   value: String(invoices.length),          sub: 'all time',                       icon: FileText,    color: C.blue,   delay: 0.36 },
-    { label: 'Collection Rate',  value: `${rate}%`,                       sub: 'paid vs billed',                 icon: Target,      color: C.green,  delay: 0.42 },
+    { label: 'Total Invoiced',   value: formatCurrency(totalInvoiced),   sub: `${filtered.length} invoices`,       icon: TrendingUp,  color: C.orange, delay: 0    },
+    { label: 'Total Collected',  value: formatCurrency(totalPaid),        sub: `${rate}% collection rate`,          icon: DollarSign,  color: C.green,  delay: 0.06 },
+    { label: 'Outstanding',      value: formatCurrency(totalOutstanding), sub: 'awaiting payment',                  icon: Clock,       color: C.blue,   delay: 0.12 },
+    { label: 'Overdue',          value: formatCurrency(totalOverdue),     sub: 'requires attention',                icon: AlertCircle, color: C.red,    delay: 0.18 },
+    { label: 'Avg. Invoice',     value: formatCurrency(avg),              sub: 'per invoice',                       icon: BarChart2,   color: C.orange, delay: 0.24 },
+    { label: 'Active Clients',   value: String(clients.length),           sub: `${topClients.length} with revenue`, icon: Users,       color: C.purple, delay: 0.30 },
+    { label: 'Total Invoices',   value: String(filtered.length),          sub: `of ${invoices.length} all time`,    icon: FileText,    color: C.blue,   delay: 0.36 },
+    { label: 'Collection Rate',  value: `${rate}%`,                       sub: 'paid vs billed',                    icon: Target,      color: C.green,  delay: 0.42 },
   ];
 
   return (
@@ -153,21 +162,10 @@ export function AnalyticsPage() {
 
       <TopBar
         title="Analytics"
-        subtitle="Business performance overview"
+        subtitle={`${range.label} · ${filtered.length} invoice${filtered.length !== 1 ? 's' : ''}`}
         actions={
           <div className="flex items-center gap-2">
-            {/* Period selector */}
-            <select
-              value={monthsBack}
-              onChange={(e) => setMonthsBack(Number(e.target.value))}
-              className="input-field w-auto text-xs py-1.5"
-              aria-label="Select period"
-            >
-              <option value={3}>Last 3 months</option>
-              <option value={7}>Last 7 months</option>
-              <option value={12}>Last 12 months</option>
-            </select>
-            {/* Print / PDF */}
+            <DateRangeFilter value={range} onChange={setRange} />
             <button
               onClick={print}
               className="flex items-center gap-1.5 px-3 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
@@ -394,9 +392,12 @@ export function AnalyticsPage() {
           totalOverdue={totalOverdue}
           collectionRate={rate}
           avgValue={avg}
-          invoiceCount={invoices.length}
+          invoiceCount={filtered.length}
           clientCount={clients.length}
           generatedDate={todayISO()}
+          periodLabel={range.label}
+          periodFrom={range.from}
+          periodTo={range.to}
         />
       </div>
 
