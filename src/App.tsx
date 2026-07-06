@@ -10,6 +10,10 @@ import { InvoicesPage } from './pages/InvoicesPage';
 import { NewInvoicePage } from './pages/NewInvoicePage';
 import { EditInvoicePage } from './pages/EditInvoicePage';
 import { InvoiceDetailPage } from './pages/InvoiceDetailPage';
+import { QuotesPage } from './pages/QuotesPage';
+import { NewQuotePage } from './pages/NewQuotePage';
+import { EditQuotePage } from './pages/EditQuotePage';
+import { QuoteDetailPage } from './pages/QuoteDetailPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -68,6 +72,10 @@ export default function App() {
                       <Route path="/invoices/new" element={<AnimatedPage><NewInvoicePage /></AnimatedPage>} />
                       <Route path="/invoices/:id" element={<AnimatedPage><InvoiceDetailPage /></AnimatedPage>} />
                       <Route path="/invoices/:id/edit" element={<AnimatedPage><EditInvoicePage /></AnimatedPage>} />
+                      <Route path="/quotes" element={<AnimatedPage><QuotesPage /></AnimatedPage>} />
+                      <Route path="/quotes/new" element={<AnimatedPage><NewQuotePage /></AnimatedPage>} />
+                      <Route path="/quotes/:id" element={<AnimatedPage><QuoteDetailPage /></AnimatedPage>} />
+                      <Route path="/quotes/:id/edit" element={<AnimatedPage><EditQuotePage /></AnimatedPage>} />
                       <Route path="/clients" element={<AnimatedPage><ClientsPage /></AnimatedPage>} />
                       <Route path="/analytics" element={<AnimatedPage><AnalyticsPage /></AnimatedPage>} />
                       <Route path="*" element={<NotFoundPage />} />

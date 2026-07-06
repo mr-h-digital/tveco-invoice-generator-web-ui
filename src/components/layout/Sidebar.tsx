@@ -8,10 +8,11 @@ import mrhLogo from '../../assets/mrh-digital-logo.png';
 import navBg from '../../assets/tveco-nav-bg.jpg';
 
 const navItems = [
-  { to: '/dashboard',  label: 'Dashboard',  icon: LayoutDashboard },
-  { to: '/invoices',   label: 'Invoices',   icon: FileText },
-  { to: '/clients',    label: 'Clients',    icon: Users },
-  { to: '/analytics',  label: 'Analytics',  icon: BarChart2 },
+  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+  { to: '/invoices', label: 'Invoices', icon: FileText },
+  { to: '/quotes', label: 'Quotes', icon: FileText },
+  { to: '/clients', label: 'Clients', icon: Users },
+  { to: '/analytics', label: 'Analytics', icon: BarChart2 },
 ];
 
 interface SidebarProps {
