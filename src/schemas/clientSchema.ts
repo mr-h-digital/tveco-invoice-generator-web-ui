@@ -3,7 +3,7 @@ import { z } from 'zod';
 export const clientFormSchema = z.object({
   companyName: z.string().min(1, 'Company name is required'),
   contactName: z.string().min(1, 'Contact name is required'),
-  email: z.string().email('Valid email is required'),
+  email: z.union([z.string().email('Invalid email address'), z.literal('')]),
   phone: z.string(),
   address: z.string(),
 });
