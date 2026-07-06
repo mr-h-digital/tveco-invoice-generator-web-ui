@@ -282,7 +282,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
               border: '1px solid rgba(255,107,0,0.15)',
               borderRadius: 10, padding: '20px 28px',
               backdropFilter: 'blur(12px)',
-              display: 'flex', gap: 28, alignItems: 'center',
+              gap: 28, alignItems: 'center',
             }}
           >
             <StatCounter target={20} suffix="+"  label="Yrs Experience" delay={0.8} />
