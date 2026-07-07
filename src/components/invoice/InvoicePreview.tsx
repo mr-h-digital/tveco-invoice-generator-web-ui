@@ -2,6 +2,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import type { Invoice } from '../../types/invoice';
 import tvecoLogo from '../../assets/tveco-logo.png';
+import { TVECO_COMPANY_PROFILE } from '../../constants/companyProfile';
 
 interface InvoicePreviewProps {
   invoice: Partial<Invoice> & {
@@ -116,6 +117,8 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
           <SectionLabel>Billed From</SectionLabel>
           <p style={{ fontFamily: head, fontSize: 'clamp(13px,2vw,15px)', fontWeight: 700, color: C.white, margin: '0 0 6px', lineHeight: 1.3 }}>Timeline Vehicle Export Company (Pty) Ltd</p>
           <div style={{ fontFamily: body, fontSize: 12, color: C.muted, lineHeight: 1.8 }}>
+            <span>Reg No: {TVECO_COMPANY_PROFILE.registrationNumber}</span><br />
+            <span>Customs Code: {TVECO_COMPANY_PROFILE.customsCode}</span><br />
             Thabo Seabi<br />
             7 Blinkblaar St, Zwartkop<br />
             Centurion, 0157, South Africa<br />

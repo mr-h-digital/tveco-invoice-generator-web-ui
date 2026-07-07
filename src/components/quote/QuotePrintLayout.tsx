@@ -2,6 +2,7 @@ import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import type { Quote } from '../../types/quote';
 import tvecoLogo from '../../assets/tveco-logo.png';
+import { TVECO_COMPANY_PROFILE } from '../../constants/companyProfile';
 
 interface Props {
   quote: Quote;
@@ -106,6 +107,10 @@ export function QuotePrintLayout({ quote }: Props) {
             Timeline Vehicle Export Company (Pty) Ltd
           </div>
           <div style={{ fontSize: 12, color: sub, lineHeight: 1.8 }}>
+            Reg No: {TVECO_COMPANY_PROFILE.registrationNumber}
+            <br />
+            Customs Code: {TVECO_COMPANY_PROFILE.customsCode}
+            <br />
             Thabo Seabi
             <br />
             7 Blinkblaar St, Zwartkop, Centurion, 0157
