@@ -270,6 +270,26 @@ The production build outputs to `dist/` — a fully static bundle that can be de
 
 ---
 
+## Android Install (PWA)
+
+This app is now configured as a **Progressive Web App (PWA)** and can be installed on Android.
+
+### Requirements
+
+- Deploy the production build over **HTTPS** (or use localhost for testing)
+- Open the deployed URL in Chrome on Android
+
+### Install steps
+
+1. Open the app in Chrome
+2. Tap the browser menu (`⋮`)
+3. Tap **Install app** (or **Add to Home screen**)
+4. Confirm install
+
+The installed app launches in standalone mode and caches core assets for faster repeat loads.
+
+---
+
 ## Brand Colours
 
 | Token | Hex | Usage |
