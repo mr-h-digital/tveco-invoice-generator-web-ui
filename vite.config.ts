@@ -3,11 +3,12 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
-const basePath = '/tveco-invoice-generator-web-ui/'
+const basePath = process.env.VITE_BASE_PATH ?? './'
+const normalizedBasePath = basePath.endsWith('/') ? basePath : `${basePath}/`
 
 export default defineConfig({
-  // Repo name as base path for GitHub Pages
-  base: basePath,
+  // Use relative base for native builds; override with VITE_BASE_PATH for hosted web paths.
+  base: normalizedBasePath,
   plugins: [
     react(),
     tailwindcss(),
@@ -29,8 +30,8 @@ export default defineConfig({
         background_color: '#0A0C0F',
         display: 'standalone',
         orientation: 'portrait',
-        scope: basePath,
-        start_url: `${basePath}#/`,
+        scope: normalizedBasePath,
+        start_url: `${normalizedBasePath}#/`,
         icons: [
           {
             src: 'android-icon-192.png',
@@ -51,7 +52,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        navigateFallback: `${basePath}index.html`,
+        navigateFallback: `${normalizedBasePath}index.html`,
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
       },
     }),
