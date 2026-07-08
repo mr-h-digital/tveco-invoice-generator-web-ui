@@ -192,7 +192,12 @@ export function InvoiceForm() {
           <div className="border border-brand-border rounded-lg p-3 space-y-2">
             <label className="field-label">Discount</label>
             <div className="flex gap-2">
-              <select {...register('discountType')} className="input-field w-36">
+              <select
+                {...register('discountType', {
+                  setValueAs: (value) => (value === '' ? null : value),
+                })}
+                className="input-field w-36"
+              >
                 <option value="">None</option>
                 <option value="AMOUNT">Amount (R)</option>
                 <option value="PERCENT">Percent (%)</option>

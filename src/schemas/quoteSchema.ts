@@ -1,5 +1,10 @@
 import { z } from 'zod';
 
+const optionalDiscountTypeSchema = z.preprocess(
+  (value) => (value === '' || value === undefined ? null : value),
+  z.enum(['AMOUNT', 'PERCENT']).nullable()
+);
+
 export const quoteLineItemSchema = z.object({
   id: z.string(),
   name: z.string().min(1, 'Description is required'),
@@ -26,7 +31,7 @@ export const quoteFormSchema = z.object({
   clientId: z.string().nullable(),
   clientSnapshot: quoteClientSnapshotSchema,
   lineItems: z.array(quoteLineItemSchema).min(1, 'At least one line item is required'),
-  discountType: z.enum(['AMOUNT', 'PERCENT']).nullable(),
+  discountType: optionalDiscountTypeSchema,
   discountValue: z.number().min(0),
   vatEnabled: z.boolean(),
   vatRate: z.number(),
