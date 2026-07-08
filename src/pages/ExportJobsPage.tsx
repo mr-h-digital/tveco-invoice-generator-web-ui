@@ -261,6 +261,22 @@ export function ExportJobsPage() {
     toast.success('Document removed');
   }
 
+  async function handleDownloadVaultDocument(doc: ExportJob['vaultDocuments'][number]) {
+    const url = await documentVaultStorageService.resolveDownloadUrl(doc);
+    if (!url) {
+      toast.error('Download link is not available for this document');
+      return;
+    }
+
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = doc.name;
+    anchor.rel = 'noopener';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  }
+
   async function handleDispatchOutbox() {
     const result = await dispatchOutbox();
     if (result.skipped) {
@@ -527,14 +543,13 @@ export function ExportJobsPage() {
                                   >
                                     {doc.visibleToClient ? <Eye size={12} /> : <EyeOff size={12} className="text-brand-muted" />}
                                   </button>
-                                  <a
-                                    href={documentVaultStorageService.getDownloadUrl(doc) ?? '#'}
-                                    download={doc.name}
+                                  <button
+                                    onClick={() => handleDownloadVaultDocument(doc)}
                                     className="p-1.5 rounded-md border border-brand-border hover:bg-brand-card2 transition-colors"
                                     title="Download"
                                   >
                                     <Download size={12} />
-                                  </a>
+                                  </button>
                                   <button
                                     onClick={() => handleDeleteVaultDocument(job.id, doc.id)}
                                     className="p-1.5 rounded-md border border-brand-border hover:bg-brand-card2 transition-colors"

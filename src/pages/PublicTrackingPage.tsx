@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Search, Truck, CheckCircle2, Circle, Download } from 'lucide-react';
+import { toast } from 'sonner';
 import { useExportJobs } from '../hooks/useExportJobs';
 import { formatDate, formatDateShort } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
@@ -18,6 +19,22 @@ export function PublicTrackingPage() {
 
   const paidTotal = job ? job.paymentMilestones.filter((m) => m.paid).reduce((sum, m) => sum + m.amount, 0) : 0;
   const visibleVaultDocuments = job ? job.vaultDocuments.filter((d) => d.visibleToClient) : [];
+
+  async function handleDownloadDocument(doc: NonNullable<typeof job>['vaultDocuments'][number]) {
+    const url = await documentVaultStorageService.resolveDownloadUrl(doc);
+    if (!url) {
+      toast.error('Download link is not available right now. Please contact TVECO support.');
+      return;
+    }
+
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = doc.name;
+    anchor.rel = 'noopener';
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+  }
 
   return (
     <PageBackground image={invoicesBg} position="center 25%">
@@ -127,14 +144,13 @@ export function PublicTrackingPage() {
                           <p className="text-sm text-brand-text truncate">{doc.name}</p>
                           <p className="text-[11px] text-brand-muted">{doc.category}</p>
                         </div>
-                        <a
-                          href={documentVaultStorageService.getDownloadUrl(doc) ?? '#'}
-                          download={doc.name}
+                        <button
+                          onClick={() => handleDownloadDocument(doc)}
                           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-brand-border text-xs text-brand-text hover:bg-brand-card transition-colors"
                         >
                           <Download size={12} />
                           Download
-                        </a>
+                        </button>
                       </div>
                     ))}
                   </div>

@@ -248,6 +248,10 @@ VITE_PUBLIC_APP_URL=https://app.tveco.co.za
 # Optional: remote document vault upload webhook
 VITE_DOC_UPLOAD_WEBHOOK_URL=https://your-service.example.com/tveco/doc-upload
 VITE_DOC_UPLOAD_WEBHOOK_SECRET=your_doc_upload_secret
+
+# Optional: signed URL generator for private object storage downloads
+VITE_DOC_SIGN_WEBHOOK_URL=https://your-service.example.com/tveco/doc-sign
+VITE_DOC_SIGN_WEBHOOK_SECRET=your_doc_sign_secret
 ```
 
 When `VITE_USE_API=false` (the default), all data is stored in `localStorage` and no backend is required.
@@ -296,6 +300,32 @@ Expected JSON response:
 {
 	"fileUrl": "https://cdn.example.com/docs/abc123.pdf",
 	"objectKey": "docs/abc123.pdf"
+}
+```
+
+### Signed Download Webhook Contract (Private Buckets)
+
+When `VITE_DOC_SIGN_WEBHOOK_URL` is configured and a vault document has an `objectKey`, downloads request a fresh signed URL.
+
+Request (`application/json`):
+
+```json
+{
+	"objectKey": "docs/abc123.pdf"
+}
+```
+
+Optional header:
+
+```text
+x-tveco-doc-sign-secret: <VITE_DOC_SIGN_WEBHOOK_SECRET>
+```
+
+Expected JSON response:
+
+```json
+{
+	"signedUrl": "https://storage.example.com/signed?..."
 }
 ```
 
