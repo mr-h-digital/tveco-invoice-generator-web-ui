@@ -16,6 +16,7 @@ import { EditQuotePage } from './pages/EditQuotePage';
 import { QuoteDetailPage } from './pages/QuoteDetailPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
+import { ExportJobsPage } from './pages/ExportJobsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuthStore } from './store/authStore';
 import { useOnboardingStore } from './store/onboardingStore';
@@ -83,6 +84,7 @@ export default function App() {
                       <Route path="/quotes/:id" element={<AnimatedPage><QuoteDetailPage /></AnimatedPage>} />
                       <Route path="/quotes/:id/edit" element={<AnimatedPage><EditQuotePage /></AnimatedPage>} />
                       <Route path="/clients" element={<AnimatedPage><ClientsPage /></AnimatedPage>} />
+                      <Route path="/exports" element={<AnimatedPage><ExportJobsPage /></AnimatedPage>} />
                       <Route path="/analytics" element={<AnimatedPage><AnalyticsPage /></AnimatedPage>} />
                       <Route path="*" element={<NotFoundPage />} />
                     </Routes>
