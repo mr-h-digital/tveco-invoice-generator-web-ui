@@ -94,7 +94,7 @@ export function ClientsPage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {clients.map((client, i) => (
                 <motion.div key={client.id} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} transition={{ delay: i * 0.05, duration: 0.3 }}>
-                  <ClientCard client={client} invoices={invoices} onEdit={setEditTarget} onDelete={setDeleteTarget} />
+                  <ClientCard client={client} invoices={invoices} quotes={quotes} onEdit={setEditTarget} onDelete={setDeleteTarget} />
                 </motion.div>
               ))}
             </div>
