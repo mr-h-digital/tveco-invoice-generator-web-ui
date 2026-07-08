@@ -1,7 +1,9 @@
 import { v4 as uuid } from 'uuid';
 import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import { todayISO, addDaysISO } from '../utils/formatDate';
+import api from './api';
 
+const USE_API = import.meta.env.VITE_USE_API === 'true';
 const STORAGE_KEY = 'tveco_export_jobs_v1';
 const TRACKING_WEBHOOK_URL = import.meta.env.VITE_TRACKING_WEBHOOK_URL?.trim();
 const TRACKING_WEBHOOK_SECRET = import.meta.env.VITE_TRACKING_WEBHOOK_SECRET?.trim();
@@ -255,6 +257,10 @@ async function fetchTrackedJobRemote(token: string): Promise<ExportJob | null> {
 
 export const exportJobService = {
   async getJobs(): Promise<ExportJob[]> {
+    if (USE_API) {
+      const res = await api.get<ExportJob[]>('/export-jobs');
+      return res.data.map(normalizeJob);
+    }
     return lsLoad();
   },
 
@@ -269,6 +275,11 @@ export const exportJobService = {
     estimatedArrivalDate?: string;
     notes?: string;
   }): Promise<ExportJob> {
+    if (USE_API) {
+      const res = await api.post<ExportJob>('/export-jobs', data);
+      return normalizeJob(res.data);
+    }
+
     const jobs = lsLoad();
     const now = new Date().toISOString();
     const issueDate = todayISO();
@@ -302,6 +313,11 @@ export const exportJobService = {
   },
 
   async updateJob(id: string, data: Partial<Omit<ExportJob, 'id' | 'createdAt' | 'jobNumber' | 'publicTrackingToken'>>): Promise<ExportJob> {
+    if (USE_API) {
+      const res = await api.patch<ExportJob>(`/export-jobs/${id}`, data);
+      return normalizeJob(res.data);
+    }
+
     const jobs = lsLoad();
     const idx = jobs.findIndex((j) => j.id === id);
     if (idx === -1) throw new Error(`Export job ${id} not found`);
@@ -323,12 +339,26 @@ export const exportJobService = {
   },
 
   async deleteJob(id: string): Promise<void> {
+    if (USE_API) {
+      await api.delete(`/export-jobs/${id}`);
+      return;
+    }
     lsSave(lsLoad().filter((j) => j.id !== id));
   },
 
   async getJobByTrackingToken(token: string): Promise<ExportJob | null> {
     const normalized = token.trim().toUpperCase();
     if (!normalized) return null;
+
+    if (USE_API) {
+      try {
+        const res = await api.get<ExportJob>(`/export-jobs/tracking/${encodeURIComponent(normalized)}`);
+        return normalizeJob(res.data);
+      } catch (error: any) {
+        if (error?.response?.status === 404) return null;
+        throw error;
+      }
+    }
 
     if (isRemoteTrackingEnabled()) {
       try {

@@ -1,6 +1,8 @@
 import { v4 as uuid } from 'uuid';
 import type { AppNotification, EmailOutboxNotification, NotificationEventType } from '../types/notification';
+import api from './api';
 
+const USE_API = import.meta.env.VITE_USE_API === 'true';
 const NOTIFICATIONS_KEY = 'tveco_notifications_v1';
 const EMAIL_OUTBOX_KEY = 'tveco_email_outbox_v1';
 const WEBHOOK_URL = import.meta.env.VITE_NOTIFICATION_WEBHOOK_URL?.trim();
@@ -50,15 +52,28 @@ function saveOutbox(outbox: EmailOutboxNotification[]) {
 
 export const notificationService = {
   async getNotifications(): Promise<AppNotification[]> {
+    if (USE_API) {
+      const res = await api.get<AppNotification[]>('/notifications');
+      return res.data;
+    }
     return loadNotifications().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
 
   async markAsRead(id: string): Promise<void> {
+    if (USE_API) {
+      await api.patch(`/notifications/${id}/read`, {});
+      return;
+    }
     const notifications = loadNotifications().map((n) => (n.id === id ? { ...n, read: true } : n));
     saveNotifications(notifications);
   },
 
   async emit(input: EmitNotificationInput): Promise<AppNotification> {
+    if (USE_API) {
+      const res = await api.post<AppNotification>('/notifications/emit', input);
+      return res.data;
+    }
+
     const notification: AppNotification = {
       id: uuid(),
       title: input.title,
@@ -91,10 +106,19 @@ export const notificationService = {
   },
 
   async unreadCount(): Promise<number> {
+    if (USE_API) {
+      const res = await api.get<{ count: number }>('/notifications/unread-count');
+      return res.data.count;
+    }
     return loadNotifications().filter((n) => !n.read).length;
   },
 
   async outboxStats(): Promise<{ pending: number; failed: number; sent: number }> {
+    if (USE_API) {
+      const res = await api.get<{ pending: number; failed: number; sent: number }>('/notifications/outbox/stats');
+      return res.data;
+    }
+
     const outbox = loadOutbox();
     return {
       pending: outbox.filter((m) => m.status === 'PENDING').length,
@@ -104,10 +128,19 @@ export const notificationService = {
   },
 
   async getOutbox(): Promise<EmailOutboxNotification[]> {
+    if (USE_API) {
+      const res = await api.get<EmailOutboxNotification[]>('/notifications/outbox');
+      return res.data;
+    }
     return loadOutbox().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
 
   async retryOutboxMessage(id: string): Promise<void> {
+    if (USE_API) {
+      await api.post(`/notifications/outbox/${id}/retry`, {});
+      return;
+    }
+
     const outbox = loadOutbox().map((item) => {
       if (item.id !== id) return item;
       return {
@@ -120,6 +153,11 @@ export const notificationService = {
   },
 
   async clearSentOutbox(): Promise<number> {
+    if (USE_API) {
+      const res = await api.delete<{ removed: number }>('/notifications/outbox/sent');
+      return res.data.removed;
+    }
+
     const outbox = loadOutbox();
     const kept = outbox.filter((item) => item.status !== 'SENT');
     saveOutbox(kept);
@@ -127,6 +165,11 @@ export const notificationService = {
   },
 
   async dispatchPendingOutbox(): Promise<{ sent: number; failed: number; skipped: boolean }> {
+    if (USE_API) {
+      const res = await api.post<{ sent: number; failed: number; skipped: boolean }>('/notifications/outbox/dispatch', {});
+      return res.data;
+    }
+
     if (!WEBHOOK_URL) {
       return { sent: 0, failed: 0, skipped: true };
     }
