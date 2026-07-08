@@ -93,7 +93,7 @@ export function LoginPage() {
               >
                 <div style={{ height: 1, width: 24, background: C.border }} />
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: 3, textTransform: 'uppercase', color: C.muted }}>
-                  Commercial operations platform
+                  Operations platform
                 </span>
                 <div style={{ height: 1, width: 24, background: C.border }} />
               </motion.div>

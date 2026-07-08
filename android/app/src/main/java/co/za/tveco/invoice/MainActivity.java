@@ -1,4 +1,4 @@
-package co.za.tveco.invoice;
+package co.za.tveco.operationshub;
 
 import com.getcapacitor.BridgeActivity;
 

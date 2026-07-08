@@ -1,10 +1,10 @@
 apply plugin: 'com.android.application'
 
 android {
-    namespace = "co.za.tveco.invoice"
+    namespace = "co.za.tveco.operationshub"
     compileSdk = rootProject.ext.compileSdkVersion
     defaultConfig {
-        applicationId "co.za.tveco.invoice"
+        applicationId "co.za.tveco.operationshub"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

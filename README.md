@@ -36,7 +36,6 @@ It is a full-featured single-page React application that enables TVECO staff to:
 - Dispatch and monitor operational notifications
 - Print or save professional PDFs and monitor performance via analytics
 
-This app was previously branded as TVECO Invoice Generator.
 
 All data is persisted in the browser via `localStorage` by default. A Spring Boot BFF backend can be enabled via an environment variable for production use.
 
