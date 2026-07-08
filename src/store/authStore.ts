@@ -5,7 +5,7 @@ import { clearAuthSession, loadAuthSession, saveAuthSession } from '../services/
 interface AuthStore {
   user: AuthUser | null;
   login: (email: string, password: string) => Promise<boolean>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>(() => ({
@@ -22,8 +22,12 @@ export const useAuthStore = create<AuthStore>(() => ({
     }
   },
 
-  logout: () => {
-    clearAuthSession();
-    useAuthStore.setState({ user: null });
+  logout: async () => {
+    try {
+      await authService.logout();
+    } finally {
+      clearAuthSession();
+      useAuthStore.setState({ user: null });
+    }
   },
 }));

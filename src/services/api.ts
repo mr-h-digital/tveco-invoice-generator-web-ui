@@ -2,7 +2,6 @@ import axios, { AxiosHeaders } from 'axios';
 import { toast } from 'sonner';
 import {
   applyRefreshedTokens,
-  canRefreshSession,
   clearAuthSession,
   isAccessTokenExpired,
   loadAuthSession,
@@ -14,6 +13,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api'
 
 const refreshApi = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
 
@@ -21,15 +21,14 @@ let refreshInFlight: Promise<string | null> | null = null;
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  withCredentials: true,
   headers: { 'Content-Type': 'application/json' },
 });
 
-async function refreshAccessToken(refreshToken: string): Promise<string | null> {
+async function refreshAccessToken(): Promise<string | null> {
   if (!refreshInFlight) {
     refreshInFlight = refreshApi
-      .post<{ data: AuthTokenRefreshPayload } | AuthTokenRefreshPayload>('/auth/refresh', {
-        refreshToken,
-      })
+      .post<{ data: AuthTokenRefreshPayload } | AuthTokenRefreshPayload>('/auth/refresh')
       .then((response) => {
         const payload = 'data' in response.data ? response.data.data : response.data;
         const currentSession = loadAuthSession();
@@ -56,12 +55,7 @@ api.interceptors.request.use(async (config) => {
   let token = session?.accessToken ?? null;
 
   if (session && token && isAccessTokenExpired(session)) {
-    if (canRefreshSession(session) && session.refreshToken) {
-      token = await refreshAccessToken(session.refreshToken);
-    } else {
-      clearAuthSession();
-      token = null;
-    }
+    token = await refreshAccessToken();
   }
 
   if (token) {

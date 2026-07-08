@@ -5,10 +5,10 @@ export const AUTH_STORAGE_KEY = 'tveco_auth';
 const DEFAULT_EXPIRY_SKEW_MS = 30_000;
 
 export interface AuthTokenRefreshPayload {
+  email: string;
+  role: 'admin';
   accessToken: string;
   expiresInSeconds: number;
-  refreshToken: string;
-  refreshExpiresInSeconds: number;
 }
 
 function isExpired(isoTime: string | null, skewMs = 0): boolean {
@@ -23,18 +23,7 @@ export function loadAuthSession(): AuthUser | null {
     const raw = localStorage.getItem(AUTH_STORAGE_KEY);
     if (!raw) return null;
 
-    const user = JSON.parse(raw) as AuthUser;
-    if (user.refreshToken && isExpired(user.refreshExpiresAt)) {
-      clearAuthSession();
-      return null;
-    }
-
-    if (!user.refreshToken && user.accessToken && isExpired(user.expiresAt)) {
-      clearAuthSession();
-      return null;
-    }
-
-    return user;
+    return JSON.parse(raw) as AuthUser;
   } catch {
     return null;
   }
@@ -53,17 +42,12 @@ export function isAccessTokenExpired(user: AuthUser, skewMs = DEFAULT_EXPIRY_SKE
   return isExpired(user.expiresAt, skewMs);
 }
 
-export function canRefreshSession(user: AuthUser, skewMs = DEFAULT_EXPIRY_SKEW_MS): boolean {
-  if (!user.refreshToken || !user.refreshExpiresAt) return false;
-  return !isExpired(user.refreshExpiresAt, skewMs);
-}
-
 export function applyRefreshedTokens(user: AuthUser, payload: AuthTokenRefreshPayload): AuthUser {
   return {
     ...user,
+    email: payload.email,
+    role: payload.role,
     accessToken: payload.accessToken,
     expiresAt: new Date(Date.now() + payload.expiresInSeconds * 1000).toISOString(),
-    refreshToken: payload.refreshToken,
-    refreshExpiresAt: new Date(Date.now() + payload.refreshExpiresInSeconds * 1000).toISOString(),
   };
 }

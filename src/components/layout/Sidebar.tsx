@@ -32,8 +32,8 @@ export function Sidebar({ onNavClick }: SidebarProps) {
   const setTutorialMode = useOnboardingStore((s) => s.setTutorialMode);
   const canResumeTour = !hasCompletedTour && lastTourStepIndex > 0;
 
-  function handleLogout() {
-    logout();
+  async function handleLogout() {
+    await logout();
     toast.success('Signed out');
   }
 
