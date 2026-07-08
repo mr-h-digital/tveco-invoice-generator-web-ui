@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet } from 'lucide-react';
+import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet, Send } from 'lucide-react';
 import { toast } from 'sonner';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
@@ -56,7 +56,15 @@ function requiredDocsStatus(job: ExportJob) {
 export function ExportJobsPage() {
   const { jobs, loading, addJob, advanceStatus, toggleDocument, togglePaymentMilestone, runPaymentReminderCheck } = useExportJobs();
   const { clients } = useClients();
-  const { notifications, markAsRead } = useNotifications();
+  const {
+    notifications,
+    markAsRead,
+    outboxPending,
+    outboxFailed,
+    outboxSent,
+    dispatchOutbox,
+    dispatchingOutbox,
+  } = useNotifications();
 
   const [filter, setFilter] = useState<ExportJobStatus | 'all'>('all');
   const [search, setSearch] = useState('');
@@ -186,6 +194,26 @@ export function ExportJobsPage() {
       return;
     }
     toast.success(`${count} payment reminder${count > 1 ? 's' : ''} queued`);
+  }
+
+  async function handleDispatchOutbox() {
+    const result = await dispatchOutbox();
+    if (result.skipped) {
+      toast.error('Email webhook not configured. Set VITE_NOTIFICATION_WEBHOOK_URL to enable dispatch.');
+      return;
+    }
+
+    if (result.sent === 0 && result.failed === 0) {
+      toast.success('No pending emails to dispatch');
+      return;
+    }
+
+    if (result.failed > 0) {
+      toast.error(`Dispatch complete: ${result.sent} sent, ${result.failed} failed`);
+      return;
+    }
+
+    toast.success(`Dispatch complete: ${result.sent} sent`);
   }
 
   return (
@@ -504,7 +532,17 @@ export function ExportJobsPage() {
         <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3 border-b border-brand-border">
             <h3 className="text-sm text-brand-white font-head">Notification Feed</h3>
-            <span className="text-xs text-brand-muted">Latest operational events</span>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-brand-muted">Pending: {outboxPending} · Failed: {outboxFailed} · Sent: {outboxSent}</span>
+              <button
+                onClick={handleDispatchOutbox}
+                disabled={dispatchingOutbox}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-brand-border text-xs text-brand-text enabled:hover:bg-brand-card2 disabled:opacity-40 transition-colors"
+              >
+                <Send size={12} />
+                {dispatchingOutbox ? 'Dispatching...' : 'Dispatch Emails'}
+              </button>
+            </div>
           </div>
           <div className="max-h-72 overflow-y-auto divide-y divide-brand-border">
             {notifications.length === 0 ? (

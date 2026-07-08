@@ -237,9 +237,35 @@ VITE_USE_API=true
 
 # Backend base URL (defaults to http://localhost:8080/api)
 VITE_API_URL=https://api.tveco.co.za/api
+
+# Optional: notification email webhook (for export status/payment emails)
+VITE_NOTIFICATION_WEBHOOK_URL=https://your-service.example.com/tveco/email
+VITE_NOTIFICATION_WEBHOOK_SECRET=your_shared_secret
 ```
 
 When `VITE_USE_API=false` (the default), all data is stored in `localStorage` and no backend is required.
+
+### Notification Email Webhook Payload
+
+When configured, clicking "Dispatch Emails" in the Export Jobs page posts pending outbox emails to your webhook:
+
+```json
+{
+	"id": "uuid",
+	"to": "client@example.com",
+	"subject": "TVECO Export Update: TVECO-EXP-2026-001",
+	"body": "Your export job is now in SHIPPING stage.",
+	"createdAt": "2026-07-08T10:00:00.000Z"
+}
+```
+
+Header (if secret configured):
+
+```text
+x-tveco-webhook-secret: <VITE_NOTIFICATION_WEBHOOK_SECRET>
+```
+
+Expected response: HTTP `2xx` for success.
 
 ---
 

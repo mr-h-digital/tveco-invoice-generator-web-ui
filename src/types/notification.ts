@@ -19,5 +19,8 @@ export interface EmailOutboxNotification {
   subject: string;
   body: string;
   createdAt: string;
-  status: 'PENDING';
+  status: 'PENDING' | 'SENT' | 'FAILED';
+  attempts: number;
+  sentAt?: string;
+  lastError?: string;
 }
