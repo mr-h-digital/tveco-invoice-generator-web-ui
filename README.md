@@ -239,6 +239,9 @@ VITE_USE_API=true
 # Backend base URL (defaults to http://localhost:8080/api)
 VITE_API_URL=https://api.tveco.co.za/api
 
+# Optional local-mode login password (used only when VITE_USE_API is false)
+VITE_ADMIN_PASSWORD=tveco2026
+
 # Optional: notification email webhook (for export status/payment emails)
 VITE_NOTIFICATION_WEBHOOK_URL=https://your-service.example.com/tveco/email
 VITE_NOTIFICATION_WEBHOOK_SECRET=your_shared_secret
@@ -263,11 +266,13 @@ When `VITE_USE_API=false` (the default), all data is stored in `localStorage` an
 
 When `VITE_USE_API=true`, the web app now uses BFF APIs for:
 
+- Auth login (`/api/auth/login`)
 - Invoices (`/api/invoices/*`)
 - Quotes (`/api/quotes/*`)
 - Clients (`/api/clients/*`)
 - Export Jobs (`/api/export-jobs/*`)
 - Notifications + outbox (`/api/notifications/*`)
+- Analytics (`/api/analytics`)
 
 ### BFF API Contracts Used By Frontend
 
