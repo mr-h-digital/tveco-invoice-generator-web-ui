@@ -3,6 +3,8 @@ import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import { todayISO, addDaysISO } from '../utils/formatDate';
 
 const STORAGE_KEY = 'tveco_export_jobs_v1';
+const TRACKING_WEBHOOK_URL = import.meta.env.VITE_TRACKING_WEBHOOK_URL?.trim();
+const TRACKING_WEBHOOK_SECRET = import.meta.env.VITE_TRACKING_WEBHOOK_SECRET?.trim();
 
 const STATUS_ORDER: ExportJobStatus[] = ['ENQUIRY', 'SOURCING', 'DOCUMENTATION', 'SHIPPING', 'DELIVERED'];
 
@@ -144,6 +146,41 @@ function normalizeMilestones(status: ExportJobStatus, milestones: ExportJob['mil
   });
 }
 
+function isRemoteTrackingEnabled() {
+  return !!TRACKING_WEBHOOK_URL;
+}
+
+async function fetchTrackedJobRemote(token: string): Promise<ExportJob | null> {
+  if (!TRACKING_WEBHOOK_URL) return null;
+
+  const headers: Record<string, string> = {
+    'content-type': 'application/json',
+  };
+
+  if (TRACKING_WEBHOOK_SECRET) {
+    headers['x-tveco-tracking-secret'] = TRACKING_WEBHOOK_SECRET;
+  }
+
+  const response = await fetch(TRACKING_WEBHOOK_URL, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ token }),
+  });
+
+  if (response.status === 404) return null;
+  if (!response.ok) {
+    throw new Error(`Tracking webhook failed with status ${response.status}`);
+  }
+
+  const payload = (await response.json()) as ExportJob | { job?: ExportJob | null } | null;
+  const rawJob = payload && typeof payload === 'object' && 'job' in payload ? payload.job ?? null : payload;
+
+  if (!rawJob) return null;
+  if (typeof rawJob !== 'object') return null;
+  if (!('id' in rawJob) || !('publicTrackingToken' in rawJob) || !('clientSnapshot' in rawJob)) return null;
+  return normalizeJob(rawJob as ExportJob);
+}
+
 export const exportJobService = {
   async getJobs(): Promise<ExportJob[]> {
     return lsLoad();
@@ -220,6 +257,15 @@ export const exportJobService = {
   async getJobByTrackingToken(token: string): Promise<ExportJob | null> {
     const normalized = token.trim().toUpperCase();
     if (!normalized) return null;
+
+    if (isRemoteTrackingEnabled()) {
+      try {
+        return await fetchTrackedJobRemote(normalized);
+      } catch {
+        // Fall back to local lookup when remote tracking is unavailable.
+      }
+    }
+
     const match = lsLoad().find((j) => j.publicTrackingToken.toUpperCase() === normalized);
     return match ?? null;
   },

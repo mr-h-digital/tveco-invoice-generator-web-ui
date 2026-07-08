@@ -252,6 +252,10 @@ VITE_DOC_UPLOAD_WEBHOOK_SECRET=your_doc_upload_secret
 # Optional: signed URL generator for private object storage downloads
 VITE_DOC_SIGN_WEBHOOK_URL=https://your-service.example.com/tveco/doc-sign
 VITE_DOC_SIGN_WEBHOOK_SECRET=your_doc_sign_secret
+
+# Optional: tracking token lookup webhook (for cross-device public tracking)
+VITE_TRACKING_WEBHOOK_URL=https://your-service.example.com/tveco/track
+VITE_TRACKING_WEBHOOK_SECRET=your_tracking_secret
 ```
 
 When `VITE_USE_API=false` (the default), all data is stored in `localStorage` and no backend is required.
@@ -330,6 +334,38 @@ Expected JSON response:
 	"signedUrl": "https://storage.example.com/signed?..."
 }
 ```
+
+### Public Tracking Webhook Contract
+
+When `VITE_TRACKING_WEBHOOK_URL` is configured, the client tracking page resolves tokens from your backend first and falls back to local browser data if the webhook fails.
+
+Request (`application/json`):
+
+```json
+{
+	"token": "TVC-9A1F0C"
+}
+```
+
+Optional header:
+
+```text
+x-tveco-tracking-secret: <VITE_TRACKING_WEBHOOK_SECRET>
+```
+
+Expected successful response (`200`):
+
+```json
+{
+	"job": {
+		"id": "job-001",
+		"jobNumber": "TVECO-EXP-2026-001",
+		"publicTrackingToken": "TVC-9A1F0C"
+	}
+}
+```
+
+You may also return the job object directly instead of wrapping in `job`. Return `404` when the token is not found.
 
 ---
 

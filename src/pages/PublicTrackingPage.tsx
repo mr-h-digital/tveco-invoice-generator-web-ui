@@ -1,21 +1,47 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Search, Truck, CheckCircle2, Circle, Download } from 'lucide-react';
 import { toast } from 'sonner';
-import { useExportJobs } from '../hooks/useExportJobs';
 import { formatDate, formatDateShort } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
 import { PageBackground } from '../components/layout/PageBackground';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { documentVaultStorageService } from '../services/documentVaultStorageService';
+import { exportJobService } from '../services/exportJobService';
+import type { ExportJob } from '../types/exportJob';
 
 export function PublicTrackingPage() {
   const params = useParams();
-  const { jobs } = useExportJobs();
   const [inputToken, setInputToken] = useState((params.token ?? '').toUpperCase());
+  const [job, setJob] = useState<ExportJob | null>(null);
+  const [loadingJob, setLoadingJob] = useState(false);
 
   const token = (params.token ?? '').toUpperCase();
-  const job = useMemo(() => jobs.find((j) => j.publicTrackingToken.toUpperCase() === token) ?? null, [jobs, token]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadJob() {
+      if (!token) {
+        if (active) {
+          setJob(null);
+          setLoadingJob(false);
+        }
+        return;
+      }
+
+      setLoadingJob(true);
+      const resolved = await exportJobService.getJobByTrackingToken(token);
+      if (!active) return;
+      setJob(resolved);
+      setLoadingJob(false);
+    }
+
+    loadJob();
+    return () => {
+      active = false;
+    };
+  }, [token]);
 
   const paidTotal = job ? job.paymentMilestones.filter((m) => m.paid).reduce((sum, m) => sum + m.amount, 0) : 0;
   const visibleVaultDocuments = job ? job.vaultDocuments.filter((d) => d.visibleToClient) : [];
@@ -72,6 +98,8 @@ export function PublicTrackingPage() {
 
           {!token ? (
             <div className="p-6 text-sm text-brand-muted">Enter a tracking token to view export progress.</div>
+          ) : loadingJob ? (
+            <div className="p-6 text-sm text-brand-muted">Looking up tracking token...</div>
           ) : !job ? (
             <div className="p-6 text-sm text-brand-muted">No export job found for token {token}. Please verify the token and try again.</div>
           ) : (

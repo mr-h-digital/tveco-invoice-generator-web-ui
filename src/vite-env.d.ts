@@ -9,6 +9,8 @@ interface ImportMetaEnv {
 	readonly VITE_DOC_UPLOAD_WEBHOOK_SECRET?: string;
 	readonly VITE_DOC_SIGN_WEBHOOK_URL?: string;
 	readonly VITE_DOC_SIGN_WEBHOOK_SECRET?: string;
+	readonly VITE_TRACKING_WEBHOOK_URL?: string;
+	readonly VITE_TRACKING_WEBHOOK_SECRET?: string;
 }
 
 interface ImportMeta {
