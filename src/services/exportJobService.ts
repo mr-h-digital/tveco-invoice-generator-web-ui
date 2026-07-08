@@ -26,6 +26,31 @@ function defaultDocuments() {
   ];
 }
 
+function buildPaymentMilestones(projectValue: number, issueDate: string) {
+  const roundedValue = Math.max(projectValue, 0);
+  const deposit = Math.round(roundedValue * 0.3 * 100) / 100;
+  const shipping = Math.round(roundedValue * 0.4 * 100) / 100;
+  const balance = Math.round((roundedValue - deposit - shipping) * 100) / 100;
+
+  return [
+    { key: 'deposit', label: 'Deposit (30%)', amount: deposit, dueDate: issueDate, paid: false, paidAt: null },
+    { key: 'shipping', label: 'Shipping Payment (40%)', amount: shipping, dueDate: addDaysISO(issueDate, 10), paid: false, paidAt: null },
+    { key: 'balance', label: 'Final Balance (30%)', amount: balance, dueDate: addDaysISO(issueDate, 28), paid: false, paidAt: null },
+  ];
+}
+
+function normalizeJob(job: ExportJob): ExportJob {
+  const projectValue = Number.isFinite(job.projectValue) ? job.projectValue : 0;
+  return {
+    ...job,
+    projectValue,
+    paymentMilestones:
+      Array.isArray(job.paymentMilestones) && job.paymentMilestones.length > 0
+        ? job.paymentMilestones
+        : buildPaymentMilestones(projectValue, job.createdAt.split('T')[0]),
+  };
+}
+
 const DEFAULT_EXPORT_JOBS: ExportJob[] = [
   {
     id: 'job-001',
@@ -41,6 +66,7 @@ const DEFAULT_EXPORT_JOBS: ExportJob[] = [
     destinationCountry: 'Zambia',
     vehicleDescription: 'Toyota Land Cruiser 200 Series',
     sourceChannel: 'Website',
+    projectValue: 52700,
     status: 'SHIPPING',
     milestones: [
       { key: 'enquiry', label: 'Enquiry Received', completedAt: '2026-06-01T08:00:00.000Z' },
@@ -55,6 +81,11 @@ const DEFAULT_EXPORT_JOBS: ExportJob[] = [
       { key: 'sadac', label: 'SADAC Certificate', required: false, completed: true },
       { key: 'invoice', label: 'Commercial Invoice', required: true, completed: true },
       { key: 'customs', label: 'Customs Pack', required: true, completed: true },
+    ],
+    paymentMilestones: [
+      { key: 'deposit', label: 'Deposit (30%)', amount: 15810, dueDate: '2026-06-01', paid: true, paidAt: '2026-06-02T08:00:00.000Z' },
+      { key: 'shipping', label: 'Shipping Payment (40%)', amount: 21080, dueDate: '2026-06-11', paid: true, paidAt: '2026-06-11T14:00:00.000Z' },
+      { key: 'balance', label: 'Final Balance (30%)', amount: 15810, dueDate: '2026-06-29', paid: false, paidAt: null },
     ],
     estimatedDepartureDate: '2026-06-12',
     estimatedArrivalDate: '2026-07-05',
@@ -71,7 +102,10 @@ function lsLoad(): ExportJob[] {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_EXPORT_JOBS));
       return DEFAULT_EXPORT_JOBS;
     }
-    return JSON.parse(raw) as ExportJob[];
+    const parsed = JSON.parse(raw) as ExportJob[];
+    const normalized = parsed.map(normalizeJob);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    return normalized;
   } catch {
     return DEFAULT_EXPORT_JOBS;
   }
@@ -114,6 +148,7 @@ export const exportJobService = {
     destinationCountry: string;
     vehicleDescription: string;
     sourceChannel: ExportJob['sourceChannel'];
+    projectValue: number;
     estimatedDepartureDate?: string;
     estimatedArrivalDate?: string;
     notes?: string;
@@ -130,12 +165,14 @@ export const exportJobService = {
       destinationCountry: data.destinationCountry,
       vehicleDescription: data.vehicleDescription,
       sourceChannel: data.sourceChannel,
+      projectValue: data.projectValue,
       status: 'ENQUIRY',
       milestones: [
         { key: 'enquiry', label: 'Enquiry Received', completedAt: now },
         ...defaultMilestones().slice(1),
       ],
       documents: defaultDocuments(),
+      paymentMilestones: buildPaymentMilestones(data.projectValue, issueDate),
       estimatedDepartureDate: data.estimatedDepartureDate || addDaysISO(issueDate, 7),
       estimatedArrivalDate: data.estimatedArrivalDate || addDaysISO(issueDate, 35),
       notes: data.notes ?? '',
@@ -168,5 +205,12 @@ export const exportJobService = {
 
   async deleteJob(id: string): Promise<void> {
     lsSave(lsLoad().filter((j) => j.id !== id));
+  },
+
+  async getJobByTrackingToken(token: string): Promise<ExportJob | null> {
+    const normalized = token.trim().toUpperCase();
+    if (!normalized) return null;
+    const match = lsLoad().find((j) => j.publicTrackingToken.toUpperCase() === normalized);
+    return match ?? null;
   },
 };

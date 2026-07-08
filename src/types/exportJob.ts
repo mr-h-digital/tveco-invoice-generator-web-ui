@@ -18,6 +18,15 @@ export interface ExportJobDocument {
   completed: boolean;
 }
 
+export interface ExportJobPaymentMilestone {
+  key: string;
+  label: string;
+  amount: number;
+  dueDate: string;
+  paid: boolean;
+  paidAt: string | null;
+}
+
 export interface ExportJobClientSnapshot {
   companyName: string;
   contactName: string;
@@ -34,9 +43,11 @@ export interface ExportJob {
   destinationCountry: string;
   vehicleDescription: string;
   sourceChannel: 'Website' | 'WhatsApp' | 'Referral' | 'Direct';
+  projectValue: number;
   status: ExportJobStatus;
   milestones: ExportJobMilestone[];
   documents: ExportJobDocument[];
+  paymentMilestones: ExportJobPaymentMilestone[];
   estimatedDepartureDate: string;
   estimatedArrivalDate: string;
   notes: string;

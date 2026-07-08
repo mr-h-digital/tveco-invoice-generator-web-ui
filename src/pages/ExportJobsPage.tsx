@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet } from 'lucide-react';
 import { toast } from 'sonner';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
@@ -8,9 +9,11 @@ import { EmptyState } from '../components/shared/EmptyState';
 import { Modal } from '../components/shared/Modal';
 import { useExportJobs } from '../hooks/useExportJobs';
 import { useClients } from '../hooks/useClients';
+import { useNotifications } from '../hooks/useNotifications';
 import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { formatDateShort, todayISO } from '../utils/formatDate';
+import { formatCurrency } from '../utils/formatCurrency';
 
 const STATUS_LABELS: Record<ExportJobStatus, string> = {
   ENQUIRY: 'Enquiry',
@@ -51,8 +54,9 @@ function requiredDocsStatus(job: ExportJob) {
 }
 
 export function ExportJobsPage() {
-  const { jobs, loading, addJob, advanceStatus, toggleDocument } = useExportJobs();
+  const { jobs, loading, addJob, advanceStatus, toggleDocument, togglePaymentMilestone, runPaymentReminderCheck } = useExportJobs();
   const { clients } = useClients();
+  const { notifications, markAsRead } = useNotifications();
 
   const [filter, setFilter] = useState<ExportJobStatus | 'all'>('all');
   const [search, setSearch] = useState('');
@@ -68,6 +72,7 @@ export function ExportJobsPage() {
     sourceChannel: 'Website' as ExportJob['sourceChannel'],
     estimatedDepartureDate: todayISO(),
     estimatedArrivalDate: '',
+    projectValue: '',
     notes: '',
   });
 
@@ -110,8 +115,9 @@ export function ExportJobsPage() {
     const phone = draft.phone.trim();
     const destinationCountry = draft.destinationCountry.trim();
     const vehicleDescription = draft.vehicleDescription.trim();
+    const projectValue = Number(draft.projectValue);
 
-    if (!companyName || !contactName || !email || !phone || !destinationCountry || !vehicleDescription) {
+    if (!companyName || !contactName || !email || !phone || !destinationCountry || !vehicleDescription || !Number.isFinite(projectValue) || projectValue <= 0) {
       toast.error('Please complete all required fields');
       return;
     }
@@ -122,6 +128,7 @@ export function ExportJobsPage() {
       destinationCountry,
       vehicleDescription,
       sourceChannel: draft.sourceChannel,
+      projectValue,
       estimatedDepartureDate: draft.estimatedDepartureDate,
       estimatedArrivalDate: draft.estimatedArrivalDate || undefined,
       notes: draft.notes,
@@ -140,6 +147,7 @@ export function ExportJobsPage() {
       sourceChannel: 'Website',
       estimatedDepartureDate: todayISO(),
       estimatedArrivalDate: '',
+      projectValue: '',
       notes: '',
     });
   }
@@ -162,22 +170,49 @@ export function ExportJobsPage() {
     toast.success('Document checklist updated');
   }
 
+  async function handleTogglePayment(jobId: string, key: string) {
+    const updated = await togglePaymentMilestone(jobId, key);
+    if (!updated) {
+      toast.error('Could not update payment milestone');
+      return;
+    }
+    toast.success('Payment milestone updated');
+  }
+
+  async function handleRunReminders() {
+    const count = await runPaymentReminderCheck();
+    if (count === 0) {
+      toast.success('No overdue payment milestones found');
+      return;
+    }
+    toast.success(`${count} payment reminder${count > 1 ? 's' : ''} queued`);
+  }
+
   return (
     <PageBackground image={invoicesBg} position="center 25%">
       <TopBar
         title="Export Jobs"
         subtitle={`${jobs.length} active pipeline records`}
         actions={
-          <button
-            data-tour-id="exports-new-button"
-            onClick={() => setModalOpen(true)}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
-            style={{ background: '#FF6B00' }}
-          >
-            <Plus size={16} />
-            <span className="hidden sm:inline">New Export Job</span>
-            <span className="sm:hidden">New</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              data-tour-id="exports-new-button"
+              onClick={() => setModalOpen(true)}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+              style={{ background: '#FF6B00' }}
+            >
+              <Plus size={16} />
+              <span className="hidden sm:inline">New Export Job</span>
+              <span className="sm:hidden">New</span>
+            </button>
+            <button
+              onClick={handleRunReminders}
+              className="hidden sm:flex items-center gap-2 px-3 sm:px-4 py-2 text-brand-text text-sm font-medium rounded-lg border border-brand-border hover:bg-brand-card2 transition-colors"
+            >
+              <Bell size={15} />
+              Run Reminders
+            </button>
+          </div>
         }
       />
 
@@ -300,6 +335,32 @@ export function ExportJobsPage() {
                         </p>
                       </div>
 
+                      <div>
+                        <p className="text-xs text-brand-muted mb-2">Payment Milestones</p>
+                        <div className="space-y-1.5">
+                          {job.paymentMilestones.map((ms) => (
+                            <button
+                              key={ms.key}
+                              onClick={() => handleTogglePayment(job.id, ms.key)}
+                              className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-md border border-brand-border text-left hover:bg-brand-card2 transition-colors"
+                            >
+                              <div className="flex items-center gap-2 min-w-0">
+                                {ms.paid ? (
+                                  <CheckCircle2 size={14} style={{ color: '#22C55E' }} />
+                                ) : (
+                                  <Wallet size={14} className="text-brand-muted" />
+                                )}
+                                <div className="min-w-0">
+                                  <p className="text-xs text-brand-text truncate">{ms.label}</p>
+                                  <p className="text-[11px] text-brand-muted">Due {formatDateShort(ms.dueDate)}</p>
+                                </div>
+                              </div>
+                              <span className="text-xs font-head text-brand-white">{formatCurrency(ms.amount)}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
                       <div className="flex flex-wrap items-center gap-2">
                         <button
                           onClick={() => handleAdvanceStatus(job.id)}
@@ -311,6 +372,13 @@ export function ExportJobsPage() {
                           <ArrowRight size={13} />
                         </button>
                         <span className="text-xs text-brand-muted">Tracking: {job.publicTrackingToken}</span>
+                        <Link
+                          to={`/track/${job.publicTrackingToken}`}
+                          className="text-xs hover:opacity-80"
+                          style={{ color: '#FF6B00' }}
+                        >
+                          Open portal
+                        </Link>
                       </div>
                     </div>
                   </motion.div>
@@ -385,6 +453,19 @@ export function ExportJobsPage() {
             </div>
           </div>
 
+          <div>
+            <label className="block text-xs text-brand-muted mb-1">Project Value (ZAR) *</label>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              value={draft.projectValue}
+              onChange={(e) => setDraft((p) => ({ ...p, projectValue: e.target.value }))}
+              className="input-field text-sm"
+              placeholder="e.g. 52700"
+            />
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs text-brand-muted mb-1">Estimated Departure</label>
@@ -418,6 +499,35 @@ export function ExportJobsPage() {
           </div>
         </div>
       </Modal>
+
+      <div className="px-4 sm:px-6 lg:px-8 pb-6">
+        <div className="bg-brand-card border border-brand-border rounded-xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-brand-border">
+            <h3 className="text-sm text-brand-white font-head">Notification Feed</h3>
+            <span className="text-xs text-brand-muted">Latest operational events</span>
+          </div>
+          <div className="max-h-72 overflow-y-auto divide-y divide-brand-border">
+            {notifications.length === 0 ? (
+              <div className="p-4 text-sm text-brand-muted">No notifications yet.</div>
+            ) : (
+              notifications.slice(0, 10).map((n) => (
+                <button
+                  key={n.id}
+                  onClick={() => markAsRead(n.id)}
+                  className="w-full text-left px-4 py-3 hover:bg-brand-card2 transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2 mb-1">
+                    <p className="text-sm text-brand-white font-medium truncate">{n.title}</p>
+                    {!n.read && <span className="w-2 h-2 rounded-full" style={{ background: '#FF6B00' }} />}
+                  </div>
+                  <p className="text-xs text-brand-text">{n.message}</p>
+                  <p className="text-[11px] text-brand-muted mt-1">{formatDateShort(n.createdAt.split('T')[0])}</p>
+                </button>
+              ))
+            )}
+          </div>
+        </div>
+      </div>
     </PageBackground>
   );
 }

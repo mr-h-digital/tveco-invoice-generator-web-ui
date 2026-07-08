@@ -17,6 +17,7 @@ import { QuoteDetailPage } from './pages/QuoteDetailPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ExportJobsPage } from './pages/ExportJobsPage';
+import { PublicTrackingPage } from './pages/PublicTrackingPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuthStore } from './store/authStore';
 import { useOnboardingStore } from './store/onboardingStore';
@@ -42,6 +43,31 @@ function AnimatedPage({ children }: { children: React.ReactNode }) {
   );
 }
 
+function PrivateAppRoutes() {
+  return (
+    <AppShell>
+      <AnimatePresence mode="wait">
+        <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<AnimatedPage><DashboardPage /></AnimatedPage>} />
+          <Route path="/invoices" element={<AnimatedPage><InvoicesPage /></AnimatedPage>} />
+          <Route path="/invoices/new" element={<AnimatedPage><NewInvoicePage /></AnimatedPage>} />
+          <Route path="/invoices/:id" element={<AnimatedPage><InvoiceDetailPage /></AnimatedPage>} />
+          <Route path="/invoices/:id/edit" element={<AnimatedPage><EditInvoicePage /></AnimatedPage>} />
+          <Route path="/quotes" element={<AnimatedPage><QuotesPage /></AnimatedPage>} />
+          <Route path="/quotes/new" element={<AnimatedPage><NewQuotePage /></AnimatedPage>} />
+          <Route path="/quotes/:id" element={<AnimatedPage><QuoteDetailPage /></AnimatedPage>} />
+          <Route path="/quotes/:id/edit" element={<AnimatedPage><EditQuotePage /></AnimatedPage>} />
+          <Route path="/clients" element={<AnimatedPage><ClientsPage /></AnimatedPage>} />
+          <Route path="/exports" element={<AnimatedPage><ExportJobsPage /></AnimatedPage>} />
+          <Route path="/analytics" element={<AnimatedPage><AnalyticsPage /></AnimatedPage>} />
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </AnimatePresence>
+    </AppShell>
+  );
+}
+
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const user = useAuthStore((s) => s.user);
@@ -62,49 +88,48 @@ export default function App() {
         transition={{ duration: 0.45, ease: 'easeOut' }}
         style={{ visibility: splashDone ? 'visible' : 'hidden' }}
       >
-        <AnimatePresence mode="wait">
-          {!user ? (
-            <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <LoginPage />
-            </motion.div>
-          ) : (
-            <motion.div key="app" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-              <BrowserRouter>
-                <AppShell>
-                  <AnimatePresence mode="wait">
-                    <Routes>
-                      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                      <Route path="/dashboard" element={<AnimatedPage><DashboardPage /></AnimatedPage>} />
-                      <Route path="/invoices" element={<AnimatedPage><InvoicesPage /></AnimatedPage>} />
-                      <Route path="/invoices/new" element={<AnimatedPage><NewInvoicePage /></AnimatedPage>} />
-                      <Route path="/invoices/:id" element={<AnimatedPage><InvoiceDetailPage /></AnimatedPage>} />
-                      <Route path="/invoices/:id/edit" element={<AnimatedPage><EditInvoicePage /></AnimatedPage>} />
-                      <Route path="/quotes" element={<AnimatedPage><QuotesPage /></AnimatedPage>} />
-                      <Route path="/quotes/new" element={<AnimatedPage><NewQuotePage /></AnimatedPage>} />
-                      <Route path="/quotes/:id" element={<AnimatedPage><QuoteDetailPage /></AnimatedPage>} />
-                      <Route path="/quotes/:id/edit" element={<AnimatedPage><EditQuotePage /></AnimatedPage>} />
-                      <Route path="/clients" element={<AnimatedPage><ClientsPage /></AnimatedPage>} />
-                      <Route path="/exports" element={<AnimatedPage><ExportJobsPage /></AnimatedPage>} />
-                      <Route path="/analytics" element={<AnimatedPage><AnalyticsPage /></AnimatedPage>} />
-                      <Route path="*" element={<NotFoundPage />} />
-                    </Routes>
-                  </AnimatePresence>
-                </AppShell>
+        <BrowserRouter>
+          <AnimatePresence mode="wait">
+            <Routes>
+              <Route path="/track/:token" element={<PublicTrackingPage />} />
+              <Route
+                path="/login"
+                element={
+                  user ? (
+                    <Navigate to="/dashboard" replace />
+                  ) : (
+                    <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <LoginPage />
+                    </motion.div>
+                  )
+                }
+              />
+              <Route
+                path="/*"
+                element={
+                  user ? (
+                    <motion.div key="app" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <PrivateAppRoutes />
+                    </motion.div>
+                  ) : (
+                    <Navigate to="/login" replace />
+                  )
+                }
+              />
+            </Routes>
+          </AnimatePresence>
 
-                <Toaster
-                  position="bottom-right"
-                  toastOptions={{
-                    style: {
-                      background: '#181C23',
-                      border: '1px solid #252B35',
-                      color: '#C8D4E0',
-                    },
-                  }}
-                />
-              </BrowserRouter>
-            </motion.div>
-          )}
-        </AnimatePresence>
+          <Toaster
+            position="bottom-right"
+            toastOptions={{
+              style: {
+                background: '#181C23',
+                border: '1px solid #252B35',
+                color: '#C8D4E0',
+              },
+            }}
+          />
+        </BrowserRouter>
       </motion.div>
     </>
   );
