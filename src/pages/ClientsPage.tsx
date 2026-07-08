@@ -4,6 +4,8 @@ import { Plus, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { useClients } from '../hooks/useClients';
 import { useInvoices } from '../hooks/useInvoices';
+import { useQuotes } from '../hooks/useQuotes';
+import { useExportJobs } from '../hooks/useExportJobs';
 import { ClientCard } from '../components/clients/ClientCard';
 import { ClientForm } from '../components/clients/ClientForm';
 import { Modal } from '../components/shared/Modal';
@@ -18,6 +20,8 @@ import clientsBg from '../assets/tveco-clients-bg.jpg';
 export function ClientsPage() {
   const { clients, loading, addClient, updateClient, deleteClient } = useClients();
   const { invoices } = useInvoices();
+  const { quotes } = useQuotes();
+  const { jobs } = useExportJobs();
   const [modalOpen, setModalOpen]       = useState(false);
   const [editTarget, setEditTarget]     = useState<Client | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Client | null>(null);
@@ -44,7 +48,10 @@ export function ClientsPage() {
     finally { setDeleting(false); setDeleteTarget(null); }
   }
 
-  const deleteHasInvoices = deleteTarget && invoices.some((i) => i.clientId === deleteTarget.id);
+  const deleteInvoiceCount = deleteTarget ? invoices.filter((i) => i.clientId === deleteTarget.id).length : 0;
+  const deleteQuoteCount = deleteTarget ? quotes.filter((q) => q.clientId === deleteTarget.id).length : 0;
+  const deleteExportCount = deleteTarget ? jobs.filter((j) => j.clientId === deleteTarget.id).length : 0;
+  const deleteDependencyCount = deleteInvoiceCount + deleteQuoteCount + deleteExportCount;
 
   return (
     <PageBackground image={clientsBg} position="center 60%">
@@ -106,8 +113,8 @@ export function ClientsPage() {
       <ConfirmDialog
         open={!!deleteTarget} onClose={() => setDeleteTarget(null)} onConfirm={handleDelete}
         title="Delete Client"
-        description={deleteHasInvoices
-          ? `${deleteTarget?.companyName} has existing invoices. Deleting won't remove those invoices. Continue?`
+        description={deleteDependencyCount > 0
+          ? `${deleteTarget?.companyName} is linked to ${deleteInvoiceCount} invoice${deleteInvoiceCount === 1 ? '' : 's'}, ${deleteQuoteCount} quote${deleteQuoteCount === 1 ? '' : 's'}, and ${deleteExportCount} export job${deleteExportCount === 1 ? '' : 's'}. Deleting this client will not delete those records. Continue?`
           : `Delete ${deleteTarget?.companyName}? This cannot be undone.`}
         confirmLabel="Delete" loading={deleting}
       />

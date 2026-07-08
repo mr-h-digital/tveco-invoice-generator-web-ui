@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { toast } from 'sonner';
-import { Pencil, Copy, Trash2, Printer, ArrowLeft, MoreVertical } from 'lucide-react';
+import { Pencil, Copy, Trash2, Printer, ArrowLeft, MoreVertical, FileText } from 'lucide-react';
 import { QuotePreview } from '../components/quote/QuotePreview';
 import { QuotePrintLayout } from '../components/quote/QuotePrintLayout';
 import { Badge } from '../components/shared/Badge';
@@ -10,13 +10,18 @@ import { ConfirmDialog } from '../components/shared/ConfirmDialog';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
 import { useQuotes, useQuote } from '../hooks/useQuotes';
+import { useInvoices } from '../hooks/useInvoices';
 import { usePrint } from '../hooks/usePrint';
+import { invoiceService } from '../services/invoiceService';
+import { todayISO, addDaysISO } from '../utils/formatDate';
 import type { QuoteStatus } from '../types/quote';
+import { calculateTotals } from '../utils/invoiceTotals';
 
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { updateQuote, deleteQuote, duplicateQuote } = useQuotes();
+  const { addInvoice } = useInvoices();
   const quote = useQuote(id);
   const { print } = usePrint();
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -68,6 +73,55 @@ export function QuoteDetailPage() {
     }
   }
 
+  async function handleConvertToInvoice() {
+    if (!quote) return;
+
+    try {
+      const invoiceNumber = await invoiceService.getNextInvoiceNumber();
+      const issueDate = todayISO();
+      const dueDate = addDaysISO(issueDate, 14);
+      const totals = calculateTotals({
+        lineItems: quote.lineItems,
+        discountType: quote.discountType,
+        discountValue: quote.discountValue,
+        vatEnabled: quote.vatEnabled,
+        vatRate: quote.vatRate,
+      });
+
+      const invoice = await addInvoice({
+        invoiceNumber,
+        status: 'DRAFT',
+        issueDate,
+        dueDate,
+        clientId: quote.clientId,
+        clientSnapshot: quote.clientSnapshot,
+        lineItems: quote.lineItems,
+        subtotal: totals.subtotal,
+        discountType: quote.discountType,
+        discountValue: quote.discountValue,
+        discountAmount: totals.discountAmount,
+        vatEnabled: quote.vatEnabled,
+        vatRate: quote.vatRate,
+        vatAmount: totals.vatAmount,
+        total: totals.total,
+        notes: `${quote.notes}\n\nConverted from quote ${quote.quoteNumber}.`,
+        paymentDetails: {
+          bank: 'First National Bank (FNB)',
+          accountName: 'T S Concepts and Projects Enterprises (Pty) Ltd',
+          accountNumber: '63166663849',
+          accountType: 'Gold Business Account',
+          branchCode: '200609',
+          reference: invoiceNumber,
+        },
+      });
+
+      toast.success(`Converted to invoice ${invoice.invoiceNumber}`);
+      navigate(`/invoices/${invoice.id}/edit`);
+    } catch {
+      toast.error('Failed to convert quote to invoice');
+    }
+  }
+
   return (
     <PageBackground image={invoicesBg} position="center 25%">
       <TopBar
@@ -88,6 +142,9 @@ export function QuoteDetailPage() {
               </select>
               <button onClick={print} className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-brand-card border border-brand-border text-brand-text rounded-lg hover:bg-brand-card2 transition-colors">
                 <Printer size={13} /> Print / PDF
+              </button>
+              <button onClick={handleConvertToInvoice} className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-brand-card border border-brand-border text-brand-text rounded-lg hover:bg-brand-card2 transition-colors">
+                <FileText size={13} /> Convert to Invoice
               </button>
               <button onClick={handleDuplicate} className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-brand-card border border-brand-border text-brand-text rounded-lg hover:bg-brand-card2 transition-colors">
                 <Copy size={13} /> Duplicate
@@ -114,6 +171,9 @@ export function QuoteDetailPage() {
                     <div className="absolute right-0 top-full mt-1 w-44 bg-brand-card2 border border-brand-border rounded-xl shadow-2xl z-50 py-1 overflow-hidden">
                       <button onClick={() => { print(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm text-brand-text w-full text-left hover:bg-brand-border transition-colors">
                         <Printer size={14} /> Print / PDF
+                      </button>
+                      <button onClick={() => { handleConvertToInvoice(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm text-brand-text w-full text-left hover:bg-brand-border transition-colors">
+                        <FileText size={14} /> Convert to Invoice
                       </button>
                       <button onClick={() => { handleDuplicate(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm text-brand-text w-full text-left hover:bg-brand-border transition-colors">
                         <Copy size={14} /> Duplicate
