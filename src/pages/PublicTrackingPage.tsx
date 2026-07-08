@@ -6,6 +6,7 @@ import { formatDate, formatDateShort } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
 import { PageBackground } from '../components/layout/PageBackground';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import { documentVaultStorageService } from '../services/documentVaultStorageService';
 
 export function PublicTrackingPage() {
   const params = useParams();
@@ -127,7 +128,7 @@ export function PublicTrackingPage() {
                           <p className="text-[11px] text-brand-muted">{doc.category}</p>
                         </div>
                         <a
-                          href={doc.dataUrl}
+                          href={documentVaultStorageService.getDownloadUrl(doc) ?? '#'}
                           download={doc.name}
                           className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-brand-border text-xs text-brand-text hover:bg-brand-card transition-colors"
                         >

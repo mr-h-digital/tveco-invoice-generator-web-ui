@@ -4,6 +4,7 @@ import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import { notificationService } from '../services/notificationService';
 import { buildDocumentCompletedEmail, buildPaymentReminderEmail, buildStatusChangedEmail } from '../utils/exportEmailTemplates';
 import { v4 as uuid } from 'uuid';
+import { documentVaultStorageService } from '../services/documentVaultStorageService';
 
 const STATUS_ORDER: ExportJobStatus[] = ['ENQUIRY', 'SOURCING', 'DOCUMENTATION', 'SHIPPING', 'DELIVERED'];
 
@@ -29,12 +30,9 @@ interface ExportJobStore {
   toggleDocument: (id: string, key: string) => Promise<ExportJob | null>;
   togglePaymentMilestone: (id: string, key: string) => Promise<ExportJob | null>;
   addVaultDocument: (id: string, file: {
-    name: string;
-    mimeType: string;
-    sizeBytes: number;
+    file: File;
     category: 'Compliance' | 'Shipping' | 'Customs' | 'Payment' | 'General';
     visibleToClient: boolean;
-    dataUrl: string;
   }) => Promise<ExportJob | null>;
   toggleVaultDocumentVisibility: (id: string, docId: string) => Promise<ExportJob | null>;
   deleteVaultDocument: (id: string, docId: string) => Promise<ExportJob | null>;
@@ -140,16 +138,25 @@ export const useExportJobStore = create<ExportJobStore>((set, get) => ({
     const job = get().jobs.find((j) => j.id === id);
     if (!job) return null;
 
+    const uploadResult = await documentVaultStorageService.upload(file.file, {
+      jobId: id,
+      category: file.category,
+      visibleToClient: file.visibleToClient,
+    });
+
     const vaultDocuments = [
       ...job.vaultDocuments,
       {
         id: uuid(),
-        name: file.name,
-        mimeType: file.mimeType,
-        sizeBytes: file.sizeBytes,
+        name: file.file.name,
+        mimeType: file.file.type || 'application/octet-stream',
+        sizeBytes: file.file.size,
         category: file.category,
         visibleToClient: file.visibleToClient,
-        dataUrl: file.dataUrl,
+        storageProvider: uploadResult.storageProvider,
+        dataUrl: uploadResult.dataUrl,
+        fileUrl: uploadResult.fileUrl,
+        objectKey: uploadResult.objectKey,
         uploadedAt: new Date().toISOString(),
       },
     ];

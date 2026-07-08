@@ -48,7 +48,12 @@ function normalizeJob(job: ExportJob): ExportJob {
       Array.isArray(job.paymentMilestones) && job.paymentMilestones.length > 0
         ? job.paymentMilestones
         : buildPaymentMilestones(projectValue, job.createdAt.split('T')[0]),
-    vaultDocuments: Array.isArray(job.vaultDocuments) ? job.vaultDocuments : [],
+    vaultDocuments: Array.isArray(job.vaultDocuments)
+      ? job.vaultDocuments.map((doc) => ({
+          ...doc,
+          storageProvider: doc.storageProvider ?? (doc.fileUrl ? 'REMOTE' : 'LOCAL'),
+        }))
+      : [],
   };
 }
 

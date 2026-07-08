@@ -14,6 +14,7 @@ import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { formatDateShort, todayISO } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
+import { documentVaultStorageService, isRemoteVaultEnabled } from '../services/documentVaultStorageService';
 
 const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
 
@@ -21,15 +22,6 @@ function bytesLabel(size: number) {
   if (size < 1024) return `${size} B`;
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
   return `${(size / (1024 * 1024)).toFixed(2)} MB`;
-}
-
-function fileToDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ''));
-    reader.onerror = () => reject(new Error('Unable to read file'));
-    reader.readAsDataURL(file);
-  });
 }
 
 const STATUS_LABELS: Record<ExportJobStatus, string> = {
@@ -226,20 +218,22 @@ export function ExportJobsPage() {
 
   async function handleUploadVaultDocument(jobId: string, file: File | null, category: 'Compliance' | 'Shipping' | 'Customs' | 'Payment' | 'General') {
     if (!file) return;
-    if (file.size > MAX_UPLOAD_BYTES) {
+    if (!isRemoteVaultEnabled && file.size > MAX_UPLOAD_BYTES) {
       toast.error('File too large. Maximum size is 3 MB for this local vault mode.');
       return;
     }
 
-    const dataUrl = await fileToDataUrl(file);
-    const updated = await addVaultDocument(jobId, {
-      name: file.name,
-      mimeType: file.type || 'application/octet-stream',
-      sizeBytes: file.size,
-      category,
-      visibleToClient: false,
-      dataUrl,
-    });
+    let updated = null;
+    try {
+      updated = await addVaultDocument(jobId, {
+        file,
+        category,
+        visibleToClient: false,
+      });
+    } catch (error) {
+      toast.error(`Upload failed: ${String(error)}`);
+      return;
+    }
 
     if (!updated) {
       toast.error('Failed to save document');
@@ -534,7 +528,7 @@ export function ExportJobsPage() {
                                     {doc.visibleToClient ? <Eye size={12} /> : <EyeOff size={12} className="text-brand-muted" />}
                                   </button>
                                   <a
-                                    href={doc.dataUrl}
+                                    href={documentVaultStorageService.getDownloadUrl(doc) ?? '#'}
                                     download={doc.name}
                                     className="p-1.5 rounded-md border border-brand-border hover:bg-brand-card2 transition-colors"
                                     title="Download"

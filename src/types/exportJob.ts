@@ -35,7 +35,10 @@ export interface ExportVaultDocument {
   category: 'Compliance' | 'Shipping' | 'Customs' | 'Payment' | 'General';
   uploadedAt: string;
   visibleToClient: boolean;
-  dataUrl: string;
+  storageProvider: 'LOCAL' | 'REMOTE';
+  dataUrl?: string;
+  fileUrl?: string;
+  objectKey?: string;
 }
 
 export interface ExportJobClientSnapshot {

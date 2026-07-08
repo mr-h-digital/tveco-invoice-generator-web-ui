@@ -244,6 +244,10 @@ VITE_NOTIFICATION_WEBHOOK_SECRET=your_shared_secret
 
 # Optional: public app URL used in client-facing email links
 VITE_PUBLIC_APP_URL=https://app.tveco.co.za
+
+# Optional: remote document vault upload webhook
+VITE_DOC_UPLOAD_WEBHOOK_URL=https://your-service.example.com/tveco/doc-upload
+VITE_DOC_UPLOAD_WEBHOOK_SECRET=your_doc_upload_secret
 ```
 
 When `VITE_USE_API=false` (the default), all data is stored in `localStorage` and no backend is required.
@@ -270,6 +274,30 @@ x-tveco-webhook-secret: <VITE_NOTIFICATION_WEBHOOK_SECRET>
 ```
 
 Expected response: HTTP `2xx` for success.
+
+### Document Vault Upload Webhook Contract
+
+When `VITE_DOC_UPLOAD_WEBHOOK_URL` is configured, vault uploads are sent as `multipart/form-data`:
+
+- `file`: binary file
+- `jobId`: export job id
+- `category`: document category
+- `visibleToClient`: boolean string
+
+Optional header:
+
+```text
+x-tveco-doc-secret: <VITE_DOC_UPLOAD_WEBHOOK_SECRET>
+```
+
+Expected JSON response:
+
+```json
+{
+	"fileUrl": "https://cdn.example.com/docs/abc123.pdf",
+	"objectKey": "docs/abc123.pdf"
+}
+```
 
 ---
 
