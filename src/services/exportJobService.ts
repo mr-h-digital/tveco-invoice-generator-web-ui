@@ -150,6 +150,70 @@ function isRemoteTrackingEnabled() {
   return !!TRACKING_WEBHOOK_URL;
 }
 
+function asString(value: unknown, fallback = ''): string {
+  return typeof value === 'string' ? value : fallback;
+}
+
+function asNumber(value: unknown, fallback = 0): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+}
+
+function asStatus(value: unknown): ExportJobStatus {
+  return value === 'ENQUIRY' || value === 'SOURCING' || value === 'DOCUMENTATION' || value === 'SHIPPING' || value === 'DELIVERED'
+    ? value
+    : 'ENQUIRY';
+}
+
+function normalizeTrackingPayload(raw: unknown, token: string): ExportJob | null {
+  if (!raw || typeof raw !== 'object') return null;
+
+  const candidate = raw as Record<string, unknown>;
+  const now = new Date().toISOString();
+  const issueDate = todayISO();
+  const id = asString(candidate.id, `remote-${token}`);
+  const projectValue = asNumber(candidate.projectValue, 0);
+
+  const milestones = Array.isArray(candidate.milestones) ? candidate.milestones : [];
+  const documents = Array.isArray(candidate.documents) ? candidate.documents : [];
+  const paymentMilestones = Array.isArray(candidate.paymentMilestones) ? candidate.paymentMilestones : [];
+  const vaultDocuments = Array.isArray(candidate.vaultDocuments) ? candidate.vaultDocuments : [];
+
+  const snapshot = (candidate.clientSnapshot && typeof candidate.clientSnapshot === 'object')
+    ? (candidate.clientSnapshot as Record<string, unknown>)
+    : null;
+
+  const normalized: ExportJob = {
+    id,
+    jobNumber: asString(candidate.jobNumber, token),
+    publicTrackingToken: asString(candidate.publicTrackingToken, token),
+    clientId: typeof candidate.clientId === 'string' ? candidate.clientId : null,
+    clientSnapshot: {
+      companyName: asString(snapshot?.companyName, 'TVECO Client'),
+      contactName: asString(snapshot?.contactName, ''),
+      email: asString(snapshot?.email, ''),
+      phone: asString(snapshot?.phone, ''),
+    },
+    destinationCountry: asString(candidate.destinationCountry, 'Not specified'),
+    vehicleDescription: asString(candidate.vehicleDescription, 'Vehicle details pending'),
+    sourceChannel: candidate.sourceChannel === 'Website' || candidate.sourceChannel === 'WhatsApp' || candidate.sourceChannel === 'Referral' || candidate.sourceChannel === 'Direct'
+      ? candidate.sourceChannel
+      : 'Website',
+    projectValue,
+    status: asStatus(candidate.status),
+    milestones: milestones as ExportJob['milestones'],
+    documents: documents as ExportJob['documents'],
+    paymentMilestones: paymentMilestones as ExportJob['paymentMilestones'],
+    vaultDocuments: vaultDocuments as ExportJob['vaultDocuments'],
+    estimatedDepartureDate: asString(candidate.estimatedDepartureDate, issueDate),
+    estimatedArrivalDate: asString(candidate.estimatedArrivalDate, issueDate),
+    notes: asString(candidate.notes, ''),
+    createdAt: asString(candidate.createdAt, now),
+    updatedAt: asString(candidate.updatedAt, now),
+  };
+
+  return normalizeJob(normalized);
+}
+
 async function fetchTrackedJobRemote(token: string): Promise<ExportJob | null> {
   if (!TRACKING_WEBHOOK_URL) return null;
 
@@ -172,13 +236,21 @@ async function fetchTrackedJobRemote(token: string): Promise<ExportJob | null> {
     throw new Error(`Tracking webhook failed with status ${response.status}`);
   }
 
-  const payload = (await response.json()) as ExportJob | { job?: ExportJob | null } | null;
-  const rawJob = payload && typeof payload === 'object' && 'job' in payload ? payload.job ?? null : payload;
+  const payload = (await response.json()) as
+    | ExportJob
+    | { job?: ExportJob | Record<string, unknown> | null }
+    | { tracking?: ExportJob | Record<string, unknown> | null }
+    | Record<string, unknown>
+    | null;
 
-  if (!rawJob) return null;
-  if (typeof rawJob !== 'object') return null;
-  if (!('id' in rawJob) || !('publicTrackingToken' in rawJob) || !('clientSnapshot' in rawJob)) return null;
-  return normalizeJob(rawJob as ExportJob);
+  const payloadObject = payload && typeof payload === 'object' ? payload : null;
+  const rawJob = payloadObject && 'job' in payloadObject
+    ? payloadObject.job ?? null
+    : payloadObject && 'tracking' in payloadObject
+      ? payloadObject.tracking ?? null
+      : payload;
+
+  return normalizeTrackingPayload(rawJob, token);
 }
 
 export const exportJobService = {

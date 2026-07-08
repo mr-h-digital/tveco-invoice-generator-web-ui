@@ -365,7 +365,20 @@ Expected successful response (`200`):
 }
 ```
 
-You may also return the job object directly instead of wrapping in `job`. Return `404` when the token is not found.
+You may also return the job object directly instead of wrapping in `job`. A `tracking` wrapper is also supported.
+
+Minimal payloads are accepted for public tracking pages. Recommended minimum fields are:
+
+- `jobNumber`
+- `publicTrackingToken`
+- `status`
+- `destinationCountry`
+- `vehicleDescription`
+- `estimatedArrivalDate`
+- `milestones` (array)
+- `paymentMilestones` (array)
+
+Missing optional fields are safely defaulted in the UI. Return `404` when the token is not found.
 
 ---
 
