@@ -303,6 +303,8 @@ Expected JSON response:
 }
 ```
 
+Signed URL responses are cached in-memory by `objectKey` for 60 seconds in the web app to reduce repeated sign-webhook calls during rapid downloads.
+
 ### Signed Download Webhook Contract (Private Buckets)
 
 When `VITE_DOC_SIGN_WEBHOOK_URL` is configured and a vault document has an `objectKey`, downloads request a fresh signed URL.

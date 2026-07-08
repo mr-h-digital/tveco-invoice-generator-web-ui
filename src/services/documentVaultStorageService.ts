@@ -4,9 +4,12 @@ const DOC_UPLOAD_WEBHOOK_URL = import.meta.env.VITE_DOC_UPLOAD_WEBHOOK_URL?.trim
 const DOC_UPLOAD_WEBHOOK_SECRET = import.meta.env.VITE_DOC_UPLOAD_WEBHOOK_SECRET?.trim();
 const DOC_SIGN_WEBHOOK_URL = import.meta.env.VITE_DOC_SIGN_WEBHOOK_URL?.trim();
 const DOC_SIGN_WEBHOOK_SECRET = import.meta.env.VITE_DOC_SIGN_WEBHOOK_SECRET?.trim();
+const SIGNED_URL_CACHE_TTL_MS = 60000;
 
 export const isRemoteVaultEnabled = Boolean(DOC_UPLOAD_WEBHOOK_URL);
 export const isSignedDownloadEnabled = Boolean(DOC_SIGN_WEBHOOK_URL);
+
+const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
 
 export interface VaultUploadResult {
   storageProvider: ExportVaultDocument['storageProvider'];
@@ -16,6 +19,12 @@ export interface VaultUploadResult {
 }
 
 async function requestSignedDownloadUrl(objectKey: string, fallbackUrl?: string): Promise<string> {
+  const now = Date.now();
+  const cached = signedUrlCache.get(objectKey);
+  if (cached && cached.expiresAt > now) {
+    return cached.url;
+  }
+
   if (!DOC_SIGN_WEBHOOK_URL) {
     if (!fallbackUrl) throw new Error('Document signing URL is not configured');
     return fallbackUrl;
@@ -40,6 +49,11 @@ async function requestSignedDownloadUrl(objectKey: string, fallbackUrl?: string)
     if (fallbackUrl) return fallbackUrl;
     throw new Error('Signed URL response missing signedUrl');
   }
+
+  signedUrlCache.set(objectKey, {
+    url: payload.signedUrl,
+    expiresAt: now + SIGNED_URL_CACHE_TTL_MS,
+  });
 
   return payload.signedUrl;
 }
@@ -119,5 +133,13 @@ export const documentVaultStorageService = {
     }
 
     return doc.fileUrl ?? null;
+  },
+
+  clearSignedUrlCache(objectKey?: string) {
+    if (objectKey) {
+      signedUrlCache.delete(objectKey);
+      return;
+    }
+    signedUrlCache.clear();
   },
 };
