@@ -10,6 +10,7 @@ export const isRemoteVaultEnabled = Boolean(DOC_UPLOAD_WEBHOOK_URL);
 export const isSignedDownloadEnabled = Boolean(DOC_SIGN_WEBHOOK_URL);
 
 const signedUrlCache = new Map<string, { url: string; expiresAt: number }>();
+const inFlightSignedUrlRequests = new Map<string, Promise<string>>();
 
 export interface VaultUploadResult {
   storageProvider: ExportVaultDocument['storageProvider'];
@@ -25,37 +26,52 @@ async function requestSignedDownloadUrl(objectKey: string, fallbackUrl?: string)
     return cached.url;
   }
 
-  if (!DOC_SIGN_WEBHOOK_URL) {
-    if (!fallbackUrl) throw new Error('Document signing URL is not configured');
-    return fallbackUrl;
+  const inFlight = inFlightSignedUrlRequests.get(objectKey);
+  if (inFlight) {
+    return inFlight;
   }
 
-  const response = await fetch(DOC_SIGN_WEBHOOK_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(DOC_SIGN_WEBHOOK_SECRET ? { 'x-tveco-doc-sign-secret': DOC_SIGN_WEBHOOK_SECRET } : {}),
-    },
-    body: JSON.stringify({ objectKey }),
-  });
+  const promise = (async () => {
+    if (!DOC_SIGN_WEBHOOK_URL) {
+      if (!fallbackUrl) throw new Error('Document signing URL is not configured');
+      return fallbackUrl;
+    }
 
-  if (!response.ok) {
-    if (fallbackUrl) return fallbackUrl;
-    throw new Error(`Signed URL request failed (HTTP ${response.status})`);
+    const response = await fetch(DOC_SIGN_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(DOC_SIGN_WEBHOOK_SECRET ? { 'x-tveco-doc-sign-secret': DOC_SIGN_WEBHOOK_SECRET } : {}),
+      },
+      body: JSON.stringify({ objectKey }),
+    });
+
+    if (!response.ok) {
+      if (fallbackUrl) return fallbackUrl;
+      throw new Error(`Signed URL request failed (HTTP ${response.status})`);
+    }
+
+    const payload = (await response.json()) as { signedUrl?: string };
+    if (!payload.signedUrl) {
+      if (fallbackUrl) return fallbackUrl;
+      throw new Error('Signed URL response missing signedUrl');
+    }
+
+    signedUrlCache.set(objectKey, {
+      url: payload.signedUrl,
+      expiresAt: now + SIGNED_URL_CACHE_TTL_MS,
+    });
+
+    return payload.signedUrl;
+  })();
+
+  inFlightSignedUrlRequests.set(objectKey, promise);
+
+  try {
+    return await promise;
+  } finally {
+    inFlightSignedUrlRequests.delete(objectKey);
   }
-
-  const payload = (await response.json()) as { signedUrl?: string };
-  if (!payload.signedUrl) {
-    if (fallbackUrl) return fallbackUrl;
-    throw new Error('Signed URL response missing signedUrl');
-  }
-
-  signedUrlCache.set(objectKey, {
-    url: payload.signedUrl,
-    expiresAt: now + SIGNED_URL_CACHE_TTL_MS,
-  });
-
-  return payload.signedUrl;
 }
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -138,8 +154,10 @@ export const documentVaultStorageService = {
   clearSignedUrlCache(objectKey?: string) {
     if (objectKey) {
       signedUrlCache.delete(objectKey);
+      inFlightSignedUrlRequests.delete(objectKey);
       return;
     }
     signedUrlCache.clear();
+    inFlightSignedUrlRequests.clear();
   },
 };

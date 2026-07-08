@@ -303,7 +303,7 @@ Expected JSON response:
 }
 ```
 
-Signed URL responses are cached in-memory by `objectKey` for 60 seconds in the web app to reduce repeated sign-webhook calls during rapid downloads.
+Signed URL responses are cached in-memory by `objectKey` for 60 seconds in the web app to reduce repeated sign-webhook calls during rapid downloads. Concurrent requests for the same `objectKey` are deduplicated and share one in-flight webhook call.
 
 ### Signed Download Webhook Contract (Private Buckets)
 
