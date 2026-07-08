@@ -1,8 +1,9 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Users, BarChart2, LogOut } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BarChart2, LogOut, RotateCcw, Lightbulb } from 'lucide-react';
 import { clsx } from 'clsx';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/authStore';
+import { useOnboardingStore } from '../../store/onboardingStore';
 import tvecoLogo from '../../assets/tveco-logo.png';
 import mrhLogo from '../../assets/mrh-digital-logo.png';
 import navBg from '../../assets/tveco-nav-bg.jpg';
@@ -21,10 +22,24 @@ interface SidebarProps {
 
 export function Sidebar({ onNavClick }: SidebarProps) {
   const { user, logout } = useAuthStore();
+  const tutorialMode = useOnboardingStore((s) => s.tutorialMode);
+  const replayTour = useOnboardingStore((s) => s.replayTour);
+  const setTutorialMode = useOnboardingStore((s) => s.setTutorialMode);
 
   function handleLogout() {
     logout();
     toast.success('Signed out');
+  }
+
+  function handleReplayTour() {
+    replayTour();
+    onNavClick?.();
+    toast.success('Tour started');
+  }
+
+  function handleToggleTutorialMode() {
+    setTutorialMode(!tutorialMode);
+    toast.success(tutorialMode ? 'Tutorial tips turned off' : 'Tutorial tips turned on');
   }
 
   return (
@@ -70,6 +85,23 @@ export function Sidebar({ onNavClick }: SidebarProps) {
 
       {/* Bottom */}
       <div className="relative px-3 pt-2 pb-3 border-t border-brand-border/60 space-y-3">
+        <div className="space-y-1.5">
+          <button
+            onClick={handleReplayTour}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs text-brand-text hover:bg-white/5 transition-colors"
+          >
+            <RotateCcw size={14} />
+            Replay Tour
+          </button>
+          <button
+            onClick={handleToggleTutorialMode}
+            className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs text-brand-text hover:bg-white/5 transition-colors"
+          >
+            <Lightbulb size={14} />
+            Tutorial Tips: {tutorialMode ? 'On' : 'Off'}
+          </button>
+        </div>
+
         {/* User + logout */}
         <div className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 group transition-colors">
           <div className="min-w-0">

@@ -167,6 +167,7 @@ export function AnalyticsPage() {
           <div className="flex items-center gap-2">
             <DateRangeFilter value={range} onChange={setRange} />
             <button
+              data-tour-id="analytics-download-button"
               onClick={print}
               className="flex items-center gap-1.5 px-3 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
               style={{ background: '#FF6B00' }}

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { HashRouter as BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Toaster } from 'sonner';
@@ -18,6 +18,7 @@ import { ClientsPage } from './pages/ClientsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuthStore } from './store/authStore';
+import { useOnboardingStore } from './store/onboardingStore';
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -43,6 +44,11 @@ function AnimatedPage({ children }: { children: React.ReactNode }) {
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const user = useAuthStore((s) => s.user);
+  const initializeOnboarding = useOnboardingStore((s) => s.initialize);
+
+  useEffect(() => {
+    initializeOnboarding(user?.email ?? null);
+  }, [initializeOnboarding, user?.email]);
 
   return (
     <>

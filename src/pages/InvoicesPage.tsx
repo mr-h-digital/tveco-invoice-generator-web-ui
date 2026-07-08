@@ -59,7 +59,7 @@ export function InvoicesPage() {
         title="Invoices"
         subtitle={`${invoices.length} total`}
         actions={
-          <Link to="/invoices/new" className="flex items-center gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity" style={{ background: '#FF6B00' }}>
+          <Link data-tour-id="invoices-new-button" to="/invoices/new" className="flex items-center gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity" style={{ background: '#FF6B00' }}>
             <Plus size={16} />
             <span className="hidden sm:inline">New Invoice</span>
             <span className="sm:hidden">New</span>
