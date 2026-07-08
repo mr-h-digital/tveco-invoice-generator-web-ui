@@ -9,6 +9,8 @@ interface AuthLoginApiResponse {
   role: 'admin';
   accessToken: string;
   expiresInSeconds: number;
+  refreshToken: string;
+  refreshExpiresInSeconds: number;
 }
 
 export interface AuthUser {
@@ -16,6 +18,8 @@ export interface AuthUser {
   role: 'admin';
   accessToken: string | null;
   expiresAt: string | null;
+  refreshToken: string | null;
+  refreshExpiresAt: string | null;
 }
 
 export const authService = {
@@ -27,6 +31,8 @@ export const authService = {
           role: 'admin',
           accessToken: null,
           expiresAt: null,
+          refreshToken: null,
+          refreshExpiresAt: null,
         };
       }
       throw new Error('Invalid email or password');
@@ -42,6 +48,8 @@ export const authService = {
       role: res.data.role,
       accessToken: res.data.accessToken,
       expiresAt: new Date(Date.now() + res.data.expiresInSeconds * 1000).toISOString(),
+      refreshToken: res.data.refreshToken,
+      refreshExpiresAt: new Date(Date.now() + res.data.refreshExpiresInSeconds * 1000).toISOString(),
     };
   },
 };

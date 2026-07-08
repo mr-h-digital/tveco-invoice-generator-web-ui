@@ -1,14 +1,69 @@
 import axios, { AxiosHeaders } from 'axios';
 import { toast } from 'sonner';
-import { clearAuthSession, loadAuthSession } from './authSession';
+import {
+  applyRefreshedTokens,
+  canRefreshSession,
+  clearAuthSession,
+  isAccessTokenExpired,
+  loadAuthSession,
+  saveAuthSession,
+  type AuthTokenRefreshPayload,
+} from './authSession';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+
+const refreshApi = axios.create({
+  baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
 });
 
-api.interceptors.request.use((config) => {
-  const token = loadAuthSession()?.accessToken;
+let refreshInFlight: Promise<string | null> | null = null;
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+});
+
+async function refreshAccessToken(refreshToken: string): Promise<string | null> {
+  if (!refreshInFlight) {
+    refreshInFlight = refreshApi
+      .post<{ data: AuthTokenRefreshPayload } | AuthTokenRefreshPayload>('/auth/refresh', {
+        refreshToken,
+      })
+      .then((response) => {
+        const payload = 'data' in response.data ? response.data.data : response.data;
+        const currentSession = loadAuthSession();
+        if (!currentSession) return null;
+
+        const updatedSession = applyRefreshedTokens(currentSession, payload);
+        saveAuthSession(updatedSession);
+        return updatedSession.accessToken;
+      })
+      .catch(() => {
+        clearAuthSession();
+        return null;
+      })
+      .finally(() => {
+        refreshInFlight = null;
+      });
+  }
+
+  return refreshInFlight;
+}
+
+api.interceptors.request.use(async (config) => {
+  const session = loadAuthSession();
+  let token = session?.accessToken ?? null;
+
+  if (session && token && isAccessTokenExpired(session)) {
+    if (canRefreshSession(session) && session.refreshToken) {
+      token = await refreshAccessToken(session.refreshToken);
+    } else {
+      clearAuthSession();
+      token = null;
+    }
+  }
+
   if (token) {
     if (config.headers?.set) {
       config.headers.set('Authorization', `Bearer ${token}`);
