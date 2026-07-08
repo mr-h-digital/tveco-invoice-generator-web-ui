@@ -48,6 +48,7 @@ function normalizeJob(job: ExportJob): ExportJob {
       Array.isArray(job.paymentMilestones) && job.paymentMilestones.length > 0
         ? job.paymentMilestones
         : buildPaymentMilestones(projectValue, job.createdAt.split('T')[0]),
+    vaultDocuments: Array.isArray(job.vaultDocuments) ? job.vaultDocuments : [],
   };
 }
 
@@ -87,6 +88,7 @@ const DEFAULT_EXPORT_JOBS: ExportJob[] = [
       { key: 'shipping', label: 'Shipping Payment (40%)', amount: 21080, dueDate: '2026-06-11', paid: true, paidAt: '2026-06-11T14:00:00.000Z' },
       { key: 'balance', label: 'Final Balance (30%)', amount: 15810, dueDate: '2026-06-29', paid: false, paidAt: null },
     ],
+    vaultDocuments: [],
     estimatedDepartureDate: '2026-06-12',
     estimatedArrivalDate: '2026-07-05',
     notes: 'Client requested WhatsApp updates every 3 days. Destination clearing agent already confirmed.',
@@ -173,6 +175,7 @@ export const exportJobService = {
       ],
       documents: defaultDocuments(),
       paymentMilestones: buildPaymentMilestones(data.projectValue, issueDate),
+      vaultDocuments: [],
       estimatedDepartureDate: data.estimatedDepartureDate || addDaysISO(issueDate, 7),
       estimatedArrivalDate: data.estimatedArrivalDate || addDaysISO(issueDate, 35),
       notes: data.notes ?? '',
@@ -194,6 +197,8 @@ export const exportJobService = {
       ...data,
       milestones: data.milestones ?? jobs[idx].milestones,
       documents: data.documents ?? jobs[idx].documents,
+      paymentMilestones: data.paymentMilestones ?? jobs[idx].paymentMilestones,
+      vaultDocuments: data.vaultDocuments ?? jobs[idx].vaultDocuments,
       updatedAt: new Date().toISOString(),
     };
 

@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { Search, Truck, CheckCircle2, Circle } from 'lucide-react';
+import { Search, Truck, CheckCircle2, Circle, Download } from 'lucide-react';
 import { useExportJobs } from '../hooks/useExportJobs';
 import { formatDate, formatDateShort } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
@@ -16,6 +16,7 @@ export function PublicTrackingPage() {
   const job = useMemo(() => jobs.find((j) => j.publicTrackingToken.toUpperCase() === token) ?? null, [jobs, token]);
 
   const paidTotal = job ? job.paymentMilestones.filter((m) => m.paid).reduce((sum, m) => sum + m.amount, 0) : 0;
+  const visibleVaultDocuments = job ? job.vaultDocuments.filter((d) => d.visibleToClient) : [];
 
   return (
     <PageBackground image={invoicesBg} position="center 25%">
@@ -111,6 +112,32 @@ export function PublicTrackingPage() {
                   ))}
                 </div>
                 <p className="text-xs text-brand-muted mt-3">Paid so far: {formatCurrency(paidTotal)}</p>
+              </div>
+
+              <div className="rounded-xl border border-brand-border p-4">
+                <p className="text-sm text-brand-white font-medium mb-2">Client Documents</p>
+                {visibleVaultDocuments.length === 0 ? (
+                  <p className="text-xs text-brand-muted">No shared documents yet. TVECO will publish files here when available.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {visibleVaultDocuments.map((doc) => (
+                      <div key={doc.id} className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-brand-border bg-brand-card2">
+                        <div className="min-w-0">
+                          <p className="text-sm text-brand-text truncate">{doc.name}</p>
+                          <p className="text-[11px] text-brand-muted">{doc.category}</p>
+                        </div>
+                        <a
+                          href={doc.dataUrl}
+                          download={doc.name}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-brand-border text-xs text-brand-text hover:bg-brand-card transition-colors"
+                        >
+                          <Download size={12} />
+                          Download
+                        </a>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

@@ -3,6 +3,7 @@ import { exportJobService } from '../services/exportJobService';
 import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import { notificationService } from '../services/notificationService';
 import { buildDocumentCompletedEmail, buildPaymentReminderEmail, buildStatusChangedEmail } from '../utils/exportEmailTemplates';
+import { v4 as uuid } from 'uuid';
 
 const STATUS_ORDER: ExportJobStatus[] = ['ENQUIRY', 'SOURCING', 'DOCUMENTATION', 'SHIPPING', 'DELIVERED'];
 
@@ -27,6 +28,16 @@ interface ExportJobStore {
   advanceStatus: (id: string) => Promise<ExportJob | null>;
   toggleDocument: (id: string, key: string) => Promise<ExportJob | null>;
   togglePaymentMilestone: (id: string, key: string) => Promise<ExportJob | null>;
+  addVaultDocument: (id: string, file: {
+    name: string;
+    mimeType: string;
+    sizeBytes: number;
+    category: 'Compliance' | 'Shipping' | 'Customs' | 'Payment' | 'General';
+    visibleToClient: boolean;
+    dataUrl: string;
+  }) => Promise<ExportJob | null>;
+  toggleVaultDocumentVisibility: (id: string, docId: string) => Promise<ExportJob | null>;
+  deleteVaultDocument: (id: string, docId: string) => Promise<ExportJob | null>;
   runPaymentReminderCheck: () => Promise<number>;
 }
 
@@ -121,6 +132,52 @@ export const useExportJobStore = create<ExportJobStore>((set, get) => ({
     );
 
     const updated = await exportJobService.updateJob(id, { paymentMilestones });
+    set((state) => ({ jobs: state.jobs.map((j) => (j.id === id ? updated : j)) }));
+    return updated;
+  },
+
+  addVaultDocument: async (id, file) => {
+    const job = get().jobs.find((j) => j.id === id);
+    if (!job) return null;
+
+    const vaultDocuments = [
+      ...job.vaultDocuments,
+      {
+        id: uuid(),
+        name: file.name,
+        mimeType: file.mimeType,
+        sizeBytes: file.sizeBytes,
+        category: file.category,
+        visibleToClient: file.visibleToClient,
+        dataUrl: file.dataUrl,
+        uploadedAt: new Date().toISOString(),
+      },
+    ];
+
+    const updated = await exportJobService.updateJob(id, { vaultDocuments });
+    set((state) => ({ jobs: state.jobs.map((j) => (j.id === id ? updated : j)) }));
+    return updated;
+  },
+
+  toggleVaultDocumentVisibility: async (id, docId) => {
+    const job = get().jobs.find((j) => j.id === id);
+    if (!job) return null;
+
+    const vaultDocuments = job.vaultDocuments.map((doc) =>
+      doc.id === docId ? { ...doc, visibleToClient: !doc.visibleToClient } : doc
+    );
+
+    const updated = await exportJobService.updateJob(id, { vaultDocuments });
+    set((state) => ({ jobs: state.jobs.map((j) => (j.id === id ? updated : j)) }));
+    return updated;
+  },
+
+  deleteVaultDocument: async (id, docId) => {
+    const job = get().jobs.find((j) => j.id === id);
+    if (!job) return null;
+
+    const vaultDocuments = job.vaultDocuments.filter((doc) => doc.id !== docId);
+    const updated = await exportJobService.updateJob(id, { vaultDocuments });
     set((state) => ({ jobs: state.jobs.map((j) => (j.id === id ? updated : j)) }));
     return updated;
   },

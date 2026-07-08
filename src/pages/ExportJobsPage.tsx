@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet, Send } from 'lucide-react';
+import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet, Send, Paperclip, Eye, EyeOff, Trash2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
@@ -14,6 +14,23 @@ import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { formatDateShort, todayISO } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
+
+const MAX_UPLOAD_BYTES = 3 * 1024 * 1024;
+
+function bytesLabel(size: number) {
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  return `${(size / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result ?? ''));
+    reader.onerror = () => reject(new Error('Unable to read file'));
+    reader.readAsDataURL(file);
+  });
+}
 
 const STATUS_LABELS: Record<ExportJobStatus, string> = {
   ENQUIRY: 'Enquiry',
@@ -54,7 +71,18 @@ function requiredDocsStatus(job: ExportJob) {
 }
 
 export function ExportJobsPage() {
-  const { jobs, loading, addJob, advanceStatus, toggleDocument, togglePaymentMilestone, runPaymentReminderCheck } = useExportJobs();
+  const {
+    jobs,
+    loading,
+    addJob,
+    advanceStatus,
+    toggleDocument,
+    togglePaymentMilestone,
+    addVaultDocument,
+    toggleVaultDocumentVisibility,
+    deleteVaultDocument,
+    runPaymentReminderCheck,
+  } = useExportJobs();
   const { clients } = useClients();
   const {
     notifications,
@@ -194,6 +222,49 @@ export function ExportJobsPage() {
       return;
     }
     toast.success(`${count} payment reminder${count > 1 ? 's' : ''} queued`);
+  }
+
+  async function handleUploadVaultDocument(jobId: string, file: File | null, category: 'Compliance' | 'Shipping' | 'Customs' | 'Payment' | 'General') {
+    if (!file) return;
+    if (file.size > MAX_UPLOAD_BYTES) {
+      toast.error('File too large. Maximum size is 3 MB for this local vault mode.');
+      return;
+    }
+
+    const dataUrl = await fileToDataUrl(file);
+    const updated = await addVaultDocument(jobId, {
+      name: file.name,
+      mimeType: file.type || 'application/octet-stream',
+      sizeBytes: file.size,
+      category,
+      visibleToClient: false,
+      dataUrl,
+    });
+
+    if (!updated) {
+      toast.error('Failed to save document');
+      return;
+    }
+
+    toast.success('Document uploaded to vault');
+  }
+
+  async function handleToggleVaultVisibility(jobId: string, docId: string) {
+    const updated = await toggleVaultDocumentVisibility(jobId, docId);
+    if (!updated) {
+      toast.error('Could not update visibility');
+      return;
+    }
+    toast.success('Document visibility updated');
+  }
+
+  async function handleDeleteVaultDocument(jobId: string, docId: string) {
+    const updated = await deleteVaultDocument(jobId, docId);
+    if (!updated) {
+      toast.error('Could not delete document');
+      return;
+    }
+    toast.success('Document removed');
   }
 
   async function handleDispatchOutbox() {
@@ -407,6 +478,81 @@ export function ExportJobsPage() {
                         >
                           Open portal
                         </Link>
+                      </div>
+
+                      <div>
+                        <div className="flex items-center justify-between mb-2 gap-2">
+                          <p className="text-xs text-brand-muted">Document Vault</p>
+                          <div className="flex items-center gap-2">
+                            <select
+                              defaultValue="Compliance"
+                              className="input-field text-xs py-1.5 px-2.5 w-[120px]"
+                              id={`vault-category-${job.id}`}
+                            >
+                              <option value="Compliance">Compliance</option>
+                              <option value="Shipping">Shipping</option>
+                              <option value="Customs">Customs</option>
+                              <option value="Payment">Payment</option>
+                              <option value="General">General</option>
+                            </select>
+                            <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border border-brand-border text-xs text-brand-text hover:bg-brand-card2 transition-colors cursor-pointer">
+                              <Paperclip size={12} />
+                              Upload
+                              <input
+                                type="file"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0] ?? null;
+                                  const categorySelect = document.getElementById(`vault-category-${job.id}`) as HTMLSelectElement | null;
+                                  const category = (categorySelect?.value as 'Compliance' | 'Shipping' | 'Customs' | 'Payment' | 'General') || 'Compliance';
+                                  await handleUploadVaultDocument(job.id, file, category);
+                                  e.currentTarget.value = '';
+                                }}
+                              />
+                            </label>
+                          </div>
+                        </div>
+
+                        {job.vaultDocuments.length === 0 ? (
+                          <p className="text-[11px] text-brand-muted">No files uploaded yet.</p>
+                        ) : (
+                          <div className="space-y-1.5">
+                            {job.vaultDocuments.map((doc) => (
+                              <div key={doc.id} className="flex items-center justify-between gap-2 px-2.5 py-2 rounded-md border border-brand-border">
+                                <div className="min-w-0">
+                                  <p className="text-xs text-brand-text truncate">{doc.name}</p>
+                                  <p className="text-[11px] text-brand-muted">
+                                    {doc.category} · {bytesLabel(doc.sizeBytes)} · {formatDateShort(doc.uploadedAt.split('T')[0])}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <button
+                                    onClick={() => handleToggleVaultVisibility(job.id, doc.id)}
+                                    className="p-1.5 rounded-md border border-brand-border hover:bg-brand-card2 transition-colors"
+                                    title={doc.visibleToClient ? 'Visible to client' : 'Hidden from client'}
+                                  >
+                                    {doc.visibleToClient ? <Eye size={12} /> : <EyeOff size={12} className="text-brand-muted" />}
+                                  </button>
+                                  <a
+                                    href={doc.dataUrl}
+                                    download={doc.name}
+                                    className="p-1.5 rounded-md border border-brand-border hover:bg-brand-card2 transition-colors"
+                                    title="Download"
+                                  >
+                                    <Download size={12} />
+                                  </a>
+                                  <button
+                                    onClick={() => handleDeleteVaultDocument(job.id, doc.id)}
+                                    className="p-1.5 rounded-md border border-brand-border hover:bg-brand-card2 transition-colors"
+                                    title="Delete"
+                                  >
+                                    <Trash2 size={12} className="text-red-300" />
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </motion.div>

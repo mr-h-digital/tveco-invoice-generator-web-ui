@@ -27,6 +27,17 @@ export interface ExportJobPaymentMilestone {
   paidAt: string | null;
 }
 
+export interface ExportVaultDocument {
+  id: string;
+  name: string;
+  mimeType: string;
+  sizeBytes: number;
+  category: 'Compliance' | 'Shipping' | 'Customs' | 'Payment' | 'General';
+  uploadedAt: string;
+  visibleToClient: boolean;
+  dataUrl: string;
+}
+
 export interface ExportJobClientSnapshot {
   companyName: string;
   contactName: string;
@@ -48,6 +59,7 @@ export interface ExportJob {
   milestones: ExportJobMilestone[];
   documents: ExportJobDocument[];
   paymentMilestones: ExportJobPaymentMilestone[];
+  vaultDocuments: ExportVaultDocument[];
   estimatedDepartureDate: string;
   estimatedArrivalDate: string;
   notes: string;
