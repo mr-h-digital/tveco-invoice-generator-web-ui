@@ -13,6 +13,7 @@ const DEFAULT_INVOICES: Invoice[] = [
     issueDate: '2026-06-01',
     dueDate: '2026-07-01',
     clientId: 'client-001',
+    exportJobId: null,
     clientSnapshot: {
       companyName: 'Kabila Muteba Enterprises',
       contactName: 'Kabila Muteba',
@@ -76,6 +77,7 @@ function toRequest(data: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>) {
       sortOrder: li.sortOrder ?? i,
     })),
     clientSnapshot: data.clientSnapshot,
+    exportJobId: data.exportJobId ?? undefined,
     discountType: data.discountType || undefined,
     discountValue: data.discountValue,
     vatEnabled: data.vatEnabled,

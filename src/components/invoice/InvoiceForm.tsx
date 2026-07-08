@@ -1,4 +1,4 @@
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useMemo } from 'react';
 import { useFormContext, Controller, useWatch } from 'react-hook-form';
 import { ClientSelector } from '../clients/ClientSelector';
 import { LineItemsTable } from './LineItemsTable';
@@ -6,6 +6,7 @@ import type { InvoiceFormValues } from '../../schemas/invoiceSchema';
 import type { Client } from '../../types/client';
 import { calculateTotals } from '../../utils/invoiceTotals';
 import { formatCurrency } from '../../utils/formatCurrency';
+import { useExportJobs } from '../../hooks/useExportJobs';
 
 const DEFAULT_PAYMENT = {
   bank: 'First National Bank (FNB)',
@@ -17,11 +18,17 @@ const DEFAULT_PAYMENT = {
 
 export function InvoiceForm() {
   const { register, control, setValue, formState: { errors } } = useFormContext<InvoiceFormValues>();
+  const { jobs } = useExportJobs();
 
-  const [lineItems, discountType, discountValue, vatEnabled, vatRate, invoiceNumber] = useWatch({
+  const [lineItems, discountType, discountValue, vatEnabled, vatRate, invoiceNumber, clientId, exportJobId] = useWatch({
     control,
-    name: ['lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'invoiceNumber'],
+    name: ['lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'invoiceNumber', 'clientId', 'exportJobId'],
   });
+
+  const exportJobOptions = useMemo(() => {
+    if (!clientId) return jobs;
+    return jobs.filter((job) => !job.clientId || job.clientId === clientId);
+  }, [clientId, jobs]);
 
   const totals = calculateTotals({
     lineItems: lineItems ?? [],
@@ -38,9 +45,18 @@ export function InvoiceForm() {
     setValue('total' as never, totals.total as never);
   }, [totals.subtotal, totals.discountAmount, totals.vatAmount, totals.total, setValue]);
 
+  useEffect(() => {
+    if (!exportJobId) return;
+    const selectedStillValid = exportJobOptions.some((job) => job.id === exportJobId);
+    if (!selectedStillValid) {
+      setValue('exportJobId', null);
+    }
+  }, [exportJobId, exportJobOptions, setValue]);
+
   const handleClientChange = useCallback(
     (id: string | null, client: Client | null) => {
       setValue('clientId', id);
+      setValue('exportJobId', null);
       if (client) {
         setValue('clientSnapshot.companyName', client.companyName);
         setValue('clientSnapshot.contactName', client.contactName);
@@ -87,6 +103,28 @@ export function InvoiceForm() {
             <label className="field-label">Due Date</label>
             <input {...register('dueDate')} type="date" className="input-field" />
             {errors.dueDate && <p className="field-error">{errors.dueDate.message}</p>}
+          </div>
+          <div className="sm:col-span-2">
+            <label className="field-label">Linked Export Job (optional)</label>
+            <Controller
+              control={control}
+              name="exportJobId"
+              render={({ field }) => (
+                <select
+                  value={field.value ?? ''}
+                  onChange={(e) => field.onChange(e.target.value || null)}
+                  className="input-field"
+                >
+                  <option value="">No export job link</option>
+                  {exportJobOptions.map((job) => (
+                    <option key={job.id} value={job.id}>
+                      {job.jobNumber} - {job.clientSnapshot.companyName}
+                    </option>
+                  ))}
+                </select>
+              )}
+            />
+            <p className="text-xs text-brand-muted mt-1">Linking enables export cards to use real invoiced values and balances.</p>
           </div>
         </div>
       </section>

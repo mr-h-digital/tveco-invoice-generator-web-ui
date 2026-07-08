@@ -35,6 +35,7 @@ export interface Invoice {
   issueDate: string;
   dueDate: string;
   clientId: string | null;
+  exportJobId: string | null;
   clientSnapshot: ClientSnapshot;
   lineItems: LineItem[];
   subtotal: number;

@@ -32,6 +32,7 @@ export function EditInvoicePage() {
         issueDate: invoice.issueDate,
         dueDate: invoice.dueDate,
         clientId: invoice.clientId,
+        exportJobId: invoice.exportJobId,
         clientSnapshot: invoice.clientSnapshot,
         lineItems: invoice.lineItems,
         discountType: invoice.discountType,
@@ -44,9 +45,9 @@ export function EditInvoicePage() {
     }
   }, [invoice, methods]);
 
-  const [invoiceNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, clientSnapshot, issueDate, dueDate, status, notes, paymentDetails] = useWatch({
+  const [invoiceNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, exportJobId, clientSnapshot, issueDate, dueDate, status, notes, paymentDetails] = useWatch({
     control: methods.control,
-    name: ['invoiceNumber', 'lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'clientId', 'clientSnapshot', 'issueDate', 'dueDate', 'status', 'notes', 'paymentDetails'],
+    name: ['invoiceNumber', 'lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'clientId', 'exportJobId', 'clientSnapshot', 'issueDate', 'dueDate', 'status', 'notes', 'paymentDetails'],
   });
 
   const totals = calculateTotals({
@@ -56,7 +57,7 @@ export function EditInvoicePage() {
     vatEnabled: vatEnabled ?? false,
     vatRate: vatRate ?? 0.15,
   });
-  const previewValues = { invoiceNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, clientSnapshot, issueDate, dueDate, status, notes, paymentDetails };
+  const previewValues = { invoiceNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, exportJobId, clientSnapshot, issueDate, dueDate, status, notes, paymentDetails };
 
   const onSubmit: SubmitHandler<InvoiceFormValues> = async (data) => {
     if (!id) return;

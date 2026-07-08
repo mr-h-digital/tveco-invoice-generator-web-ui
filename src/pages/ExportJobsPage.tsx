@@ -8,6 +8,7 @@ import { PageBackground } from '../components/layout/PageBackground';
 import { EmptyState } from '../components/shared/EmptyState';
 import { Modal } from '../components/shared/Modal';
 import { useExportJobs } from '../hooks/useExportJobs';
+import { useInvoices } from '../hooks/useInvoices';
 import { useClients } from '../hooks/useClients';
 import { useNotifications } from '../hooks/useNotifications';
 import type { ExportJob, ExportJobStatus } from '../types/exportJob';
@@ -75,6 +76,7 @@ export function ExportJobsPage() {
     deleteVaultDocument,
     runPaymentReminderCheck,
   } = useExportJobs();
+  const { invoices } = useInvoices();
   const { clients } = useClients();
   const {
     notifications,
@@ -383,6 +385,12 @@ export function ExportJobsPage() {
                 const docs = requiredDocsStatus(job);
                 const statusUi = STATUS_BADGE[job.status];
                 const canAdvance = job.status !== 'DELIVERED';
+                const linkedInvoices = invoices.filter((invoice) => invoice.exportJobId === job.id);
+                const linkedInvoicedTotal = linkedInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
+                const linkedPaidTotal = linkedInvoices
+                  .filter((invoice) => invoice.status === 'PAID')
+                  .reduce((sum, invoice) => sum + invoice.total, 0);
+                const linkedOutstandingTotal = Math.max(linkedInvoicedTotal - linkedPaidTotal, 0);
 
                 return (
                   <motion.div
@@ -442,6 +450,28 @@ export function ExportJobsPage() {
                         <p className="text-xs text-brand-muted mt-1.5">
                           Completed: {docs.completed}/{docs.total}
                         </p>
+                      </div>
+
+                      <div>
+                        <p className="text-xs text-brand-muted mb-2">Invoicing Breakdown</p>
+                        {linkedInvoices.length === 0 ? (
+                          <p className="text-[11px] text-brand-muted">No linked invoices yet. Link invoices to this export job for accurate cost tracking.</p>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            <div className="px-2.5 py-2 rounded-md border border-brand-border">
+                              <p className="text-[11px] text-brand-muted">Invoices Linked</p>
+                              <p className="text-xs font-head text-brand-white">{linkedInvoices.length}</p>
+                            </div>
+                            <div className="px-2.5 py-2 rounded-md border border-brand-border">
+                              <p className="text-[11px] text-brand-muted">Invoiced</p>
+                              <p className="text-xs font-head text-brand-white">{formatCurrency(linkedInvoicedTotal)}</p>
+                            </div>
+                            <div className="px-2.5 py-2 rounded-md border border-brand-border">
+                              <p className="text-[11px] text-brand-muted">Outstanding</p>
+                              <p className="text-xs font-head text-brand-white">{formatCurrency(linkedOutstandingTotal)}</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div>
