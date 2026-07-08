@@ -1,13 +1,17 @@
-import { useEffect } from 'react';
-import { RefreshCw, MailWarning, Trash2, Send } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { RefreshCw, MailWarning, Trash2, Send, Eye } from 'lucide-react';
 import { toast } from 'sonner';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
 import { useNotifications } from '../hooks/useNotifications';
 import { formatDateShort } from '../utils/formatDate';
+import { Modal } from '../components/shared/Modal';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 
 export function NotificationsPage() {
+  const [previewMessageId, setPreviewMessageId] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<'html' | 'text'>('html');
+
   const {
     notifications,
     outboxMessages,
@@ -20,6 +24,10 @@ export function NotificationsPage() {
     dispatchOutbox,
     dispatchingOutbox,
   } = useNotifications();
+
+  const previewMessage = previewMessageId
+    ? outboxMessages.find((msg) => msg.id === previewMessageId) ?? null
+    : null;
 
   useEffect(() => {
     fetchOutboxMessages();
@@ -42,6 +50,12 @@ export function NotificationsPage() {
   async function handleClearSent() {
     const removed = await clearSentOutbox();
     toast.success(`Cleared ${removed} sent outbox item${removed === 1 ? '' : 's'}`);
+  }
+
+  function handleOpenPreview(id: string) {
+    const selected = outboxMessages.find((msg) => msg.id === id);
+    setPreviewMode(selected?.bodyHtml ? 'html' : 'text');
+    setPreviewMessageId(id);
   }
 
   return (
@@ -129,21 +143,81 @@ export function NotificationsPage() {
                     <span>{formatDateShort(msg.createdAt.split('T')[0])}</span>
                   </div>
 
-                  {msg.status === 'FAILED' && (
+                  <div className="mt-2 flex items-center gap-2">
                     <button
-                      onClick={() => handleRetry(msg.id)}
-                      className="mt-2 inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-brand-border text-xs text-brand-text hover:bg-brand-card2 transition-colors"
+                      onClick={() => handleOpenPreview(msg.id)}
+                      className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-brand-border text-xs text-brand-text hover:bg-brand-card2 transition-colors"
                     >
-                      <RefreshCw size={12} />
-                      Retry
+                      <Eye size={12} />
+                      Preview
                     </button>
-                  )}
+
+                    {msg.status === 'FAILED' && (
+                      <button
+                        onClick={() => handleRetry(msg.id)}
+                        className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border border-brand-border text-xs text-brand-text hover:bg-brand-card2 transition-colors"
+                      >
+                        <RefreshCw size={12} />
+                        Retry
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             )}
           </div>
         </div>
       </div>
+
+      <Modal
+        open={!!previewMessage}
+        onClose={() => setPreviewMessageId(null)}
+        title="Email Preview"
+        size="lg"
+      >
+        {previewMessage && (
+          <div className="space-y-3">
+            <div className="rounded-lg border border-brand-border p-3 bg-brand-card2">
+              <p className="text-xs text-brand-muted">To</p>
+              <p className="text-sm text-brand-white truncate">{previewMessage.to}</p>
+              <p className="text-xs text-brand-muted mt-2">Subject</p>
+              <p className="text-sm text-brand-white">{previewMessage.subject}</p>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPreviewMode('html')}
+                disabled={!previewMessage.bodyHtml}
+                className="px-3 py-1.5 rounded-md text-xs border border-brand-border enabled:hover:bg-brand-card2 disabled:opacity-40 transition-colors"
+                style={previewMode === 'html' ? { background: '#FF6B00', color: '#fff', borderColor: '#FF6B00' } : { color: '#C8D4E0' }}
+              >
+                HTML
+              </button>
+              <button
+                onClick={() => setPreviewMode('text')}
+                className="px-3 py-1.5 rounded-md text-xs border border-brand-border hover:bg-brand-card2 transition-colors"
+                style={previewMode === 'text' ? { background: '#FF6B00', color: '#fff', borderColor: '#FF6B00' } : { color: '#C8D4E0' }}
+              >
+                Plain Text
+              </button>
+            </div>
+
+            {previewMode === 'html' && previewMessage.bodyHtml ? (
+              <div className="rounded-lg border border-brand-border overflow-hidden bg-white">
+                <iframe
+                  title="Email HTML Preview"
+                  srcDoc={previewMessage.bodyHtml}
+                  className="w-full h-[420px] border-0"
+                />
+              </div>
+            ) : (
+              <pre className="rounded-lg border border-brand-border bg-brand-card2 text-brand-text text-xs leading-relaxed whitespace-pre-wrap p-3 max-h-[420px] overflow-auto">
+                {previewMessage.body}
+              </pre>
+            )}
+          </div>
+        )}
+      </Modal>
     </PageBackground>
   );
 }
