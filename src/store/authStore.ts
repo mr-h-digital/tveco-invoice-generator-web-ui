@@ -1,24 +1,13 @@
 import { create } from 'zustand';
-
-interface AuthUser {
-  email: string;
-  role: 'admin';
-}
+import { authService, type AuthUser } from '../services/authService';
 
 interface AuthStore {
   user: AuthUser | null;
-  login: (email: string, password: string) => boolean;
+  login: (email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
 
 const STORAGE_KEY = 'tveco_auth';
-
-const ADMIN = {
-  email: 'admin@tveco.co.za',
-  // Read from env so the password isn't committed in plain text
-  password: import.meta.env.VITE_ADMIN_PASSWORD ?? 'tveco2026',
-  role: 'admin' as const,
-};
 
 function loadUser(): AuthUser | null {
   try {
@@ -32,17 +21,15 @@ function loadUser(): AuthUser | null {
 export const useAuthStore = create<AuthStore>(() => ({
   user: loadUser(),
 
-  login: (email, password) => {
-    if (
-      email.trim().toLowerCase() === ADMIN.email &&
-      password === ADMIN.password
-    ) {
-      const user: AuthUser = { email: ADMIN.email, role: ADMIN.role };
+  login: async (email, password) => {
+    try {
+      const user = await authService.login(email, password);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
       useAuthStore.setState({ user });
       return true;
+    } catch {
+      return false;
     }
-    return false;
   },
 
   logout: () => {

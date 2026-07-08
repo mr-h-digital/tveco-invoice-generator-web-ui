@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 import { Printer, TrendingUp, DollarSign, Clock, AlertCircle, Users, FileText, Target, BarChart2 } from 'lucide-react';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -14,6 +15,8 @@ import { DateRangeFilter } from '../components/analytics/DateRangeFilter';
 import { usePrint } from '../hooks/usePrint';
 import { formatCurrency } from '../utils/formatCurrency';
 import { todayISO } from '../utils/formatDate';
+import { analyticsService } from '../services/analyticsService';
+import type { AnalyticsDto } from '../types/analytics';
 import {
   buildMonthlyRevenue, buildStatusBreakdown, buildTopClients, buildTopServices,
   collectionRate, avgInvoiceValue, buildPresets, filterByDateRange,
@@ -122,29 +125,61 @@ export function AnalyticsPage() {
   // Default to "Last 6 Months" preset
   const defaultRange: DateRange = buildPresets()[2];
   const [range, setRange] = useState<DateRange>(defaultRange);
+  const [remoteAnalytics, setRemoteAnalytics] = useState<AnalyticsDto | null>(null);
 
   // Filter invoices to selected date range
   const filtered = useMemo(() => filterByDateRange(invoices, range), [invoices, range]);
 
-  /* ── Derived data — all computed from the filtered set ── */
-  const monthly     = useMemo(() => buildMonthlyRevenue(filtered, range), [filtered, range]);
-  const statusData  = useMemo(() => buildStatusBreakdown(filtered), [filtered]);
-  const topClients  = useMemo(() => buildTopClients(filtered, 6), [filtered]);
-  const topServices = useMemo(() => buildTopServices(filtered, 6), [filtered]);
-  const rate        = useMemo(() => collectionRate(filtered), [filtered]);
-  const avg         = useMemo(() => avgInvoiceValue(filtered), [filtered]);
+  useEffect(() => {
+    let active = true;
 
-  const { totalInvoiced, totalPaid, totalOutstanding, totalOverdue } = useMemo(() =>
-    filtered.reduce(
+    async function loadAnalytics() {
+      try {
+        const data = await analyticsService.getAnalytics({ from: range.from, to: range.to });
+        if (!active) return;
+        setRemoteAnalytics(data);
+      } catch {
+        if (!active) return;
+        setRemoteAnalytics(null);
+        toast.error('Unable to load analytics from API. Showing local calculations.');
+      }
+    }
+
+    loadAnalytics();
+    return () => {
+      active = false;
+    };
+  }, [range.from, range.to]);
+
+  /* ── Derived data — all computed from the filtered set ── */
+  const monthly     = useMemo(() => remoteAnalytics?.monthly ?? buildMonthlyRevenue(filtered, range), [remoteAnalytics, filtered, range]);
+  const statusData  = useMemo(() => remoteAnalytics?.statusBreakdown ?? buildStatusBreakdown(filtered), [remoteAnalytics, filtered]);
+  const topClients  = useMemo(() => remoteAnalytics?.topClients ?? buildTopClients(filtered, 6), [remoteAnalytics, filtered]);
+  const topServices = useMemo(() => remoteAnalytics?.topServices ?? buildTopServices(filtered, 6), [remoteAnalytics, filtered]);
+  const rate        = useMemo(() => remoteAnalytics?.collectionRate ?? collectionRate(filtered), [remoteAnalytics, filtered]);
+  const avg         = useMemo(() => remoteAnalytics?.avgInvoiceValue ?? avgInvoiceValue(filtered), [remoteAnalytics, filtered]);
+
+  const { totalInvoiced, totalPaid, totalOutstanding, totalOverdue } = useMemo(() => {
+    if (remoteAnalytics) {
+      return {
+        totalInvoiced: remoteAnalytics.totalInvoiced,
+        totalPaid: remoteAnalytics.totalPaid,
+        totalOutstanding: remoteAnalytics.totalOutstanding,
+        totalOverdue: remoteAnalytics.totalOverdue,
+      };
+    }
+
+    return filtered.reduce(
       (acc, inv) => {
         acc.totalInvoiced += inv.total;
-        if (inv.status === 'PAID')    acc.totalPaid        += inv.total;
-        if (inv.status === 'SENT')    acc.totalOutstanding += inv.total;
-        if (inv.status === 'OVERDUE') acc.totalOverdue     += inv.total;
+        if (inv.status === 'PAID') acc.totalPaid += inv.total;
+        if (inv.status === 'SENT') acc.totalOutstanding += inv.total;
+        if (inv.status === 'OVERDUE') acc.totalOverdue += inv.total;
         return acc;
       },
       { totalInvoiced: 0, totalPaid: 0, totalOutstanding: 0, totalOverdue: 0 }
-    ), [filtered]);
+    );
+  }, [remoteAnalytics, filtered]);
 
   const kpis = [
     { label: 'Total Invoiced',   value: formatCurrency(totalInvoiced),   sub: `${filtered.length} invoices`,       icon: TrendingUp,  color: C.orange, delay: 0    },

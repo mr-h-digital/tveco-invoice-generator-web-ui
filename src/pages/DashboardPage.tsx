@@ -257,7 +257,7 @@ export function DashboardPage() {
             <Link to="/quotes/new" className="hidden sm:flex items-center gap-2 px-3 sm:px-4 py-2 text-brand-text text-sm font-medium rounded-lg border border-brand-border hover:bg-brand-card2 transition-colors">
               <Plus size={15} /> Quote
             </Link>
-            <Link to="/export-jobs" className="flex items-center gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity" style={{ background: '#FF6B00' }}>
+            <Link to="/exports" className="flex items-center gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity" style={{ background: '#FF6B00' }}>
               <Plus size={16} />
               <span className="hidden sm:inline">New Export Job</span>
               <span className="sm:hidden">New</span>
@@ -278,7 +278,7 @@ export function DashboardPage() {
                 {overdueMilestones.slice(0, 2).map((milestone) => (
                   <AttentionItem
                     key={`${milestone.jobId}-${milestone.label}`}
-                    href="/export-jobs"
+                    href="/exports"
                     tone="danger"
                     title={`${milestone.jobNumber} payment overdue`}
                     detail={`${milestone.label} for ${milestone.companyName} was due ${formatDateShort(milestone.dueDate)} · ${formatCurrency(milestone.amount)}`}
@@ -346,7 +346,7 @@ export function DashboardPage() {
 
             <SectionCard
               title="Export Pipeline"
-              action={<Link to="/export-jobs" className="flex items-center gap-1 text-sm text-brand-muted hover:text-orange transition-colors">Open pipeline <ArrowRight size={14} /></Link>}
+              action={<Link to="/exports" className="flex items-center gap-1 text-sm text-brand-muted hover:text-orange transition-colors">Open pipeline <ArrowRight size={14} /></Link>}
               delay={0.22}
             >
               {jobsLoading ? (
@@ -359,7 +359,7 @@ export function DashboardPage() {
                     const completed = job.milestones.filter((milestone) => !!milestone.completedAt).length;
                     const progress = Math.round((completed / Math.max(job.milestones.length, 1)) * 100);
                     return (
-                      <Link key={job.id} to="/export-jobs" className="block rounded-xl border border-brand-border bg-brand-card2 px-4 py-3 hover:border-brand-muted transition-colors">
+                      <Link key={job.id} to="/exports" className="block rounded-xl border border-brand-border bg-brand-card2 px-4 py-3 hover:border-brand-muted transition-colors">
                         <div className="flex items-start justify-between gap-3 mb-2">
                           <div className="min-w-0">
                             <p className="text-sm text-brand-white font-medium truncate">{job.jobNumber}</p>
@@ -387,7 +387,7 @@ export function DashboardPage() {
               <div className="space-y-3">
                 <QuickAction to="/invoices/new" label="Create invoice" icon={DollarSign} />
                 <QuickAction to="/quotes/new" label="Create quote" icon={FileText} />
-                <QuickAction to="/export-jobs" label="Manage export jobs" icon={Ship} />
+                <QuickAction to="/exports" label="Manage export jobs" icon={Ship} />
                 <QuickAction to="/clients" label="Add or update clients" icon={Users} />
               </div>
             </SectionCard>

@@ -23,7 +23,7 @@ export function LoginPage() {
     setError('');
     setLoading(true);
     await new Promise((r) => setTimeout(r, 600));
-    const ok = login(email, password);
+    const ok = await login(email, password);
     setLoading(false);
     if (!ok) {
       setError('Invalid email or password.');
