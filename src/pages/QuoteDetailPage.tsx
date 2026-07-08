@@ -94,6 +94,7 @@ export function QuoteDetailPage() {
         issueDate,
         dueDate,
         clientId: quote.clientId,
+        exportJobId: null,
         clientSnapshot: quote.clientSnapshot,
         lineItems: quote.lineItems,
         subtotal: totals.subtotal,
