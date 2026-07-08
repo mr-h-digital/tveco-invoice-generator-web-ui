@@ -31,8 +31,11 @@ export function AppShell({ children }: AppShellProps) {
   const tutorialMode = useOnboardingStore((s) => s.tutorialMode);
   const tourActive = useOnboardingStore((s) => s.tourActive);
   const tourStepIndex = useOnboardingStore((s) => s.tourStepIndex);
+  const lastTourStepIndex = useOnboardingStore((s) => s.lastTourStepIndex);
+  const hasSeenWelcome = useOnboardingStore((s) => s.hasSeenWelcome);
   const hasCompletedTour = useOnboardingStore((s) => s.hasCompletedTour);
   const startTour = useOnboardingStore((s) => s.startTour);
+  const resumeTour = useOnboardingStore((s) => s.resumeTour);
   const skipTour = useOnboardingStore((s) => s.skipTour);
   const nextTourStep = useOnboardingStore((s) => s.nextTourStep);
   const prevTourStep = useOnboardingStore((s) => s.prevTourStep);
@@ -40,6 +43,7 @@ export function AppShell({ children }: AppShellProps) {
 
   const currentStep = TOUR_STEPS[tourStepIndex];
   const tipText = ROUTE_TIPS[location.pathname];
+  const hasResumeProgress = hasSeenWelcome && !hasCompletedTour && lastTourStepIndex > 0;
 
   useEffect(() => {
     if (!tourActive || !currentStep) return;
@@ -50,6 +54,10 @@ export function AppShell({ children }: AppShellProps) {
 
   function handleWelcomeStartTour() {
     startTour();
+  }
+
+  function handleWelcomeResumeTour() {
+    resumeTour();
   }
 
   function handleWelcomeSkip() {
@@ -227,7 +235,9 @@ export function AppShell({ children }: AppShellProps) {
     <Modal open={welcomeOpen} onClose={handleWelcomeSkip} title="Welcome to TVECO Invoice Generator" size="lg">
       <div className="space-y-4">
         <p className="text-sm text-brand-text leading-relaxed">
-          Would you like a quick guided tour of the key workflows: clients, quotes, invoices, and analytics?
+          {hasResumeProgress
+            ? `You paused your guided tour at step ${lastTourStepIndex + 1}. Resume where you left off or restart from the beginning.`
+            : 'Would you like a quick guided tour of the key workflows: clients, quotes, invoices, and analytics?'}
         </p>
 
         <div className="rounded-xl border border-brand-border bg-brand-card2 p-4">
@@ -257,12 +267,20 @@ export function AppShell({ children }: AppShellProps) {
           >
             Skip for now
           </button>
+          {hasResumeProgress && (
+            <button
+              onClick={handleWelcomeResumeTour}
+              className="px-4 py-2 rounded-lg border border-brand-border text-brand-white hover:bg-brand-card2 transition-colors"
+            >
+              Resume Tour
+            </button>
+          )}
           <button
             onClick={handleWelcomeStartTour}
             className="px-4 py-2 rounded-lg text-white font-medium hover:opacity-90 transition-opacity"
             style={{ background: '#FF6B00' }}
           >
-            Start Tour
+            {hasResumeProgress ? 'Restart Tour' : 'Start Tour'}
           </button>
         </div>
       </div>

@@ -23,8 +23,12 @@ interface SidebarProps {
 export function Sidebar({ onNavClick }: SidebarProps) {
   const { user, logout } = useAuthStore();
   const tutorialMode = useOnboardingStore((s) => s.tutorialMode);
+  const hasCompletedTour = useOnboardingStore((s) => s.hasCompletedTour);
+  const lastTourStepIndex = useOnboardingStore((s) => s.lastTourStepIndex);
   const replayTour = useOnboardingStore((s) => s.replayTour);
+  const resumeTour = useOnboardingStore((s) => s.resumeTour);
   const setTutorialMode = useOnboardingStore((s) => s.setTutorialMode);
+  const canResumeTour = !hasCompletedTour && lastTourStepIndex > 0;
 
   function handleLogout() {
     logout();
@@ -32,9 +36,14 @@ export function Sidebar({ onNavClick }: SidebarProps) {
   }
 
   function handleReplayTour() {
-    replayTour();
+    if (canResumeTour) {
+      resumeTour();
+      toast.success(`Resumed tour at step ${lastTourStepIndex + 1}`);
+    } else {
+      replayTour();
+      toast.success('Tour started');
+    }
     onNavClick?.();
-    toast.success('Tour started');
   }
 
   function handleToggleTutorialMode() {
@@ -91,7 +100,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
             className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-xs text-brand-text hover:bg-white/5 transition-colors"
           >
             <RotateCcw size={14} />
-            Replay Tour
+            {canResumeTour ? `Resume Tour (Step ${lastTourStepIndex + 1})` : 'Replay Tour'}
           </button>
           <button
             onClick={handleToggleTutorialMode}
