@@ -260,6 +260,36 @@ VITE_TRACKING_WEBHOOK_SECRET=your_tracking_secret
 
 When `VITE_USE_API=false` (the default), all data is stored in `localStorage` and no backend is required.
 
+When `VITE_USE_API=true`, the web app now uses BFF APIs for:
+
+- Invoices (`/api/invoices/*`)
+- Quotes (`/api/quotes/*`)
+- Clients (`/api/clients/*`)
+- Export Jobs (`/api/export-jobs/*`)
+- Notifications + outbox (`/api/notifications/*`)
+
+### BFF API Contracts Used By Frontend
+
+Export Jobs:
+
+- `GET /api/export-jobs`
+- `POST /api/export-jobs`
+- `PATCH /api/export-jobs/{id}`
+- `DELETE /api/export-jobs/{id}`
+- `GET /api/export-jobs/tracking/{token}`
+
+Notifications and outbox:
+
+- `GET /api/notifications`
+- `PATCH /api/notifications/{id}/read`
+- `POST /api/notifications/emit`
+- `GET /api/notifications/unread-count`
+- `GET /api/notifications/outbox/stats`
+- `GET /api/notifications/outbox`
+- `POST /api/notifications/outbox/{id}/retry`
+- `DELETE /api/notifications/outbox/sent`
+- `POST /api/notifications/outbox/dispatch`
+
 ### Notification Email Webhook Payload
 
 When configured, clicking "Dispatch Emails" in the Export Jobs page posts pending outbox emails to your webhook:
