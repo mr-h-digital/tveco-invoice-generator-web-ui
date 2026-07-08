@@ -232,7 +232,7 @@ export function AppShell({ children }: AppShellProps) {
       </main>
     </div>
 
-    <Modal open={welcomeOpen} onClose={handleWelcomeSkip} title="Welcome to TVECO Invoice Generator" size="lg">
+    <Modal open={welcomeOpen} onClose={handleWelcomeSkip} title="Welcome to TVECO Operations Hub" size="lg">
       <div className="space-y-4">
         <p className="text-sm text-brand-text leading-relaxed">
           {hasResumeProgress

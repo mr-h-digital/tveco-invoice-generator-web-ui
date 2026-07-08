@@ -23,9 +23,9 @@ export default defineConfig({
         'android-icon-512.png',
       ],
       manifest: {
-        name: 'TVECO Invoice Generator',
-        short_name: 'TVECO Invoices',
-        description: 'Create and manage branded TVECO invoices and quotes.',
+        name: 'TVECO Operations Hub',
+        short_name: 'TVECO Hub',
+        description: 'Manage clients, quotes, invoices, export jobs, documents, notifications, and analytics.',
         theme_color: '#FF6B00',
         background_color: '#0A0C0F',
         display: 'standalone',

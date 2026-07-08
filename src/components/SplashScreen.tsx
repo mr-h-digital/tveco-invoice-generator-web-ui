@@ -351,7 +351,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
                 letterSpacing: 3, textTransform: 'uppercase',
                 color: '#FF6B00',
               }}>
-                Invoice Generator
+                Operations Hub
               </span>
               <motion.div
                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}

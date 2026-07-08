@@ -83,7 +83,7 @@ export function LoginPage() {
                 transition={{ delay: 0.35, duration: 0.4 }}
                 style={{ fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, fontSize: 28, color: C.white, margin: '0 0 2px', letterSpacing: 3 }}
               >
-                Invoice Generator
+                Operations Hub
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -93,7 +93,7 @@ export function LoginPage() {
               >
                 <div style={{ height: 1, width: 24, background: C.border }} />
                 <span style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 10, letterSpacing: 3, textTransform: 'uppercase', color: C.muted }}>
-                  Invoice Generator
+                  Formerly Invoice Generator
                 </span>
                 <div style={{ height: 1, width: 24, background: C.border }} />
               </motion.div>

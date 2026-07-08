@@ -2,7 +2,7 @@
 	<img src="src/assets/tveco-logo.png" alt="TVECO Logo" width="180" />
 </p>
 
-<h1 align="center">TVECO — Invoice Generator</h1>
+<h1 align="center">TVECO Operations Hub</h1>
 
 <p align="center">
 	<strong>A fully branded invoice management web app for Timeline Vehicle Export Company (Pty) Ltd.</strong>
@@ -26,15 +26,17 @@
 
 ## Overview
 
-This repository contains the official internal invoice generator for **Timeline Vehicle Export Company (Pty) Ltd (TVECO)** — South Africa's trusted vehicle export specialists.
+This repository contains the official internal operations platform for **Timeline Vehicle Export Company (Pty) Ltd (TVECO)** — South Africa's trusted vehicle export specialists.
 
 It is a full-featured single-page React application that enables TVECO staff to:
 
-- Create, edit, duplicate, and manage invoices
+- Create, edit, duplicate, and manage invoices and quotes
 - Maintain a database of export clients
-- Print or save invoices as professionally branded PDFs
-- Track invoice status (Draft → Sent → Paid / Overdue)
-- Monitor outstanding revenue from a live dashboard
+- Manage export jobs, milestone progress, and vault documents
+- Dispatch and monitor operational notifications
+- Print or save professional PDFs and monitor performance via analytics
+
+This app was previously branded as TVECO Invoice Generator.
 
 All data is persisted in the browser via `localStorage` by default. A Spring Boot BFF backend can be enabled via an environment variable for production use.
 

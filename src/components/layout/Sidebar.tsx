@@ -66,7 +66,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
             style={{ filter: 'drop-shadow(0 0 8px rgba(255,107,0,0.3))' }} />
           <div>
             <p className="font-display text-xl text-brand-white leading-none tracking-wider">TVECO</p>
-            <p className="text-brand-muted text-xs leading-tight mt-0.5">Invoice Generator</p>
+            <p className="text-brand-muted text-xs leading-tight mt-0.5">Operations Hub</p>
           </div>
         </div>
       </div>
