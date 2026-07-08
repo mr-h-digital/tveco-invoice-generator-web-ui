@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { exportJobService } from '../services/exportJobService';
 import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import { notificationService } from '../services/notificationService';
+import { buildDocumentCompletedEmail, buildPaymentReminderEmail, buildStatusChangedEmail } from '../utils/exportEmailTemplates';
 
 const STATUS_ORDER: ExportJobStatus[] = ['ENQUIRY', 'SOURCING', 'DOCUMENTATION', 'SHIPPING', 'DELIVERED'];
 
@@ -68,14 +69,16 @@ export const useExportJobStore = create<ExportJobStore>((set, get) => ({
     if (currentIdx === -1 || currentIdx >= STATUS_ORDER.length - 1) return job;
 
     const updated = await exportJobService.updateJob(id, { status: STATUS_ORDER[currentIdx + 1] });
+    const statusEmail = buildStatusChangedEmail(updated);
     await notificationService.emit({
       eventType: 'EXPORT_STATUS_CHANGED',
       title: `${updated.jobNumber} moved to ${updated.status}`,
       message: `${updated.clientSnapshot.companyName} export stage is now ${updated.status}.`,
       referenceId: updated.id,
       emailTo: updated.clientSnapshot.email,
-      emailSubject: `TVECO Export Update: ${updated.jobNumber}`,
-      emailBody: `Your export job ${updated.jobNumber} is now in ${updated.status} stage.`,
+      emailSubject: statusEmail.subject,
+      emailBody: statusEmail.text,
+      emailHtmlBody: statusEmail.html,
     });
     set((state) => ({ jobs: state.jobs.map((j) => (j.id === id ? updated : j)) }));
     return updated;
@@ -92,11 +95,16 @@ export const useExportJobStore = create<ExportJobStore>((set, get) => ({
     const updated = await exportJobService.updateJob(id, { documents });
     const changedDoc = updated.documents.find((d) => d.key === key);
     if (changedDoc?.completed) {
+      const docEmail = buildDocumentCompletedEmail(updated, changedDoc);
       await notificationService.emit({
         eventType: 'EXPORT_DOCUMENT_COMPLETED',
         title: `${changedDoc.label} completed`,
         message: `${updated.jobNumber} document checklist item marked complete.`,
         referenceId: updated.id,
+        emailTo: updated.clientSnapshot.email,
+        emailSubject: docEmail.subject,
+        emailBody: docEmail.text,
+        emailHtmlBody: docEmail.html,
       });
     }
     set((state) => ({ jobs: state.jobs.map((j) => (j.id === id ? updated : j)) }));
@@ -125,14 +133,16 @@ export const useExportJobStore = create<ExportJobStore>((set, get) => ({
       for (const milestone of job.paymentMilestones) {
         if (!milestone.paid && milestone.dueDate < today) {
           reminders += 1;
+          const paymentEmail = buildPaymentReminderEmail(job, milestone);
           await notificationService.emit({
             eventType: 'EXPORT_PAYMENT_REMINDER',
             title: `Payment reminder: ${job.jobNumber}`,
             message: `${milestone.label} is overdue for ${job.clientSnapshot.companyName}.`,
             referenceId: job.id,
             emailTo: job.clientSnapshot.email,
-            emailSubject: `Payment Reminder for ${job.jobNumber}`,
-            emailBody: `A payment milestone (${milestone.label}) is overdue for export job ${job.jobNumber}.`,
+            emailSubject: paymentEmail.subject,
+            emailBody: paymentEmail.text,
+            emailHtmlBody: paymentEmail.html,
           });
         }
       }

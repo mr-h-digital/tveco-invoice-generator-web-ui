@@ -14,6 +14,7 @@ interface EmitNotificationInput {
   emailTo?: string;
   emailSubject?: string;
   emailBody?: string;
+  emailHtmlBody?: string;
 }
 
 function loadNotifications(): AppNotification[] {
@@ -77,6 +78,7 @@ export const notificationService = {
         to: input.emailTo,
         subject: input.emailSubject,
         body: input.emailBody,
+        bodyHtml: input.emailHtmlBody,
         createdAt: new Date().toISOString(),
         status: 'PENDING',
         attempts: 0,
@@ -155,6 +157,7 @@ export const notificationService = {
             to: current.to,
             subject: current.subject,
             body: current.body,
+            bodyHtml: current.bodyHtml,
             createdAt: current.createdAt,
           }),
         });
