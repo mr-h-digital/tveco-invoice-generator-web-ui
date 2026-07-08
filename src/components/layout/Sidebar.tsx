@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Users, BarChart2, LogOut, RotateCcw, Lightbulb, Ship } from 'lucide-react';
+import { LayoutDashboard, FileText, Users, BarChart2, LogOut, RotateCcw, Lightbulb, Ship, Bell } from 'lucide-react';
 import { clsx } from 'clsx';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/authStore';
@@ -14,6 +14,7 @@ const navItems = [
   { to: '/quotes', label: 'Quotes', icon: FileText },
   { to: '/clients', label: 'Clients', icon: Users },
   { to: '/exports', label: 'Exports', icon: Ship },
+  { to: '/notifications', label: 'Notifications', icon: Bell },
   { to: '/analytics', label: 'Analytics', icon: BarChart2 },
 ];
 

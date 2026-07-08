@@ -101,6 +101,29 @@ export const notificationService = {
     };
   },
 
+  async getOutbox(): Promise<EmailOutboxNotification[]> {
+    return loadOutbox().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  },
+
+  async retryOutboxMessage(id: string): Promise<void> {
+    const outbox = loadOutbox().map((item) => {
+      if (item.id !== id) return item;
+      return {
+        ...item,
+        status: 'PENDING' as const,
+        lastError: undefined,
+      };
+    });
+    saveOutbox(outbox);
+  },
+
+  async clearSentOutbox(): Promise<number> {
+    const outbox = loadOutbox();
+    const kept = outbox.filter((item) => item.status !== 'SENT');
+    saveOutbox(kept);
+    return outbox.length - kept.length;
+  },
+
   async dispatchPendingOutbox(): Promise<{ sent: number; failed: number; skipped: boolean }> {
     if (!WEBHOOK_URL) {
       return { sent: 0, failed: 0, skipped: true };

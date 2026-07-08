@@ -18,9 +18,11 @@ import { ClientsPage } from './pages/ClientsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ExportJobsPage } from './pages/ExportJobsPage';
 import { PublicTrackingPage } from './pages/PublicTrackingPage';
+import { NotificationsPage } from './pages/NotificationsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { useAuthStore } from './store/authStore';
 import { useOnboardingStore } from './store/onboardingStore';
+import { useNotificationStore } from './store/notificationStore';
 
 const pageVariants = {
   initial: { opacity: 0, y: 8 },
@@ -60,6 +62,7 @@ function PrivateAppRoutes() {
           <Route path="/quotes/:id/edit" element={<AnimatedPage><EditQuotePage /></AnimatedPage>} />
           <Route path="/clients" element={<AnimatedPage><ClientsPage /></AnimatedPage>} />
           <Route path="/exports" element={<AnimatedPage><ExportJobsPage /></AnimatedPage>} />
+          <Route path="/notifications" element={<AnimatedPage><NotificationsPage /></AnimatedPage>} />
           <Route path="/analytics" element={<AnimatedPage><AnalyticsPage /></AnimatedPage>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -72,10 +75,27 @@ export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const user = useAuthStore((s) => s.user);
   const initializeOnboarding = useOnboardingStore((s) => s.initialize);
+  const dispatchOutbox = useNotificationStore((s) => s.dispatchOutbox);
+  const dispatchingOutbox = useNotificationStore((s) => s.dispatchingOutbox);
+  const refreshOutboxStats = useNotificationStore((s) => s.refreshOutboxStats);
 
   useEffect(() => {
     initializeOnboarding(user?.email ?? null);
   }, [initializeOnboarding, user?.email]);
+
+  useEffect(() => {
+    if (!user) return;
+    refreshOutboxStats();
+
+    const intervalMs = 120000;
+    const run = async () => {
+      if (dispatchingOutbox) return;
+      await dispatchOutbox();
+    };
+
+    const timer = window.setInterval(run, intervalMs);
+    return () => window.clearInterval(timer);
+  }, [user, dispatchOutbox, dispatchingOutbox, refreshOutboxStats]);
 
   return (
     <>
