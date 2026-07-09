@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Search, Truck, CheckCircle2, Circle, Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDate, formatDateShort } from '../utils/formatDate';
@@ -12,9 +12,11 @@ import type { ExportJob } from '../types/exportJob';
 
 export function PublicTrackingPage() {
   const params = useParams();
+  const navigate = useNavigate();
   const [inputToken, setInputToken] = useState((params.token ?? '').toUpperCase());
   const [job, setJob] = useState<ExportJob | null>(null);
   const [loadingJob, setLoadingJob] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const token = (params.token ?? '').toUpperCase();
 
@@ -41,7 +43,22 @@ export function PublicTrackingPage() {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, [token, reloadKey]);
+
+  function handleTrackSearch() {
+    const normalized = inputToken.trim().toUpperCase();
+    if (!normalized) {
+      toast.error('Please enter a tracking token');
+      return;
+    }
+
+    if (normalized === token) {
+      setReloadKey((value) => value + 1);
+      return;
+    }
+
+    navigate(`/track/${encodeURIComponent(normalized)}`);
+  }
 
   const paidTotal = job ? job.paymentMilestones.filter((m) => m.paid).reduce((sum, m) => sum + m.amount, 0) : 0;
   const visibleVaultDocuments = job ? job.vaultDocuments.filter((d) => d.visibleToClient) : [];
@@ -82,17 +99,24 @@ export function PublicTrackingPage() {
                 <input
                   value={inputToken}
                   onChange={(e) => setInputToken(e.target.value.toUpperCase())}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleTrackSearch();
+                    }
+                  }}
                   className="input-field pl-9 text-sm"
                   placeholder="Enter token e.g. TVC-9A1F0C"
                 />
               </div>
-              <Link
-                to={`/track/${encodeURIComponent(inputToken.trim())}`}
+              <button
+                type="button"
+                onClick={handleTrackSearch}
                 className="px-4 py-2 rounded-lg text-sm text-white hover:opacity-90 transition-opacity"
                 style={{ background: '#FF6B00' }}
               >
                 Track
-              </Link>
+              </button>
             </div>
           </div>
 
