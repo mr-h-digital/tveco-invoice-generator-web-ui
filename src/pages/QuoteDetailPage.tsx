@@ -95,6 +95,7 @@ export function QuoteDetailPage() {
         dueDate,
         clientId: quote.clientId,
         exportJobId: null,
+        paymentMilestoneKey: null,
         clientSnapshot: quote.clientSnapshot,
         lineItems: quote.lineItems,
         subtotal: totals.subtotal,
