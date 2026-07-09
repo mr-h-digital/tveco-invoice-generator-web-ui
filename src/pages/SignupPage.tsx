@@ -1,12 +1,15 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
 
 export function SignupPage() {
   const signup = useAuthStore((s) => s.signup);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [form, setForm] = useState({
     companyName: '',
     contactName: '',
@@ -17,9 +20,11 @@ export function SignupPage() {
     confirmPassword: '',
   });
 
+  const passwordsDoNotMatch = form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (form.password !== form.confirmPassword) {
+    if (passwordsDoNotMatch) {
       toast.error('Passwords do not match');
       return;
     }
@@ -65,10 +70,57 @@ export function SignupPage() {
             <input type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} placeholder="Email" required style={inputStyle(C)} />
             <input value={form.phone} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value }))} placeholder="Phone" required style={inputStyle(C)} />
             <input value={form.address} onChange={(e) => setForm((p) => ({ ...p, address: e.target.value }))} placeholder="Business Address" required style={inputStyle(C)} />
-            <input type="password" value={form.password} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} placeholder="Password (min 8 characters)" minLength={8} required style={inputStyle(C)} />
-            <input type="password" value={form.confirmPassword} onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))} placeholder="Confirm Password" minLength={8} required style={inputStyle(C)} />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                value={form.password}
+                onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
+                placeholder="Password (min 8 characters)"
+                minLength={8}
+                required
+                style={passwordInputStyle(C)}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                style={toggleButtonStyle(C)}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
 
-            <button type="submit" disabled={loading} style={{ border: 'none', borderRadius: 10, padding: '12px 14px', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, background: C.orange, color: '#fff', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.8 : 1 }}>
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={form.confirmPassword}
+                onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                placeholder="Confirm Password"
+                minLength={8}
+                required
+                aria-invalid={passwordsDoNotMatch}
+                style={{
+                  ...passwordInputStyle(C),
+                  border: passwordsDoNotMatch ? '1px solid #EF4444' : `1px solid ${C.border}`,
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                style={toggleButtonStyle(C)}
+              >
+                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+
+            {passwordsDoNotMatch ? (
+              <p style={{ margin: 0, color: '#EF4444', fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
+                Password and confirm password must match.
+              </p>
+            ) : null}
+
+            <button type="submit" disabled={loading || passwordsDoNotMatch} style={{ border: 'none', borderRadius: 10, padding: '12px 14px', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, background: C.orange, color: '#fff', cursor: loading || passwordsDoNotMatch ? 'not-allowed' : 'pointer', opacity: loading || passwordsDoNotMatch ? 0.8 : 1 }}>
               {loading ? 'Creating profile...' : 'Create Client Profile'}
             </button>
           </form>
@@ -80,6 +132,28 @@ export function SignupPage() {
       </div>
     </div>
   );
+}
+
+function passwordInputStyle(C: { border: string; white: string }) {
+  return {
+    ...inputStyle(C),
+    paddingRight: 42,
+  };
+}
+
+function toggleButtonStyle(C: { muted: string }) {
+  return {
+    position: 'absolute' as const,
+    right: 10,
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
+    border: 'none',
+    padding: 0,
+    color: C.muted,
+    cursor: 'pointer',
+    lineHeight: 0,
+  };
 }
 
 function inputStyle(C: { border: string; white: string }) {
