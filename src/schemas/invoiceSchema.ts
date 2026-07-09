@@ -39,6 +39,7 @@ export const invoiceFormSchema = z.object({
   dueDate: z.string().min(1, 'Due date is required'),
   clientId: z.string().nullable(),
   exportJobId: z.string().nullable(),
+  paymentMilestoneKey: z.string().nullable(),
   clientSnapshot: clientSnapshotSchema,
   lineItems: z.array(lineItemSchema).min(1, 'At least one line item is required'),
   discountType: optionalDiscountTypeSchema,

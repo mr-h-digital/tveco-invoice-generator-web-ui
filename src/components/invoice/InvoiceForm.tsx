@@ -7,6 +7,7 @@ import type { Client } from '../../types/client';
 import { calculateTotals } from '../../utils/invoiceTotals';
 import { formatCurrency } from '../../utils/formatCurrency';
 import { useExportJobs } from '../../hooks/useExportJobs';
+import { v4 as uuid } from 'uuid';
 
 const DEFAULT_PAYMENT = {
   bank: 'First National Bank (FNB)',
@@ -20,10 +21,30 @@ export function InvoiceForm() {
   const { register, control, setValue, formState: { errors } } = useFormContext<InvoiceFormValues>();
   const { jobs } = useExportJobs();
 
-  const [lineItems, discountType, discountValue, vatEnabled, vatRate, invoiceNumber, clientId, exportJobId] = useWatch({
+  const [lineItems, discountType, discountValue, vatEnabled, vatRate, invoiceNumber, clientId, exportJobId, paymentMilestoneKey] = useWatch({
     control,
-    name: ['lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'invoiceNumber', 'clientId', 'exportJobId'],
+    name: ['lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'invoiceNumber', 'clientId', 'exportJobId', 'paymentMilestoneKey'],
   });
+
+  const selectedJob = useMemo(() => jobs.find((job) => job.id === exportJobId) ?? null, [exportJobId, jobs]);
+
+  const milestoneOptions = useMemo(() => selectedJob?.paymentMilestones ?? [], [selectedJob]);
+
+  const selectedScope = useMemo(() => {
+    if (!selectedJob) return null;
+    if (paymentMilestoneKey) {
+      return milestoneOptions.find((milestone) => milestone.key === paymentMilestoneKey) ?? null;
+    }
+    const amount = milestoneOptions.reduce((sum, milestone) => sum + milestone.amount, 0) || selectedJob.projectValue;
+    return {
+      key: '__entire_job__',
+      label: `Entire export job (${selectedJob.jobNumber})`,
+      amount,
+    };
+  }, [milestoneOptions, paymentMilestoneKey, selectedJob]);
+
+  const selectedScopeAmount = selectedScope ? Number(selectedScope.amount.toFixed(2)) : null;
+  const selectedScopeLabel = selectedScope?.label ?? null;
 
   const exportJobOptions = useMemo(() => {
     if (!clientId) return jobs;
@@ -50,13 +71,54 @@ export function InvoiceForm() {
     const selectedStillValid = exportJobOptions.some((job) => job.id === exportJobId);
     if (!selectedStillValid) {
       setValue('exportJobId', null);
+      setValue('paymentMilestoneKey', null);
     }
   }, [exportJobId, exportJobOptions, setValue]);
+
+  useEffect(() => {
+    if (!selectedJob) return;
+
+    if (paymentMilestoneKey && !milestoneOptions.some((milestone) => milestone.key === paymentMilestoneKey)) {
+      setValue('paymentMilestoneKey', null);
+      return;
+    }
+
+    if (selectedScopeAmount == null || !selectedScopeLabel) return;
+
+    const current = lineItems?.[0];
+    const nextName = selectedScopeLabel;
+    const nextDescription = paymentMilestoneKey
+      ? `Invoice raised against payment milestone ${paymentMilestoneKey} for export job ${selectedJob.jobNumber}`
+      : `Invoice raised against the full export job ${selectedJob.jobNumber}`;
+
+    const currentMatches =
+      lineItems?.length === 1 &&
+      current?.name === nextName &&
+      current?.description === nextDescription &&
+      current?.quantity === 1 &&
+      Number(current?.unitPrice ?? 0) === selectedScopeAmount &&
+      Number(current?.amount ?? 0) === selectedScopeAmount;
+
+    if (!currentMatches) {
+      setValue('lineItems', [
+        {
+          id: current?.id ?? uuid(),
+          name: nextName,
+          description: nextDescription,
+          quantity: 1,
+          unitPrice: selectedScopeAmount,
+          amount: selectedScopeAmount,
+          sortOrder: 0,
+        },
+      ]);
+    }
+  }, [lineItems, milestoneOptions, paymentMilestoneKey, selectedJob, selectedScopeAmount, selectedScopeLabel, setValue]);
 
   const handleClientChange = useCallback(
     (id: string | null, client: Client | null) => {
       setValue('clientId', id);
       setValue('exportJobId', null);
+      setValue('paymentMilestoneKey', null);
       if (client) {
         setValue('clientSnapshot.companyName', client.companyName);
         setValue('clientSnapshot.contactName', client.contactName);
@@ -124,8 +186,41 @@ export function InvoiceForm() {
                 </select>
               )}
             />
-            <p className="text-xs text-brand-muted mt-1">Linking enables export cards to use real invoiced values and balances.</p>
+            <p className="text-xs text-brand-muted mt-1">Linking locks the invoice subtotal to the selected export job amount for audit-safe billing.</p>
           </div>
+
+          {selectedJob && (
+            <div className="sm:col-span-2">
+              <label className="field-label">Invoice Scope</label>
+              <Controller
+                control={control}
+                name="paymentMilestoneKey"
+                render={({ field }) => (
+                  <select
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value || null)}
+                    className="input-field"
+                  >
+                    <option value="">Entire export job</option>
+                    {milestoneOptions.map((milestone) => (
+                      <option key={milestone.key} value={milestone.key}>
+                        {milestone.label} - {formatCurrency(milestone.amount)}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
+              <p className="text-xs text-brand-muted mt-1">
+                The invoice subtotal will match the selected scope before any discount or VAT is applied.
+              </p>
+            </div>
+          )}
+
+          {selectedScopeAmount != null && selectedScopeLabel && (
+            <div className="sm:col-span-2 rounded-lg border border-brand-border bg-brand-night/30 p-3 text-xs text-brand-muted">
+              Billed gross amount: <span className="text-brand-white font-head">{formatCurrency(selectedScopeAmount)}</span>
+            </div>
+          )}
         </div>
       </section>
 
@@ -176,6 +271,11 @@ export function InvoiceForm() {
         </div>
         {errors.lineItems && typeof errors.lineItems === 'object' && 'message' in errors.lineItems && (
           <p className="field-error mt-2">{String(errors.lineItems.message)}</p>
+        )}
+        {selectedJob && (
+          <p className="text-xs text-brand-muted mt-2">
+            Line items are locked to the selected export-job scope so the invoice gross amount stays audit-safe.
+          </p>
         )}
       </section>
 

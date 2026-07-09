@@ -14,6 +14,7 @@ const DEFAULT_INVOICES: Invoice[] = [
     dueDate: '2026-07-01',
     clientId: 'client-001',
     exportJobId: null,
+    paymentMilestoneKey: null,
     clientSnapshot: {
       companyName: 'Kabila Muteba Enterprises',
       contactName: 'Kabila Muteba',
@@ -54,7 +55,10 @@ function lsLoad(): Invoice[] {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) { localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_INVOICES)); return DEFAULT_INVOICES; }
-    return JSON.parse(raw) as Invoice[];
+    return (JSON.parse(raw) as Invoice[]).map((invoice) => ({
+      ...invoice,
+      paymentMilestoneKey: invoice.paymentMilestoneKey ?? null,
+    }));
   } catch { return DEFAULT_INVOICES; }
 }
 
@@ -78,6 +82,7 @@ function toRequest(data: Omit<Invoice, 'id' | 'createdAt' | 'updatedAt'>) {
     })),
     clientSnapshot: data.clientSnapshot,
     exportJobId: data.exportJobId ?? undefined,
+    paymentMilestoneKey: data.paymentMilestoneKey ?? undefined,
     discountType: data.discountType || undefined,
     discountValue: data.discountValue,
     vatEnabled: data.vatEnabled,

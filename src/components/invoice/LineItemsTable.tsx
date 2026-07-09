@@ -23,9 +23,10 @@ interface RowProps {
   canRemove: boolean;
   isFirst: boolean;
   isLast: boolean;
+  locked: boolean;
 }
 
-const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove, isFirst, isLast }: RowProps) {
+const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove, isFirst, isLast, locked }: RowProps) {
   const { register, setValue, getValues } = useFormContext<InvoiceFormValues>();
 
   useEffect(() => {
@@ -44,12 +45,14 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
         <input
           {...register(`lineItems.${index}.name`)}
           placeholder="Item name *"
-          className="input-field text-sm"
+          disabled={locked}
+          className="input-field text-sm disabled:opacity-70"
         />
         <input
           {...register(`lineItems.${index}.description`)}
           placeholder="Detail / notes (optional)"
-          className="w-full bg-transparent border border-transparent rounded-lg px-3 py-1 text-xs text-brand-muted placeholder:text-brand-muted/50 outline-none focus:border-brand-border focus:shadow-[0_0_0_2px_rgba(255,107,0,0.12)] transition-colors"
+          disabled={locked}
+          className="w-full bg-transparent border border-transparent rounded-lg px-3 py-1 text-xs text-brand-muted placeholder:text-brand-muted/50 outline-none focus:border-brand-border focus:shadow-[0_0_0_2px_rgba(255,107,0,0.12)] transition-colors disabled:opacity-70"
         />
       </div>
 
@@ -59,7 +62,8 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
           <input
             {...register(`lineItems.${index}.quantity`, { valueAsNumber: true, onChange: updateAmount })}
             type="number" min="0" step="0.01" placeholder="1"
-            className="input-field text-sm text-right"
+            disabled={locked}
+            className="input-field text-sm text-right disabled:opacity-70"
           />
         </div>
         <div>
@@ -67,7 +71,8 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
           <input
             {...register(`lineItems.${index}.unitPrice`, { valueAsNumber: true, onChange: updateAmount })}
             type="number" min="0" step="0.01" placeholder="0.00"
-            className="input-field text-sm text-right"
+            disabled={locked}
+            className="input-field text-sm text-right disabled:opacity-70"
           />
         </div>
         <div>
@@ -76,15 +81,15 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
         </div>
 
         <div className="flex flex-col items-center gap-1 pt-4">
-          <button type="button" onClick={() => onMoveUp(index)} disabled={isFirst} aria-label="Move up"
+          <button type="button" onClick={() => onMoveUp(index)} disabled={locked || isFirst} aria-label="Move up"
             className="p-1 text-brand-muted hover:text-brand-text transition-colors disabled:opacity-20">
             <ChevronUp size={14} />
           </button>
-          <button type="button" onClick={() => onMoveDown(index)} disabled={isLast} aria-label="Move down"
+          <button type="button" onClick={() => onMoveDown(index)} disabled={locked || isLast} aria-label="Move down"
             className="p-1 text-brand-muted hover:text-brand-text transition-colors disabled:opacity-20">
             <ChevronDown size={14} />
           </button>
-          {canRemove && (
+          {!locked && canRemove && (
             <button type="button" onClick={() => onRemove(index)} aria-label="Remove item"
               className="p-1 text-brand-muted hover:text-red-400 transition-colors">
               <Trash2 size={14} />
@@ -99,6 +104,7 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
 export function LineItemsTable() {
   const { control } = useFormContext<InvoiceFormValues>();
   const { fields, append, remove, move } = useFieldArray({ control, name: 'lineItems' });
+  const exportJobId = useWatch({ control, name: 'exportJobId' });
 
   const handleRemove   = useCallback((i: number) => remove(i), [remove]);
   const handleMoveUp   = useCallback((i: number) => move(i, i - 1), [move]);
@@ -124,18 +130,21 @@ export function LineItemsTable() {
           canRemove={fields.length > 1}
           isFirst={index === 0}
           isLast={index === fields.length - 1}
+          locked={Boolean(exportJobId)}
         />
       ))}
 
-      <button
-        type="button"
-        onClick={() => append({ id: uuid(), name: '', description: '', quantity: 1, unitPrice: 0, amount: 0, sortOrder: fields.length })}
-        className="mt-4 flex items-center gap-2 text-sm text-orange hover:text-orange-lt transition-colors py-1"
-        style={{ color: '#FF6B00' }}
-      >
-        <Plus size={15} />
-        Add line item
-      </button>
+      {!exportJobId && (
+        <button
+          type="button"
+          onClick={() => append({ id: uuid(), name: '', description: '', quantity: 1, unitPrice: 0, amount: 0, sortOrder: fields.length })}
+          className="mt-4 flex items-center gap-2 text-sm text-orange hover:text-orange-lt transition-colors py-1"
+          style={{ color: '#FF6B00' }}
+        >
+          <Plus size={15} />
+          Add line item
+        </button>
+      )}
     </div>
   );
 }

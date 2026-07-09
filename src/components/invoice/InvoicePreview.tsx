@@ -153,6 +153,7 @@ export function InvoicePreview({ invoice }: InvoicePreviewProps) {
           { label: 'Invoice Date', value: invoice.issueDate ? formatDate(invoice.issueDate) : '—' },
           { label: 'Payment Due',  value: invoice.dueDate   ? formatDate(invoice.dueDate)   : '—' },
           { label: 'Reference',    value: invoice.paymentDetails?.reference || invoice.invoiceNumber || '—' },
+          { label: 'Billing Scope', value: invoice.exportJobId ? (invoice.paymentMilestoneKey ? `Milestone: ${invoice.paymentMilestoneKey}` : 'Entire export job') : 'Standalone invoice' },
         ].map(({ label, value }, i) => (
           <div key={label} style={{ padding: `clamp(12px,2vw,16px) ${padH}`, borderRight: i < 2 ? `1px solid ${C.border}` : 'none' }}>
             <p style={{ fontFamily: head, fontSize: 9, letterSpacing: 2, textTransform: 'uppercase', color: C.muted, margin: '0 0 4px' }}>{label}</p>

@@ -528,11 +528,13 @@ export function ExportJobsPage() {
                 const canCancel = !isTerminal;
                 const linkedInvoices = invoices.filter((invoice) => invoice.exportJobId === job.id);
                 const canDelete = job.status === 'ENQUIRY' && linkedInvoices.length === 0;
-                const linkedInvoicedTotal = linkedInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
+                const linkedGrossTotal = linkedInvoices.reduce((sum, invoice) => sum + invoice.subtotal, 0);
+                const linkedDiscountTotal = linkedInvoices.reduce((sum, invoice) => sum + invoice.discountAmount, 0);
+                const linkedNetTotal = linkedInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
                 const linkedPaidTotal = linkedInvoices
                   .filter((invoice) => invoice.status === 'PAID')
                   .reduce((sum, invoice) => sum + invoice.total, 0);
-                const linkedOutstandingTotal = Math.max(linkedInvoicedTotal - linkedPaidTotal, 0);
+                const linkedOutstandingTotal = Math.max(linkedNetTotal - linkedPaidTotal, 0);
 
                 return (
                   <motion.div
@@ -609,11 +611,19 @@ export function ExportJobsPage() {
                               <p className="text-xs font-head text-brand-white">{linkedInvoices.length}</p>
                             </div>
                             <div className="px-2.5 py-2 rounded-md border border-brand-border">
-                              <p className="text-[11px] text-brand-muted">Invoiced</p>
-                              <p className="text-xs font-head text-brand-white">{formatCurrency(linkedInvoicedTotal)}</p>
+                              <p className="text-[11px] text-brand-muted">Gross Invoiced</p>
+                              <p className="text-xs font-head text-brand-white">{formatCurrency(linkedGrossTotal)}</p>
                             </div>
                             <div className="px-2.5 py-2 rounded-md border border-brand-border">
-                              <p className="text-[11px] text-brand-muted">Outstanding</p>
+                              <p className="text-[11px] text-brand-muted">Net Due</p>
+                              <p className="text-xs font-head text-brand-white">{formatCurrency(linkedNetTotal)}</p>
+                            </div>
+                            <div className="px-2.5 py-2 rounded-md border border-brand-border">
+                              <p className="text-[11px] text-brand-muted">Discounts Given</p>
+                              <p className="text-xs font-head text-brand-white">{formatCurrency(linkedDiscountTotal)}</p>
+                            </div>
+                            <div className="px-2.5 py-2 rounded-md border border-brand-border sm:col-span-2">
+                              <p className="text-[11px] text-brand-muted">Outstanding Net Due</p>
                               <p className="text-xs font-head text-brand-white">{formatCurrency(linkedOutstandingTotal)}</p>
                             </div>
                           </div>

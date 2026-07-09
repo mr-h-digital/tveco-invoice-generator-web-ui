@@ -32,6 +32,7 @@ export function NewInvoicePage() {
       dueDate: addDaysISO(today, 14),
       clientId: null,
       exportJobId: null,
+      paymentMilestoneKey: null,
       clientSnapshot: { companyName: '', contactName: '', email: '', phone: '', address: '' },
       lineItems: [{ id: uuid(), name: '', description: '', quantity: 1, unitPrice: 0, amount: 0, sortOrder: 0 }],
       discountType: null,
@@ -57,9 +58,9 @@ export function NewInvoicePage() {
     }).catch(() => {});
   }, [methods]);
 
-  const [invoiceNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, exportJobId, clientSnapshot, issueDate, dueDate, status, notes, paymentDetails] = useWatch({
+  const [invoiceNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, exportJobId, paymentMilestoneKey, clientSnapshot, issueDate, dueDate, status, notes, paymentDetails] = useWatch({
     control: methods.control,
-    name: ['invoiceNumber', 'lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'clientId', 'exportJobId', 'clientSnapshot', 'issueDate', 'dueDate', 'status', 'notes', 'paymentDetails'],
+    name: ['invoiceNumber', 'lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'clientId', 'exportJobId', 'paymentMilestoneKey', 'clientSnapshot', 'issueDate', 'dueDate', 'status', 'notes', 'paymentDetails'],
   });
 
   const totals = calculateTotals({
@@ -70,7 +71,7 @@ export function NewInvoicePage() {
     vatRate: vatRate ?? 0.15,
   });
 
-  const previewValues = { invoiceNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, exportJobId, clientSnapshot, issueDate, dueDate, status, notes, paymentDetails };
+  const previewValues = { invoiceNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, exportJobId, paymentMilestoneKey, clientSnapshot, issueDate, dueDate, status, notes, paymentDetails };
 
   const onSubmit: SubmitHandler<InvoiceFormValues> = async (data) => {
     const computed = calculateTotals({

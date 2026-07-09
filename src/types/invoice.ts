@@ -36,6 +36,7 @@ export interface Invoice {
   dueDate: string;
   clientId: string | null;
   exportJobId: string | null;
+  paymentMilestoneKey: string | null;
   clientSnapshot: ClientSnapshot;
   lineItems: LineItem[];
   subtotal: number;
