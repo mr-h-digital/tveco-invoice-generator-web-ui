@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useForm, useWatch, FormProvider, type SubmitHandler, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -16,8 +16,21 @@ import { todayISO, addDaysISO } from '../utils/formatDate';
 import { v4 as uuid } from 'uuid';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 
+export interface NewInvoicePreFill {
+  exportJobId: string;
+  exportJobNumber: string;
+  paymentMilestoneKey: string | null;
+  milestoneLabel: string;
+  amount: number;
+  clientId: string | null;
+  clientSnapshot: { companyName: string; contactName: string; email: string; phone: string; address: string };
+  dueDate: string;
+}
+
 export function NewInvoicePage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const preFill = (location.state as { preFill?: NewInvoicePreFill } | null)?.preFill ?? null;
   const { addInvoice } = useInvoices();
   const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
 
@@ -29,12 +42,16 @@ export function NewInvoicePage() {
       invoiceNumber: `TVECO-${today.slice(0, 4)}-???`,
       status: 'DRAFT',
       issueDate: today,
-      dueDate: addDaysISO(today, 14),
-      clientId: null,
-      exportJobId: null,
-      paymentMilestoneKey: null,
-      clientSnapshot: { companyName: '', contactName: '', email: '', phone: '', address: '' },
-      lineItems: [{ id: uuid(), name: '', description: '', quantity: 1, unitPrice: 0, amount: 0, sortOrder: 0 }],
+      dueDate: preFill ? preFill.dueDate : addDaysISO(today, 14),
+      clientId: preFill ? preFill.clientId : null,
+      exportJobId: preFill ? preFill.exportJobId : null,
+      paymentMilestoneKey: preFill ? preFill.paymentMilestoneKey : null,
+      clientSnapshot: preFill ? preFill.clientSnapshot : { companyName: '', contactName: '', email: '', phone: '', address: '' },
+      lineItems: preFill
+        ? [{ id: uuid(), name: preFill.milestoneLabel, description: preFill.paymentMilestoneKey
+            ? `Invoice for ${preFill.milestoneLabel} — Export Job ${preFill.exportJobNumber}`
+            : `Invoice for Export Job ${preFill.exportJobNumber}`, quantity: 1, unitPrice: preFill.amount, amount: preFill.amount, sortOrder: 0 }]
+        : [{ id: uuid(), name: '', description: '', quantity: 1, unitPrice: 0, amount: 0, sortOrder: 0 }],
       discountType: null,
       discountValue: 0,
       vatEnabled: false,

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet, Send, Paperclip, Eye, EyeOff, Trash2, Download, Pencil, XCircle } from 'lucide-react';
+import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet, Send, Paperclip, Eye, EyeOff, Trash2, Download, Pencil, XCircle, FilePlus } from 'lucide-react';
 import { toast } from 'sonner';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
@@ -11,7 +11,8 @@ import { useExportJobs } from '../hooks/useExportJobs';
 import { useInvoices } from '../hooks/useInvoices';
 import { useClients } from '../hooks/useClients';
 import { useNotifications } from '../hooks/useNotifications';
-import type { ExportJob, ExportJobStatus } from '../types/exportJob';
+import type { ExportJob, ExportJobPaymentMilestone, ExportJobStatus } from '../types/exportJob';
+import type { NewInvoicePreFill } from './NewInvoicePage';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { formatDateShort, todayISO } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
@@ -94,6 +95,7 @@ export function ExportJobsPage() {
     dispatchingOutbox,
   } = useNotifications();
 
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<ExportJobStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -220,6 +222,27 @@ export function ExportJobsPage() {
       balancePercent: '30',
       notes: '',
     });
+  }
+
+  function handleCreateInvoice(job: ExportJob, ms: ExportJobPaymentMilestone | null) {
+    const milestoneSum = job.paymentMilestones.reduce((s, m) => s + m.amount, 0) || job.projectValue;
+    const preFill: NewInvoicePreFill = {
+      exportJobId: job.id,
+      exportJobNumber: job.jobNumber,
+      paymentMilestoneKey: ms ? ms.key : null,
+      milestoneLabel: ms ? ms.label : `Entire Export Job — ${job.jobNumber}`,
+      amount: ms ? ms.amount : milestoneSum,
+      clientId: job.clientId,
+      clientSnapshot: {
+        companyName: job.clientSnapshot.companyName,
+        contactName: job.clientSnapshot.contactName,
+        email: job.clientSnapshot.email,
+        phone: job.clientSnapshot.phone,
+        address: '',
+      },
+      dueDate: ms ? ms.dueDate : job.estimatedArrivalDate,
+    };
+    navigate('/invoices/new', { state: { preFill } });
   }
 
   async function handleAdvanceStatus(jobId: string) {
@@ -601,7 +624,16 @@ export function ExportJobsPage() {
                       </div>
 
                       <div>
-                        <p className="text-xs text-brand-muted mb-2">Invoicing Breakdown</p>
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs text-brand-muted">Invoicing Breakdown</p>
+                          <button
+                            onClick={() => handleCreateInvoice(job, null)}
+                            className="flex items-center gap-1 px-2 py-1 rounded-md border border-brand-border text-[11px] text-brand-text hover:bg-brand-card2 transition-colors"
+                          >
+                            <FilePlus size={11} />
+                            Invoice entire job
+                          </button>
+                        </div>
                         {linkedInvoices.length === 0 ? (
                           <p className="text-[11px] text-brand-muted">No linked invoices yet. Link invoices to this export job for accurate cost tracking.</p>
                         ) : (
@@ -634,25 +666,33 @@ export function ExportJobsPage() {
                         <p className="text-xs text-brand-muted mb-2">Payment Milestones</p>
                         <div className="space-y-1.5">
                           {job.paymentMilestones.map((ms) => (
-                            <button
-                              key={ms.key}
-                              onClick={() => handleTogglePayment(job.id, ms.key)}
-                              disabled={isTerminal}
-                              className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-md border border-brand-border text-left hover:bg-brand-card2 transition-colors"
-                            >
-                              <div className="flex items-center gap-2 min-w-0">
-                                {ms.paid ? (
-                                  <CheckCircle2 size={14} style={{ color: '#22C55E' }} />
-                                ) : (
-                                  <Wallet size={14} className="text-brand-muted" />
-                                )}
-                                <div className="min-w-0">
-                                  <p className="text-xs text-brand-text truncate">{ms.label}</p>
-                                  <p className="text-[11px] text-brand-muted">Due {formatDateShort(ms.dueDate)}</p>
+                            <div key={ms.key} className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => handleTogglePayment(job.id, ms.key)}
+                                disabled={isTerminal}
+                                className="flex-1 flex items-center justify-between gap-2 px-2.5 py-2 rounded-md border border-brand-border text-left hover:bg-brand-card2 transition-colors"
+                              >
+                                <div className="flex items-center gap-2 min-w-0">
+                                  {ms.paid ? (
+                                    <CheckCircle2 size={14} style={{ color: '#22C55E' }} />
+                                  ) : (
+                                    <Wallet size={14} className="text-brand-muted" />
+                                  )}
+                                  <div className="min-w-0">
+                                    <p className="text-xs text-brand-text truncate">{ms.label}</p>
+                                    <p className="text-[11px] text-brand-muted">Due {formatDateShort(ms.dueDate)}</p>
+                                  </div>
                                 </div>
-                              </div>
-                              <span className="text-xs font-head text-brand-white">{formatCurrency(ms.amount)}</span>
-                            </button>
+                                <span className="text-xs font-head text-brand-white">{formatCurrency(ms.amount)}</span>
+                              </button>
+                              <button
+                                onClick={() => handleCreateInvoice(job, ms)}
+                                title={`Create invoice for ${ms.label}`}
+                                className="flex-shrink-0 p-1.5 rounded-md border border-brand-border text-brand-muted hover:text-brand-white hover:bg-brand-card2 transition-colors"
+                              >
+                                <FilePlus size={13} />
+                              </button>
+                            </div>
                           ))}
                         </div>
                       </div>
