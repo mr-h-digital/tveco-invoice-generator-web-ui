@@ -26,6 +26,7 @@ interface ExportJobStore {
   }) => Promise<ExportJob>;
   updateJob: (id: string, data: Partial<Omit<ExportJob, 'id' | 'createdAt' | 'jobNumber' | 'publicTrackingToken'>>) => Promise<ExportJob>;
   deleteJob: (id: string) => Promise<void>;
+  cancelJob: (id: string, reason: string) => Promise<ExportJob>;
   advanceStatus: (id: string) => Promise<ExportJob | null>;
   toggleDocument: (id: string, key: string) => Promise<ExportJob | null>;
   togglePaymentMilestone: (id: string, key: string) => Promise<ExportJob | null>;
@@ -69,6 +70,12 @@ export const useExportJobStore = create<ExportJobStore>((set, get) => ({
   deleteJob: async (id) => {
     await exportJobService.deleteJob(id);
     set((state) => ({ jobs: state.jobs.filter((j) => j.id !== id) }));
+  },
+
+  cancelJob: async (id, reason) => {
+    const job = await exportJobService.cancelJob(id, reason);
+    set((state) => ({ jobs: state.jobs.map((j) => (j.id === id ? job : j)) }));
+    return job;
   },
 
   advanceStatus: async (id) => {

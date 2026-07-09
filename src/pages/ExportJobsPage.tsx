@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet, Send, Paperclip, Eye, EyeOff, Trash2, Download } from 'lucide-react';
+import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet, Send, Paperclip, Eye, EyeOff, Trash2, Download, Pencil, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
@@ -31,6 +31,7 @@ const STATUS_LABELS: Record<ExportJobStatus, string> = {
   DOCUMENTATION: 'Documentation',
   SHIPPING: 'Shipping',
   DELIVERED: 'Delivered',
+  CANCELLED: 'Cancelled',
 };
 
 const STATUS_BADGE: Record<ExportJobStatus, { fg: string; bg: string }> = {
@@ -39,6 +40,7 @@ const STATUS_BADGE: Record<ExportJobStatus, { fg: string; bg: string }> = {
   DOCUMENTATION: { fg: '#A78BFA', bg: 'rgba(167,139,250,0.18)' },
   SHIPPING: { fg: '#2DD4BF', bg: 'rgba(45,212,191,0.16)' },
   DELIVERED: { fg: '#22C55E', bg: 'rgba(34,197,94,0.16)' },
+  CANCELLED: { fg: '#F87171', bg: 'rgba(248,113,113,0.16)' },
 };
 
 const TABS: Array<{ value: ExportJobStatus | 'all'; label: string }> = [
@@ -48,6 +50,7 @@ const TABS: Array<{ value: ExportJobStatus | 'all'; label: string }> = [
   { value: 'DOCUMENTATION', label: 'Documentation' },
   { value: 'SHIPPING', label: 'Shipping' },
   { value: 'DELIVERED', label: 'Delivered' },
+  { value: 'CANCELLED', label: 'Cancelled' },
 ];
 
 function progressRatio(job: ExportJob) {
@@ -68,6 +71,9 @@ export function ExportJobsPage() {
     jobs,
     loading,
     addJob,
+    updateJob,
+    deleteJob,
+    cancelJob,
     advanceStatus,
     toggleDocument,
     togglePaymentMilestone,
@@ -91,6 +97,17 @@ export function ExportJobsPage() {
   const [filter, setFilter] = useState<ExportJobStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [cancelModalOpen, setCancelModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedJob, setSelectedJob] = useState<ExportJob | null>(null);
+  const [deleteLinkedInvoicesCount, setDeleteLinkedInvoicesCount] = useState(0);
+  const [editDraft, setEditDraft] = useState({
+    destinationCountry: '',
+    vehicleDescription: '',
+    notes: '',
+  });
+  const [cancelReason, setCancelReason] = useState('');
   const [draft, setDraft] = useState({
     clientId: '',
     companyName: '',
@@ -189,6 +206,104 @@ export function ExportJobsPage() {
       return;
     }
     toast.success(`Moved to ${STATUS_LABELS[updated.status]}`);
+  }
+
+  function handleQuickEdit(job: ExportJob) {
+    if (!['ENQUIRY', 'SOURCING', 'DOCUMENTATION'].includes(job.status)) {
+      toast.error('Core details can only be edited during Enquiry, Sourcing, or Documentation stages');
+      return;
+    }
+
+    setSelectedJob(job);
+    setEditDraft({
+      destinationCountry: job.destinationCountry,
+      vehicleDescription: job.vehicleDescription,
+      notes: job.notes,
+    });
+    setEditModalOpen(true);
+  }
+
+  async function handleEditSubmit() {
+    if (!selectedJob) return;
+
+    const destinationCountry = editDraft.destinationCountry.trim();
+    const vehicleDescription = editDraft.vehicleDescription.trim();
+    const notesInput = editDraft.notes;
+
+    if (!destinationCountry || !vehicleDescription) {
+      toast.error('Destination country and vehicle description are required');
+      return;
+    }
+
+    await updateJob(selectedJob.id, {
+      destinationCountry,
+      vehicleDescription,
+      notes: notesInput,
+    });
+
+    toast.success('Export job updated');
+    setEditModalOpen(false);
+    setSelectedJob(null);
+  }
+
+  function handleCancelJob(job: ExportJob) {
+    if (job.status === 'DELIVERED' || job.status === 'CANCELLED') {
+      toast.error('Delivered or already cancelled jobs cannot be cancelled');
+      return;
+    }
+
+    setSelectedJob(job);
+    setCancelReason(job.cancellationReason ?? '');
+    setCancelModalOpen(true);
+  }
+
+  async function handleCancelSubmit() {
+    if (!selectedJob) return;
+
+    const reason = cancelReason.trim();
+    if (!reason) {
+      toast.error('Cancellation reason is required');
+      return;
+    }
+
+    await cancelJob(selectedJob.id, reason);
+    toast.success('Export job cancelled');
+    setCancelModalOpen(false);
+    setSelectedJob(null);
+    setCancelReason('');
+  }
+
+  function handleDeleteJob(job: ExportJob, linkedInvoicesCount: number) {
+    if (job.status !== 'ENQUIRY') {
+      toast.error('Only ENQUIRY jobs can be deleted');
+      return;
+    }
+
+    if (linkedInvoicesCount > 0) {
+      toast.error('Cannot delete jobs with linked invoices');
+      return;
+    }
+
+    setSelectedJob(job);
+    setDeleteLinkedInvoicesCount(linkedInvoicesCount);
+    setDeleteModalOpen(true);
+  }
+
+  async function handleDeleteConfirm() {
+    if (!selectedJob) {
+      return;
+    }
+
+    if (deleteLinkedInvoicesCount > 0) {
+      toast.error('Cannot delete jobs with linked invoices');
+      return;
+    }
+
+    await deleteJob(selectedJob.id);
+    toast.success('Export job deleted');
+    setDeleteModalOpen(false);
+    setSelectedJob(null);
+    setDeleteLinkedInvoicesCount(0);
   }
 
   async function handleToggleDocument(jobId: string, key: string) {
@@ -384,8 +499,12 @@ export function ExportJobsPage() {
                 const pct = progressRatio(job);
                 const docs = requiredDocsStatus(job);
                 const statusUi = STATUS_BADGE[job.status];
-                const canAdvance = job.status !== 'DELIVERED';
+                const isTerminal = job.status === 'DELIVERED' || job.status === 'CANCELLED';
+                const canAdvance = !isTerminal;
+                const canEditCore = ['ENQUIRY', 'SOURCING', 'DOCUMENTATION'].includes(job.status);
+                const canCancel = !isTerminal;
                 const linkedInvoices = invoices.filter((invoice) => invoice.exportJobId === job.id);
+                const canDelete = job.status === 'ENQUIRY' && linkedInvoices.length === 0;
                 const linkedInvoicedTotal = linkedInvoices.reduce((sum, invoice) => sum + invoice.total, 0);
                 const linkedPaidTotal = linkedInvoices
                   .filter((invoice) => invoice.status === 'PAID')
@@ -416,6 +535,9 @@ export function ExportJobsPage() {
                         <span>To: {job.destinationCountry}</span>
                         <span>ETA: {formatDateShort(job.estimatedArrivalDate)}</span>
                       </div>
+                      {job.cancellationReason ? (
+                        <p className="text-[11px] text-red-300 mt-2">Cancellation reason: {job.cancellationReason}</p>
+                      ) : null}
                     </div>
 
                     <div className="px-4 sm:px-5 py-4 space-y-4">
@@ -436,6 +558,7 @@ export function ExportJobsPage() {
                             <button
                               key={doc.key}
                               onClick={() => handleToggleDocument(job.id, doc.key)}
+                              disabled={isTerminal}
                               className="flex items-center gap-2 px-2.5 py-1.5 rounded-md border border-brand-border text-left hover:bg-brand-card2 transition-colors"
                             >
                               {doc.completed ? (
@@ -481,6 +604,7 @@ export function ExportJobsPage() {
                             <button
                               key={ms.key}
                               onClick={() => handleTogglePayment(job.id, ms.key)}
+                              disabled={isTerminal}
                               className="w-full flex items-center justify-between gap-2 px-2.5 py-2 rounded-md border border-brand-border text-left hover:bg-brand-card2 transition-colors"
                             >
                               <div className="flex items-center gap-2 min-w-0">
@@ -509,6 +633,30 @@ export function ExportJobsPage() {
                         >
                           Advance Stage
                           <ArrowRight size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleQuickEdit(job)}
+                          disabled={!canEditCore}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-brand-border text-brand-text enabled:hover:bg-brand-card2 disabled:opacity-40 transition-colors"
+                        >
+                          Edit
+                          <Pencil size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleCancelJob(job)}
+                          disabled={!canCancel}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-brand-border text-red-300 enabled:hover:bg-brand-card2 disabled:opacity-40 transition-colors"
+                        >
+                          Cancel Job
+                          <XCircle size={13} />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteJob(job, linkedInvoices.length)}
+                          disabled={!canDelete}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-brand-border text-red-300 enabled:hover:bg-brand-card2 disabled:opacity-40 transition-colors"
+                        >
+                          Delete
+                          <Trash2 size={13} />
                         </button>
                         <span className="text-xs text-brand-muted">Tracking: {job.publicTrackingToken}</span>
                         <Link
@@ -708,6 +856,142 @@ export function ExportJobsPage() {
               style={{ background: '#FF6B00' }}
             >
               Create Job
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedJob(null);
+        }}
+        title={selectedJob ? `Edit ${selectedJob.jobNumber}` : 'Edit Export Job'}
+        size="md"
+      >
+        <div className="space-y-3">
+          <div>
+            <label className="block text-xs text-brand-muted mb-1">Destination Country *</label>
+            <input
+              value={editDraft.destinationCountry}
+              onChange={(e) => setEditDraft((prev) => ({ ...prev, destinationCountry: e.target.value }))}
+              className="input-field text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-brand-muted mb-1">Vehicle Description *</label>
+            <input
+              value={editDraft.vehicleDescription}
+              onChange={(e) => setEditDraft((prev) => ({ ...prev, vehicleDescription: e.target.value }))}
+              className="input-field text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-brand-muted mb-1">Internal Notes</label>
+            <textarea
+              rows={3}
+              value={editDraft.notes}
+              onChange={(e) => setEditDraft((prev) => ({ ...prev, notes: e.target.value }))}
+              className="input-field text-sm"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={() => {
+                setEditModalOpen(false);
+                setSelectedJob(null);
+              }}
+              className="px-3 py-2 rounded-lg border border-brand-border text-sm text-brand-text hover:bg-brand-card2 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleEditSubmit}
+              className="px-3 py-2 rounded-lg text-sm text-white hover:opacity-90 transition-opacity"
+              style={{ background: '#FF6B00' }}
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={cancelModalOpen}
+        onClose={() => {
+          setCancelModalOpen(false);
+          setSelectedJob(null);
+          setCancelReason('');
+        }}
+        title={selectedJob ? `Cancel ${selectedJob.jobNumber}` : 'Cancel Export Job'}
+        size="md"
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-brand-text">Provide a clear cancellation reason. This will be visible in the job history.</p>
+          <div>
+            <label className="block text-xs text-brand-muted mb-1">Cancellation Reason *</label>
+            <textarea
+              rows={4}
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              className="input-field text-sm"
+            />
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={() => {
+                setCancelModalOpen(false);
+                setSelectedJob(null);
+                setCancelReason('');
+              }}
+              className="px-3 py-2 rounded-lg border border-brand-border text-sm text-brand-text hover:bg-brand-card2 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleCancelSubmit}
+              className="px-3 py-2 rounded-lg text-sm text-white hover:opacity-90 transition-opacity"
+              style={{ background: '#DC2626' }}
+            >
+              Confirm Cancel
+            </button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedJob(null);
+          setDeleteLinkedInvoicesCount(0);
+        }}
+        title={selectedJob ? `Delete ${selectedJob.jobNumber}` : 'Delete Export Job'}
+        size="sm"
+      >
+        <div className="space-y-3">
+          <p className="text-sm text-brand-text">This action is permanent and cannot be undone.</p>
+          <div className="rounded-lg border border-brand-border p-3 text-xs text-brand-muted">
+            Status must be ENQUIRY and linked invoices must be 0.
+          </div>
+          <div className="flex justify-end gap-2 pt-2">
+            <button
+              onClick={() => {
+                setDeleteModalOpen(false);
+                setSelectedJob(null);
+                setDeleteLinkedInvoicesCount(0);
+              }}
+              className="px-3 py-2 rounded-lg border border-brand-border text-sm text-brand-text hover:bg-brand-card2 transition-colors"
+            >
+              Close
+            </button>
+            <button
+              onClick={handleDeleteConfirm}
+              className="px-3 py-2 rounded-lg text-sm text-white hover:opacity-90 transition-opacity"
+              style={{ background: '#DC2626' }}
+            >
+              Delete Job
             </button>
           </div>
         </div>

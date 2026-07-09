@@ -3,7 +3,8 @@ export type ExportJobStatus =
   | 'SOURCING'
   | 'DOCUMENTATION'
   | 'SHIPPING'
-  | 'DELIVERED';
+  | 'DELIVERED'
+  | 'CANCELLED';
 
 export interface ExportJobMilestone {
   key: string;
@@ -66,6 +67,7 @@ export interface ExportJob {
   estimatedDepartureDate: string;
   estimatedArrivalDate: string;
   notes: string;
+  cancellationReason: string | null;
   createdAt: string;
   updatedAt: string;
 }

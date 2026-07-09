@@ -48,6 +48,7 @@ function normalizeJob(job: ExportJob): ExportJob {
   return {
     ...job,
     projectValue,
+    cancellationReason: typeof job.cancellationReason === 'string' && job.cancellationReason.trim() ? job.cancellationReason : null,
     paymentMilestones:
       Array.isArray(job.paymentMilestones) && job.paymentMilestones.length > 0
         ? job.paymentMilestones
@@ -101,6 +102,7 @@ const DEFAULT_EXPORT_JOBS: ExportJob[] = [
     estimatedDepartureDate: '2026-06-12',
     estimatedArrivalDate: '2026-07-05',
     notes: 'Client requested WhatsApp updates every 3 days. Destination clearing agent already confirmed.',
+    cancellationReason: null,
     createdAt: '2026-06-01T08:00:00.000Z',
     updatedAt: '2026-06-12T13:00:00.000Z',
   },
@@ -141,6 +143,9 @@ function statusToMilestoneIndex(status: ExportJobStatus): number {
 function normalizeMilestones(status: ExportJobStatus, milestones: ExportJob['milestones']) {
   const now = new Date().toISOString();
   const activeIdx = statusToMilestoneIndex(status);
+  if (activeIdx < 0) {
+    return milestones;
+  }
   return milestones.map((ms, idx) => {
     if (idx <= activeIdx && !ms.completedAt) return { ...ms, completedAt: now };
     if (idx > activeIdx && ms.completedAt) return { ...ms, completedAt: null };
@@ -161,7 +166,7 @@ function asNumber(value: unknown, fallback = 0): number {
 }
 
 function asStatus(value: unknown): ExportJobStatus {
-  return value === 'ENQUIRY' || value === 'SOURCING' || value === 'DOCUMENTATION' || value === 'SHIPPING' || value === 'DELIVERED'
+  return value === 'ENQUIRY' || value === 'SOURCING' || value === 'DOCUMENTATION' || value === 'SHIPPING' || value === 'DELIVERED' || value === 'CANCELLED'
     ? value
     : 'ENQUIRY';
 }
@@ -209,6 +214,7 @@ function normalizeTrackingPayload(raw: unknown, token: string): ExportJob | null
     estimatedDepartureDate: asString(candidate.estimatedDepartureDate, issueDate),
     estimatedArrivalDate: asString(candidate.estimatedArrivalDate, issueDate),
     notes: asString(candidate.notes, ''),
+    cancellationReason: asString(candidate.cancellationReason, '') || null,
     createdAt: asString(candidate.createdAt, now),
     updatedAt: asString(candidate.updatedAt, now),
   };
@@ -304,6 +310,7 @@ export const exportJobService = {
       estimatedDepartureDate: data.estimatedDepartureDate || addDaysISO(issueDate, 7),
       estimatedArrivalDate: data.estimatedArrivalDate || addDaysISO(issueDate, 35),
       notes: data.notes ?? '',
+      cancellationReason: null,
       createdAt: now,
       updatedAt: now,
     };
@@ -344,6 +351,38 @@ export const exportJobService = {
       return;
     }
     lsSave(lsLoad().filter((j) => j.id !== id));
+  },
+
+  async cancelJob(id: string, reason: string): Promise<ExportJob> {
+    if (USE_API) {
+      const res = await api.post<ExportJob>(`/export-jobs/${id}/cancel`, { reason });
+      return normalizeJob(res.data);
+    }
+
+    const jobs = lsLoad();
+    const idx = jobs.findIndex((j) => j.id === id);
+    if (idx === -1) throw new Error(`Export job ${id} not found`);
+
+    const current = jobs[idx];
+    if (current.status === 'DELIVERED' || current.status === 'CANCELLED') {
+      throw new Error(`Export job can no longer be edited once it is ${current.status}`);
+    }
+
+    const trimmedReason = reason.trim();
+    if (!trimmedReason) {
+      throw new Error('Cancellation reason is required when cancelling an export job');
+    }
+
+    const merged: ExportJob = {
+      ...current,
+      status: 'CANCELLED',
+      cancellationReason: trimmedReason,
+      updatedAt: new Date().toISOString(),
+    };
+
+    jobs[idx] = merged;
+    lsSave(jobs);
+    return merged;
   },
 
   async getJobByTrackingToken(token: string): Promise<ExportJob | null> {
