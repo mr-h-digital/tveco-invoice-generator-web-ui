@@ -108,6 +108,8 @@ export function ExportJobsPage() {
     destinationCountry: '',
     vehicleDescription: '',
     notes: '',
+    projectValue: '',
+    hasLinkedInvoices: false,
     milestones: [] as { key: string; label: string; amount: string; dueDate: string }[],
   });
   const [cancelReason, setCancelReason] = useState('');
@@ -261,11 +263,14 @@ export function ExportJobsPage() {
       return;
     }
 
+    const linkedCount = invoices.filter((inv) => inv.exportJobId === job.id).length;
     setSelectedJob(job);
     setEditDraft({
       destinationCountry: job.destinationCountry,
       vehicleDescription: job.vehicleDescription,
       notes: job.notes,
+      projectValue: String(job.projectValue),
+      hasLinkedInvoices: linkedCount > 0,
       milestones: job.paymentMilestones.map((ms) => ({
         key: ms.key,
         label: ms.label,
@@ -282,10 +287,18 @@ export function ExportJobsPage() {
     const destinationCountry = editDraft.destinationCountry.trim();
     const vehicleDescription = editDraft.vehicleDescription.trim();
     const notesInput = editDraft.notes;
+    const newProjectValue = parseFloat(editDraft.projectValue);
 
     if (!destinationCountry || !vehicleDescription) {
       toast.error('Destination country and vehicle description are required');
       return;
+    }
+
+    if (!editDraft.hasLinkedInvoices) {
+      if (!Number.isFinite(newProjectValue) || newProjectValue <= 0) {
+        toast.error('Project value must be a positive number');
+        return;
+      }
     }
 
     const parsedMilestones = editDraft.milestones.map((ms) => ({
@@ -298,10 +311,13 @@ export function ExportJobsPage() {
       return;
     }
 
+    const effectiveTotal = editDraft.hasLinkedInvoices
+      ? (selectedJob.paymentMilestones.reduce((s, ms) => s + ms.amount, 0) || selectedJob.projectValue)
+      : newProjectValue;
+
     const milestoneTotal = parsedMilestones.reduce((s, ms) => s + ms.amount, 0);
-    const jobTotal = selectedJob.paymentMilestones.reduce((s, ms) => s + ms.amount, 0) || selectedJob.projectValue;
-    if (Math.abs(milestoneTotal - jobTotal) > 0.02) {
-      toast.error(`Milestone amounts must total ${formatCurrency(jobTotal)} (currently ${formatCurrency(milestoneTotal)})`);
+    if (Math.abs(milestoneTotal - effectiveTotal) > 0.02) {
+      toast.error(`Milestone amounts must total ${formatCurrency(effectiveTotal)} (currently ${formatCurrency(milestoneTotal)})`);
       return;
     }
 
@@ -311,12 +327,18 @@ export function ExportJobsPage() {
       dueDate: ms.dueDate,
     }));
 
-    await updateJob(selectedJob.id, {
+    const patch: Record<string, unknown> = {
       destinationCountry,
       vehicleDescription,
       notes: notesInput,
       paymentMilestones: updatedMilestones,
-    });
+    };
+
+    if (!editDraft.hasLinkedInvoices && newProjectValue !== selectedJob.projectValue) {
+      patch.projectValue = newProjectValue;
+    }
+
+    await updateJob(selectedJob.id, patch as Parameters<typeof updateJob>[1]);
 
     toast.success('Export job updated');
     setEditModalOpen(false);
@@ -1017,6 +1039,51 @@ export function ExportJobsPage() {
         size="md"
       >
         <div className="space-y-3">
+          {/* Project value — editable only when no invoices are linked */}
+          <div>
+            <label className="block text-xs text-brand-muted mb-1">
+              Project Value (R)
+              {editDraft.hasLinkedInvoices && (
+                <span className="ml-2 text-[10px] text-amber-400">locked — invoices already linked</span>
+              )}
+            </label>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              readOnly={editDraft.hasLinkedInvoices}
+              value={editDraft.projectValue}
+              onChange={(e) => {
+                const raw = e.target.value;
+                const newVal = parseFloat(raw);
+                setEditDraft((prev) => {
+                  if (!Number.isFinite(newVal) || newVal <= 0 || prev.milestones.length === 0) {
+                    return { ...prev, projectValue: raw };
+                  }
+                  // Derive existing split ratios from current milestone amounts
+                  const currentTotal = prev.milestones.reduce((s, ms) => s + (parseFloat(ms.amount) || 0), 0);
+                  const recalculated = prev.milestones.map((ms, idx) => {
+                    const ratio = currentTotal > 0 ? (parseFloat(ms.amount) || 0) / currentTotal : 1 / prev.milestones.length;
+                    const isLast = idx === prev.milestones.length - 1;
+                    if (isLast) {
+                      // assign remainder to avoid floating point drift
+                      const allocated = prev.milestones
+                        .slice(0, -1)
+                        .reduce((s, m, i) => {
+                          const r = currentTotal > 0 ? (parseFloat(m.amount) || 0) / currentTotal : 1 / prev.milestones.length;
+                          return s + Math.round(newVal * r * 100) / 100;
+                        }, 0);
+                      return { ...ms, amount: String(Math.round((newVal - allocated) * 100) / 100) };
+                    }
+                    return { ...ms, amount: String(Math.round(newVal * ratio * 100) / 100) };
+                  });
+                  return { ...prev, projectValue: raw, milestones: recalculated };
+                });
+              }}
+              className={`input-field text-sm text-right ${editDraft.hasLinkedInvoices ? 'read-only:opacity-60' : ''}`}
+            />
+          </div>
+
           <div>
             <label className="block text-xs text-brand-muted mb-1">Destination Country *</label>
             <input
@@ -1083,7 +1150,11 @@ export function ExportJobsPage() {
               </div>
               <p className="text-[11px] text-brand-muted mt-1.5">
                 Total: {formatCurrency(editDraft.milestones.reduce((s, ms) => s + (parseFloat(ms.amount) || 0), 0))}
-                {selectedJob && ` / ${formatCurrency(selectedJob.paymentMilestones.reduce((s, ms) => s + ms.amount, 0) || selectedJob.projectValue)}`}
+                {selectedJob && ` / ${formatCurrency(
+                  editDraft.hasLinkedInvoices
+                    ? (selectedJob.paymentMilestones.reduce((s, ms) => s + ms.amount, 0) || selectedJob.projectValue)
+                    : (parseFloat(editDraft.projectValue) || selectedJob.projectValue)
+                )}`}
               </p>
             </div>
           )}
