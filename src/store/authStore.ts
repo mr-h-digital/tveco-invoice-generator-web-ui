@@ -2,9 +2,14 @@ import { create } from 'zustand';
 import { authService, type AuthUser } from '../services/authService';
 import { clearAuthSession, loadAuthSession, saveAuthSession } from '../services/authSession';
 
+interface AuthActionResult {
+  ok: boolean;
+  message?: string;
+}
+
 interface AuthStore {
   user: AuthUser | null;
-  login: (email: string, password: string) => Promise<boolean>;
+  login: (email: string, password: string) => Promise<AuthActionResult>;
   signup: (payload: {
     companyName: string;
     contactName: string;
@@ -12,7 +17,7 @@ interface AuthStore {
     phone: string;
     address: string;
     password: string;
-  }) => Promise<boolean>;
+  }) => Promise<AuthActionResult>;
   logout: () => Promise<void>;
 }
 
@@ -24,9 +29,12 @@ export const useAuthStore = create<AuthStore>(() => ({
       const user = await authService.login(email, password);
       saveAuthSession(user);
       useAuthStore.setState({ user });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        message: extractErrorMessage(error, 'Invalid email or password.'),
+      };
     }
   },
 
@@ -35,9 +43,12 @@ export const useAuthStore = create<AuthStore>(() => ({
       const user = await authService.signup(payload);
       saveAuthSession(user);
       useAuthStore.setState({ user });
-      return true;
-    } catch {
-      return false;
+      return { ok: true };
+    } catch (error) {
+      return {
+        ok: false,
+        message: extractErrorMessage(error, 'Could not create client profile. Please check your details.'),
+      };
     }
   },
 
@@ -50,3 +61,10 @@ export const useAuthStore = create<AuthStore>(() => ({
     }
   },
 }));
+
+function extractErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return fallback;
+}

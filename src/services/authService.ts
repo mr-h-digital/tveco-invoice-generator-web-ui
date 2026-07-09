@@ -1,4 +1,5 @@
 import api from './api';
+import axios from 'axios';
 
 const USE_API = import.meta.env.VITE_USE_API === 'true';
 const ADMIN_EMAIL = 'admin@tveco.co.za';
@@ -35,10 +36,15 @@ export const authService = {
       throw new Error('Invalid email or password');
     }
 
-    const res = await api.post<AuthLoginApiResponse>('/auth/login', {
-      email: email.trim().toLowerCase(),
-      password,
-    });
+    let res;
+    try {
+      res = await api.post<AuthLoginApiResponse>('/auth/login', {
+        email: email.trim().toLowerCase(),
+        password,
+      });
+    } catch (error) {
+      throw new Error(extractApiErrorMessage(error, 'Invalid email or password'));
+    }
 
     return {
       email: res.data.email,
@@ -61,14 +67,19 @@ export const authService = {
       throw new Error('Sign up requires API mode');
     }
 
-    const res = await api.post<AuthLoginApiResponse>('/auth/signup', {
-      companyName: payload.companyName.trim(),
-      contactName: payload.contactName.trim(),
-      email: payload.email.trim().toLowerCase(),
-      phone: payload.phone.trim(),
-      address: payload.address.trim(),
-      password: payload.password,
-    });
+    let res;
+    try {
+      res = await api.post<AuthLoginApiResponse>('/auth/signup', {
+        companyName: payload.companyName.trim(),
+        contactName: payload.contactName.trim(),
+        email: payload.email.trim().toLowerCase(),
+        phone: payload.phone.trim(),
+        address: payload.address.trim(),
+        password: payload.password,
+      });
+    } catch (error) {
+      throw new Error(extractApiErrorMessage(error, 'Could not create client profile. Please check your details.'));
+    }
 
     return {
       email: res.data.email,
@@ -84,3 +95,16 @@ export const authService = {
     await api.post('/auth/logout');
   },
 };
+
+function extractApiErrorMessage(error: unknown, fallback: string): string {
+  if (!axios.isAxiosError(error)) {
+    return fallback;
+  }
+
+  const message = error.response?.data?.message;
+  if (typeof message === 'string' && message.trim()) {
+    return message;
+  }
+
+  return fallback;
+}

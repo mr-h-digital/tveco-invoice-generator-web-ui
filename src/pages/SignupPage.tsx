@@ -20,17 +20,23 @@ export function SignupPage() {
     confirmPassword: '',
   });
 
+  const strongPasswordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/;
   const passwordsDoNotMatch = form.confirmPassword.length > 0 && form.password !== form.confirmPassword;
+  const passwordTooWeak = form.password.length > 0 && !strongPasswordPattern.test(form.password);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (passwordTooWeak) {
+      toast.error('Password must include uppercase, lowercase, number, and symbol.');
+      return;
+    }
     if (passwordsDoNotMatch) {
       toast.error('Passwords do not match');
       return;
     }
 
     setLoading(true);
-    const ok = await signup({
+    const result = await signup({
       companyName: form.companyName,
       contactName: form.contactName,
       email: form.email,
@@ -40,8 +46,8 @@ export function SignupPage() {
     });
     setLoading(false);
 
-    if (!ok) {
-      toast.error('Could not create client profile. Please check your details.');
+    if (!result.ok) {
+      toast.error(result.message ?? 'Could not create client profile. Please check your details.');
       return;
     }
 
@@ -75,9 +81,10 @@ export function SignupPage() {
                 type={showPassword ? 'text' : 'password'}
                 value={form.password}
                 onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))}
-                placeholder="Password (min 8 characters)"
-                minLength={8}
+                placeholder="Password (min 10, upper/lower/number/symbol)"
+                minLength={10}
                 required
+                aria-invalid={passwordTooWeak}
                 style={passwordInputStyle(C)}
               />
               <button
@@ -96,7 +103,7 @@ export function SignupPage() {
                 value={form.confirmPassword}
                 onChange={(e) => setForm((p) => ({ ...p, confirmPassword: e.target.value }))}
                 placeholder="Confirm Password"
-                minLength={8}
+                minLength={10}
                 required
                 aria-invalid={passwordsDoNotMatch}
                 style={{
@@ -114,13 +121,19 @@ export function SignupPage() {
               </button>
             </div>
 
+            {passwordTooWeak ? (
+              <p style={{ margin: 0, color: '#EF4444', fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
+                Use at least 10 characters with uppercase, lowercase, number, and symbol.
+              </p>
+            ) : null}
+
             {passwordsDoNotMatch ? (
               <p style={{ margin: 0, color: '#EF4444', fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
                 Password and confirm password must match.
               </p>
             ) : null}
 
-            <button type="submit" disabled={loading || passwordsDoNotMatch} style={{ border: 'none', borderRadius: 10, padding: '12px 14px', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, background: C.orange, color: '#fff', cursor: loading || passwordsDoNotMatch ? 'not-allowed' : 'pointer', opacity: loading || passwordsDoNotMatch ? 0.8 : 1 }}>
+            <button type="submit" disabled={loading || passwordsDoNotMatch || passwordTooWeak} style={{ border: 'none', borderRadius: 10, padding: '12px 14px', fontFamily: "'Space Grotesk', sans-serif", fontWeight: 700, background: C.orange, color: '#fff', cursor: loading || passwordsDoNotMatch || passwordTooWeak ? 'not-allowed' : 'pointer', opacity: loading || passwordsDoNotMatch || passwordTooWeak ? 0.8 : 1 }}>
               {loading ? 'Creating profile...' : 'Create Client Profile'}
             </button>
           </form>
