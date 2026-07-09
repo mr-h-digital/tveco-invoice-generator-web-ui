@@ -108,6 +108,7 @@ export function ExportJobsPage() {
     destinationCountry: '',
     vehicleDescription: '',
     notes: '',
+    milestones: [] as { key: string; label: string; amount: string; dueDate: string }[],
   });
   const [cancelReason, setCancelReason] = useState('');
   const [draft, setDraft] = useState({
@@ -265,6 +266,12 @@ export function ExportJobsPage() {
       destinationCountry: job.destinationCountry,
       vehicleDescription: job.vehicleDescription,
       notes: job.notes,
+      milestones: job.paymentMilestones.map((ms) => ({
+        key: ms.key,
+        label: ms.label,
+        amount: String(ms.amount),
+        dueDate: ms.dueDate,
+      })),
     });
     setEditModalOpen(true);
   }
@@ -281,10 +288,34 @@ export function ExportJobsPage() {
       return;
     }
 
+    const parsedMilestones = editDraft.milestones.map((ms) => ({
+      ...ms,
+      amount: parseFloat(ms.amount),
+    }));
+
+    if (parsedMilestones.some((ms) => !Number.isFinite(ms.amount) || ms.amount <= 0)) {
+      toast.error('All milestone amounts must be positive numbers');
+      return;
+    }
+
+    const milestoneTotal = parsedMilestones.reduce((s, ms) => s + ms.amount, 0);
+    const jobTotal = selectedJob.paymentMilestones.reduce((s, ms) => s + ms.amount, 0) || selectedJob.projectValue;
+    if (Math.abs(milestoneTotal - jobTotal) > 0.02) {
+      toast.error(`Milestone amounts must total ${formatCurrency(jobTotal)} (currently ${formatCurrency(milestoneTotal)})`);
+      return;
+    }
+
+    const updatedMilestones = parsedMilestones.map((ms, idx) => ({
+      ...selectedJob.paymentMilestones[idx],
+      amount: ms.amount,
+      dueDate: ms.dueDate,
+    }));
+
     await updateJob(selectedJob.id, {
       destinationCountry,
       vehicleDescription,
       notes: notesInput,
+      paymentMilestones: updatedMilestones,
     });
 
     toast.success('Export job updated');
@@ -1011,6 +1042,51 @@ export function ExportJobsPage() {
               className="input-field text-sm"
             />
           </div>
+
+          {editDraft.milestones.length > 0 && (
+            <div>
+              <label className="block text-xs text-brand-muted mb-2">Payment Milestones</label>
+              <div className="space-y-2">
+                {editDraft.milestones.map((ms, idx) => (
+                  <div key={ms.key} className="rounded-lg border border-brand-border p-3 space-y-2">
+                    <p className="text-xs font-head text-brand-white">{ms.label}</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] text-brand-muted mb-1">Amount (R)</label>
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={ms.amount}
+                          onChange={(e) => setEditDraft((prev) => ({
+                            ...prev,
+                            milestones: prev.milestones.map((m, i) => i === idx ? { ...m, amount: e.target.value } : m),
+                          }))}
+                          className="input-field text-sm text-right"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] text-brand-muted mb-1">Due Date</label>
+                        <input
+                          type="date"
+                          value={ms.dueDate}
+                          onChange={(e) => setEditDraft((prev) => ({
+                            ...prev,
+                            milestones: prev.milestones.map((m, i) => i === idx ? { ...m, dueDate: e.target.value } : m),
+                          }))}
+                          className="input-field text-sm"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-[11px] text-brand-muted mt-1.5">
+                Total: {formatCurrency(editDraft.milestones.reduce((s, ms) => s + (parseFloat(ms.amount) || 0), 0))}
+                {selectedJob && ` / ${formatCurrency(selectedJob.paymentMilestones.reduce((s, ms) => s + ms.amount, 0) || selectedJob.projectValue)}`}
+              </p>
+            </div>
+          )}
           <div className="flex justify-end gap-2 pt-2">
             <button
               onClick={() => {
