@@ -45,14 +45,14 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
         <input
           {...register(`lineItems.${index}.name`)}
           placeholder="Item name *"
-          disabled={locked}
-          className="input-field text-sm disabled:opacity-70"
+          readOnly={locked}
+          className="input-field text-sm read-only:opacity-70"
         />
         <input
           {...register(`lineItems.${index}.description`)}
           placeholder="Detail / notes (optional)"
-          disabled={locked}
-          className="w-full bg-transparent border border-transparent rounded-lg px-3 py-1 text-xs text-brand-muted placeholder:text-brand-muted/50 outline-none focus:border-brand-border focus:shadow-[0_0_0_2px_rgba(255,107,0,0.12)] transition-colors disabled:opacity-70"
+          readOnly={locked}
+          className="w-full bg-transparent border border-transparent rounded-lg px-3 py-1 text-xs text-brand-muted placeholder:text-brand-muted/50 outline-none focus:border-brand-border focus:shadow-[0_0_0_2px_rgba(255,107,0,0.12)] transition-colors read-only:opacity-70"
         />
       </div>
 
@@ -62,8 +62,8 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
           <input
             {...register(`lineItems.${index}.quantity`, { valueAsNumber: true, onChange: updateAmount })}
             type="number" min="0" step="0.01" placeholder="1"
-            disabled={locked}
-            className="input-field text-sm text-right disabled:opacity-70"
+            readOnly={locked}
+            className="input-field text-sm text-right read-only:opacity-70"
           />
         </div>
         <div>
@@ -71,8 +71,8 @@ const Row = memo(function Row({ index, onRemove, onMoveUp, onMoveDown, canRemove
           <input
             {...register(`lineItems.${index}.unitPrice`, { valueAsNumber: true, onChange: updateAmount })}
             type="number" min="0" step="0.01" placeholder="0.00"
-            disabled={locked}
-            className="input-field text-sm text-right disabled:opacity-70"
+            readOnly={locked}
+            className="input-field text-sm text-right read-only:opacity-70"
           />
         </div>
         <div>
