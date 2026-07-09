@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
 import tvecoLogo from '../assets/tveco-logo.png';
@@ -174,6 +175,14 @@ export function LoginPage() {
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65, duration: 0.4 }}
               style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, color: C.muted, textAlign: 'center', margin: '28px 0 0' }}>
               Timeline Vehicle Export Company (Pty) Ltd
+            </motion.p>
+
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.4 }}
+              style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, color: C.muted, textAlign: 'center', margin: '8px 0 0' }}>
+              Need a client account?{' '}
+              <Link to="/signup" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>
+                Create profile
+              </Link>
             </motion.p>
 
             {/* MRH Digital credit */}

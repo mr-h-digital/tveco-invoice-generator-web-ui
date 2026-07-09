@@ -6,7 +6,8 @@ const DEFAULT_EXPIRY_SKEW_MS = 30_000;
 
 export interface AuthTokenRefreshPayload {
   email: string;
-  role: 'admin';
+  role: 'admin' | 'client';
+  clientId: string | null;
   accessToken: string;
   expiresInSeconds: number;
 }
@@ -47,6 +48,7 @@ export function applyRefreshedTokens(user: AuthUser, payload: AuthTokenRefreshPa
     ...user,
     email: payload.email,
     role: payload.role,
+    clientId: payload.clientId,
     accessToken: payload.accessToken,
     expiresAt: new Date(Date.now() + payload.expiresInSeconds * 1000).toISOString(),
   };

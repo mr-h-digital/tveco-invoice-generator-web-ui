@@ -6,14 +6,16 @@ const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? 'tveco2026';
 
 interface AuthLoginApiResponse {
   email: string;
-  role: 'admin';
+  role: 'admin' | 'client';
+  clientId: string | null;
   accessToken: string;
   expiresInSeconds: number;
 }
 
 export interface AuthUser {
   email: string;
-  role: 'admin';
+  role: 'admin' | 'client';
+  clientId: string | null;
   accessToken: string | null;
   expiresAt: string | null;
 }
@@ -25,6 +27,7 @@ export const authService = {
         return {
           email: ADMIN_EMAIL,
           role: 'admin',
+          clientId: null,
           accessToken: null,
           expiresAt: null,
         };
@@ -40,6 +43,37 @@ export const authService = {
     return {
       email: res.data.email,
       role: res.data.role,
+      clientId: res.data.clientId,
+      accessToken: res.data.accessToken,
+      expiresAt: new Date(Date.now() + res.data.expiresInSeconds * 1000).toISOString(),
+    };
+  },
+
+  async signup(payload: {
+    companyName: string;
+    contactName: string;
+    email: string;
+    phone: string;
+    address: string;
+    password: string;
+  }): Promise<AuthUser> {
+    if (!USE_API) {
+      throw new Error('Sign up requires API mode');
+    }
+
+    const res = await api.post<AuthLoginApiResponse>('/auth/signup', {
+      companyName: payload.companyName.trim(),
+      contactName: payload.contactName.trim(),
+      email: payload.email.trim().toLowerCase(),
+      phone: payload.phone.trim(),
+      address: payload.address.trim(),
+      password: payload.password,
+    });
+
+    return {
+      email: res.data.email,
+      role: res.data.role,
+      clientId: res.data.clientId,
       accessToken: res.data.accessToken,
       expiresAt: new Date(Date.now() + res.data.expiresInSeconds * 1000).toISOString(),
     };

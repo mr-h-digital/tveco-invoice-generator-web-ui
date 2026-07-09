@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
 import { SplashScreen } from './components/SplashScreen';
 import { LoginPage } from './pages/LoginPage';
+import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { InvoicesPage } from './pages/InvoicesPage';
 import { NewInvoicePage } from './pages/NewInvoicePage';
@@ -20,6 +21,7 @@ import { ExportJobsPage } from './pages/ExportJobsPage';
 import { PublicTrackingPage } from './pages/PublicTrackingPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
+import { ClientPortalPage } from './pages/ClientPortalPage';
 import { useAuthStore } from './store/authStore';
 import { useOnboardingStore } from './store/onboardingStore';
 import { useNotificationStore } from './store/notificationStore';
@@ -71,6 +73,18 @@ function PrivateAppRoutes() {
   );
 }
 
+function PrivateClientRoutes() {
+  return (
+    <AnimatePresence mode="wait">
+      <Routes>
+        <Route path="/" element={<Navigate to="/client-zone" replace />} />
+        <Route path="/client-zone" element={<AnimatedPage><ClientPortalPage /></AnimatedPage>} />
+        <Route path="*" element={<Navigate to="/client-zone" replace />} />
+      </Routes>
+    </AnimatePresence>
+  );
+}
+
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const user = useAuthStore((s) => s.user);
@@ -116,10 +130,22 @@ export default function App() {
                 path="/login"
                 element={
                   user ? (
-                    <Navigate to="/dashboard" replace />
+                    <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
                   ) : (
                     <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                       <LoginPage />
+                    </motion.div>
+                  )
+                }
+              />
+              <Route
+                path="/signup"
+                element={
+                  user ? (
+                    <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
+                  ) : (
+                    <motion.div key="signup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <SignupPage />
                     </motion.div>
                   )
                 }
@@ -129,7 +155,7 @@ export default function App() {
                 element={
                   user ? (
                     <motion.div key="app" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
-                      <PrivateAppRoutes />
+                      {user.role === 'client' ? <PrivateClientRoutes /> : <PrivateAppRoutes />}
                     </motion.div>
                   ) : (
                     <Navigate to="/login" replace />
