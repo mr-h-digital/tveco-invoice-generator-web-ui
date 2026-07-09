@@ -237,16 +237,17 @@ export function AppShell({ children }: AppShellProps) {
         <p className="text-sm text-brand-text leading-relaxed">
           {hasResumeProgress
             ? `You paused your guided tour at step ${lastTourStepIndex + 1}. Resume where you left off or restart from the beginning.`
-            : 'Would you like a quick guided tour of the key workflows: clients, quotes, invoices, and analytics?'}
+            : 'Would you like a quick guided tour of the key workflows: clients, quotes, exports, invoices, and analytics?'}
         </p>
 
         <div className="rounded-xl border border-brand-border bg-brand-card2 p-4">
           <p className="text-xs uppercase tracking-wide text-brand-muted mb-2">What you will cover</p>
           <ul className="text-sm text-brand-text space-y-1.5">
             <li>1. Set up and manage clients</li>
-            <li>2. Create and track quotes</li>
-            <li>3. Generate and manage invoices</li>
-            <li>4. Review analytics and reports</li>
+            <li>2. Create and send quotes</li>
+            <li>3. Create and track export jobs</li>
+            <li>4. Generate milestone invoices</li>
+            <li>5. Review analytics and reports</li>
           </ul>
         </div>
 

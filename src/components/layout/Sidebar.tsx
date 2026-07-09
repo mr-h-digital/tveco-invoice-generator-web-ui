@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, Users, BarChart2, LogOut, RotateCcw, Lightbulb, Ship, Bell } from 'lucide-react';
+import { LayoutDashboard, FileText, ClipboardList, Users, BarChart2, LogOut, RotateCcw, Lightbulb, Ship, Bell } from 'lucide-react';
 import { clsx } from 'clsx';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/authStore';
@@ -9,13 +9,13 @@ import mrhLogo from '../../assets/mrh-digital-logo.png';
 import navBg from '../../assets/tveco-nav-bg.jpg';
 
 const navItems = [
-  { to: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/invoices', label: 'Invoices', icon: FileText },
-  { to: '/quotes', label: 'Quotes', icon: FileText },
-  { to: '/clients', label: 'Clients', icon: Users },
-  { to: '/exports', label: 'Exports', icon: Ship },
-  { to: '/notifications', label: 'Notifications', icon: Bell },
-  { to: '/analytics', label: 'Analytics', icon: BarChart2 },
+  { to: '/dashboard',      label: 'Dashboard',      icon: LayoutDashboard },
+  { to: '/clients',        label: 'Clients',        icon: Users },
+  { to: '/quotes',         label: 'Quotes',         icon: ClipboardList },
+  { to: '/exports',        label: 'Exports',        icon: Ship },
+  { to: '/invoices',       label: 'Invoices',       icon: FileText },
+  { to: '/notifications',  label: 'Notifications',  icon: Bell },
+  { to: '/analytics',      label: 'Analytics',      icon: BarChart2 },
 ];
 
 interface SidebarProps {
