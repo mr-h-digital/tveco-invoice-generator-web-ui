@@ -120,6 +120,9 @@ export function ExportJobsPage() {
     estimatedDepartureDate: todayISO(),
     estimatedArrivalDate: '',
     projectValue: '',
+    depositPercent: '30',
+    shippingPercent: '40',
+    balancePercent: '30',
     notes: '',
   });
 
@@ -163,9 +166,23 @@ export function ExportJobsPage() {
     const destinationCountry = draft.destinationCountry.trim();
     const vehicleDescription = draft.vehicleDescription.trim();
     const projectValue = Number(draft.projectValue);
+    const depositPercent = Number(draft.depositPercent);
+    const shippingPercent = Number(draft.shippingPercent);
+    const balancePercent = Number(draft.balancePercent);
+    const paymentPercentTotal = depositPercent + shippingPercent + balancePercent;
 
     if (!companyName || !contactName || !email || !phone || !destinationCountry || !vehicleDescription || !Number.isFinite(projectValue) || projectValue <= 0) {
       toast.error('Please complete all required fields');
+      return;
+    }
+
+    if (![depositPercent, shippingPercent, balancePercent].every((value) => Number.isFinite(value) && value > 0)) {
+      toast.error('Payment milestone percentages must be positive numbers');
+      return;
+    }
+
+    if (Math.round(paymentPercentTotal * 100) / 100 !== 100) {
+      toast.error('Payment milestone percentages must total 100%');
       return;
     }
 
@@ -176,6 +193,9 @@ export function ExportJobsPage() {
       vehicleDescription,
       sourceChannel: draft.sourceChannel,
       projectValue,
+      depositPercent,
+      shippingPercent,
+      balancePercent,
       estimatedDepartureDate: draft.estimatedDepartureDate,
       estimatedArrivalDate: draft.estimatedArrivalDate || undefined,
       notes: draft.notes,
@@ -195,6 +215,9 @@ export function ExportJobsPage() {
       estimatedDepartureDate: todayISO(),
       estimatedArrivalDate: '',
       projectValue: '',
+      depositPercent: '30',
+      shippingPercent: '40',
+      balancePercent: '30',
       notes: '',
     });
   }
@@ -825,6 +848,48 @@ export function ExportJobsPage() {
               className="input-field text-sm"
               placeholder="e.g. 52700"
             />
+          </div>
+
+          <div className="rounded-xl border border-brand-border p-3 space-y-3">
+            <div>
+              <p className="text-xs text-brand-muted mb-1">Payment Milestone Split (%)</p>
+              <p className="text-[11px] text-brand-muted">Defaults to 30 / 40 / 30 and must total 100.</p>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs text-brand-muted mb-1">Deposit</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={draft.depositPercent}
+                  onChange={(e) => setDraft((p) => ({ ...p, depositPercent: e.target.value }))}
+                  className="input-field text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-brand-muted mb-1">Shipping</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={draft.shippingPercent}
+                  onChange={(e) => setDraft((p) => ({ ...p, shippingPercent: e.target.value }))}
+                  className="input-field text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-xs text-brand-muted mb-1">Balance</label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={draft.balancePercent}
+                  onChange={(e) => setDraft((p) => ({ ...p, balancePercent: e.target.value }))}
+                  className="input-field text-sm"
+                />
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -20,6 +20,9 @@ interface ExportJobStore {
     vehicleDescription: string;
     sourceChannel: ExportJob['sourceChannel'];
     projectValue: number;
+    depositPercent?: number;
+    shippingPercent?: number;
+    balancePercent?: number;
     estimatedDepartureDate?: string;
     estimatedArrivalDate?: string;
     notes?: string;

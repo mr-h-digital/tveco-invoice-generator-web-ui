@@ -30,16 +30,22 @@ function defaultDocuments() {
   ];
 }
 
-function buildPaymentMilestones(projectValue: number, issueDate: string) {
+function buildPaymentMilestones(
+  projectValue: number,
+  issueDate: string,
+  depositPercent = 30,
+  shippingPercent = 40,
+  balancePercent = 30
+) {
   const roundedValue = Math.max(projectValue, 0);
-  const deposit = Math.round(roundedValue * 0.3 * 100) / 100;
-  const shipping = Math.round(roundedValue * 0.4 * 100) / 100;
-  const balance = Math.round((roundedValue - deposit - shipping) * 100) / 100;
+  const deposit = Math.round(roundedValue * depositPercent * 100) / 10000;
+  const shipping = Math.round(roundedValue * shippingPercent * 100) / 10000;
+  const balance = Math.round(roundedValue * balancePercent * 100) / 10000;
 
   return [
-    { key: 'deposit', label: 'Deposit (30%)', amount: deposit, dueDate: issueDate, paid: false, paidAt: null },
-    { key: 'shipping', label: 'Shipping Payment (40%)', amount: shipping, dueDate: addDaysISO(issueDate, 10), paid: false, paidAt: null },
-    { key: 'balance', label: 'Final Balance (30%)', amount: balance, dueDate: addDaysISO(issueDate, 28), paid: false, paidAt: null },
+    { key: 'deposit', label: `Deposit (${depositPercent}%)`, amount: deposit, dueDate: issueDate, paid: false, paidAt: null },
+    { key: 'shipping', label: `Shipping Payment (${shippingPercent}%)`, amount: shipping, dueDate: addDaysISO(issueDate, 10), paid: false, paidAt: null },
+    { key: 'balance', label: `Final Balance (${balancePercent}%)`, amount: balance, dueDate: addDaysISO(issueDate, 28), paid: false, paidAt: null },
   ];
 }
 
@@ -277,6 +283,9 @@ export const exportJobService = {
     vehicleDescription: string;
     sourceChannel: ExportJob['sourceChannel'];
     projectValue: number;
+    depositPercent?: number;
+    shippingPercent?: number;
+    balancePercent?: number;
     estimatedDepartureDate?: string;
     estimatedArrivalDate?: string;
     notes?: string;
@@ -305,7 +314,13 @@ export const exportJobService = {
         ...defaultMilestones().slice(1),
       ],
       documents: defaultDocuments(),
-      paymentMilestones: buildPaymentMilestones(data.projectValue, issueDate),
+      paymentMilestones: buildPaymentMilestones(
+        data.projectValue,
+        issueDate,
+        data.depositPercent ?? 30,
+        data.shippingPercent ?? 40,
+        data.balancePercent ?? 30
+      ),
       vaultDocuments: [],
       estimatedDepartureDate: data.estimatedDepartureDate || addDaysISO(issueDate, 7),
       estimatedArrivalDate: data.estimatedArrivalDate || addDaysISO(issueDate, 35),
