@@ -1069,7 +1069,7 @@ export function ExportJobsPage() {
                       // assign remainder to avoid floating point drift
                       const allocated = prev.milestones
                         .slice(0, -1)
-                        .reduce((s, m, i) => {
+                        .reduce((s, m) => {
                           const r = currentTotal > 0 ? (parseFloat(m.amount) || 0) / currentTotal : 1 / prev.milestones.length;
                           return s + Math.round(newVal * r * 100) / 100;
                         }, 0);
