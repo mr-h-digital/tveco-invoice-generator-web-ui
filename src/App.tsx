@@ -92,6 +92,17 @@ function PrivateClientRoutes() {
 export default function App() {
   const [splashDone, setSplashDone] = useState(false);
   const user = useAuthStore((s) => s.user);
+  const currentHash = typeof window !== 'undefined' ? window.location.hash.toLowerCase() : '';
+  const isAdminRoute =
+    currentHash.includes('/admin/login') ||
+    currentHash.includes('/dashboard') ||
+    currentHash.includes('/invoices') ||
+    currentHash.includes('/quotes') ||
+    currentHash.includes('/exports') ||
+    currentHash.includes('/notifications') ||
+    currentHash.includes('/analytics') ||
+    currentHash.includes('/clients');
+  const splashMode: 'client' | 'admin' = user?.role === 'admin' || isAdminRoute ? 'admin' : 'client';
   const initializeOnboarding = useOnboardingStore((s) => s.initialize);
   const dispatchOutbox = useNotificationStore((s) => s.dispatchOutbox);
   const dispatchingOutbox = useNotificationStore((s) => s.dispatchingOutbox);
@@ -118,7 +129,7 @@ export default function App() {
   return (
     <>
       {/* Splash — shown once on every load */}
-      <SplashScreen onComplete={() => setSplashDone(true)} />
+      <SplashScreen mode={splashMode} onComplete={() => setSplashDone(true)} />
 
       <motion.div
         initial={{ opacity: 0 }}

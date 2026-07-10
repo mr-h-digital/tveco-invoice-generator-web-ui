@@ -5,6 +5,7 @@ import loginBg from '../assets/tveco-login-bg.jpg';
 
 interface SplashScreenProps {
   onComplete: () => void;
+  mode?: 'client' | 'admin';
 }
 
 // ── Progress bar ────────────────────────────────────────────────────────────
@@ -143,7 +144,7 @@ const DOTS = [
   { x: 73, y: 25, delay: 1.8, duration: 3.7 }, { x: 27, y: 72, delay: 1.1, duration: 4.9 },
 ];
 
-const TERMINAL_LINES = [
+const ADMIN_TERMINAL_LINES = [
   { text: '> connecting to TVECO workspace…',         delay: 0.3,  color: '#3A5060' },
   { text: 'import { exportDocs } from "./tveco"',     delay: 0.6,  color: '#4A6070' },
   { text: '→ loading client database…',               delay: 0.9,  color: '#3A5060' },
@@ -154,7 +155,18 @@ const TERMINAL_LINES = [
   { text: '✓ TVECO dashboard ready',                  delay: 2.4,  color: '#FF8C35' },
 ];
 
-const LOAD_STEPS = [
+const CLIENT_TERMINAL_LINES = [
+  { text: '> connecting to TVECO client zone…',       delay: 0.3,  color: '#3A5060' },
+  { text: 'import { inquiryHub } from "./portal"',   delay: 0.6,  color: '#4A6070' },
+  { text: '→ loading your export profile…',           delay: 0.9,  color: '#3A5060' },
+  { text: 'const inquiries = await getInquiries()',   delay: 1.2,  color: '#4A6070' },
+  { text: '✓ inquiry timeline restored',              delay: 1.5,  color: '#FF6B00' },
+  { text: 'const quotes = await getQuotes()',         delay: 1.8,  color: '#4A6070' },
+  { text: '✓ quote and document vault ready',         delay: 2.1,  color: '#FF6B00' },
+  { text: '✓ TVECO client zone ready',                delay: 2.4,  color: '#FF8C35' },
+];
+
+const ADMIN_LOAD_STEPS = [
   { at: 300,  pct: 15,  text: 'Initialising workspace…'       },
   { at: 650,  pct: 32,  text: 'Loading export documents…'     },
   { at: 1050, pct: 52,  text: 'Syncing client database…'      },
@@ -163,24 +175,36 @@ const LOAD_STEPS = [
   { at: 2150, pct: 100, text: 'Ready.'                        },
 ];
 
+const CLIENT_LOAD_STEPS = [
+  { at: 300,  pct: 15,  text: 'Initialising client zone…'         },
+  { at: 650,  pct: 32,  text: 'Loading export profile…'           },
+  { at: 1050, pct: 52,  text: 'Syncing inquiries and quotes…'     },
+  { at: 1450, pct: 70,  text: 'Preparing document vault…'         },
+  { at: 1850, pct: 88,  text: 'Almost ready…'                     },
+  { at: 2150, pct: 100, text: 'Ready.'                            },
+];
+
 const I = 22; // corner inset px
 
-export function SplashScreen({ onComplete }: SplashScreenProps) {
+export function SplashScreen({ onComplete, mode = 'client' }: SplashScreenProps) {
   const [progress, setProgress]   = useState(0);
   const [statusText, setStatusText] = useState('Initialising…');
   const [visible, setVisible]     = useState(true);
   const [showReady, setShowReady] = useState(false);
+  const terminalLines = mode === 'admin' ? ADMIN_TERMINAL_LINES : CLIENT_TERMINAL_LINES;
+  const loadSteps = mode === 'admin' ? ADMIN_LOAD_STEPS : CLIENT_LOAD_STEPS;
+  const subLabel = mode === 'admin' ? 'Operations Hub' : 'Client Zone';
 
   useEffect(() => {
     const timers: ReturnType<typeof setTimeout>[] = [];
-    LOAD_STEPS.forEach(({ at, pct, text }) => {
+    loadSteps.forEach(({ at, pct, text }) => {
       timers.push(setTimeout(() => { setProgress(pct); setStatusText(text); }, at));
     });
     timers.push(setTimeout(() => setShowReady(true), 2200));
     timers.push(setTimeout(() => setVisible(false),  2750));
     timers.push(setTimeout(onComplete,               3350));
     return () => timers.forEach(clearTimeout);
-  }, []);
+  }, [loadSteps, onComplete]);
 
   return (
     <AnimatePresence>
@@ -267,7 +291,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
                 tveco — terminal
               </span>
             </div>
-            {TERMINAL_LINES.map((l, i) => <TerminalLine key={i} {...l} />)}
+            {terminalLines.map((l, i) => <TerminalLine key={i} {...l} />)}
           </motion.div>
 
           {/* ── Right: Stat counters (desktop only) ── */}
@@ -351,7 +375,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
                 letterSpacing: 3, textTransform: 'uppercase',
                 color: '#FF6B00',
               }}>
-                Operations Hub
+                {subLabel}
               </span>
               <motion.div
                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }}
