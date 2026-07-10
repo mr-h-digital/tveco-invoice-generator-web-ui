@@ -88,7 +88,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       clearAuthSession();
       if (!window.location.hash.startsWith('#/track/')) {
-        window.location.hash = '/login';
+        window.location.hash = '/client-zone/auth';
       }
     }
 

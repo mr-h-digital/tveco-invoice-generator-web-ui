@@ -180,7 +180,7 @@ export function LoginPage() {
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.4 }}
               style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, color: C.muted, textAlign: 'center', margin: '8px 0 0' }}>
               Need a client account?{' '}
-              <Link to="/signup" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>
+              <Link to="/client/signup" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>
                 Create profile
               </Link>
             </motion.p>

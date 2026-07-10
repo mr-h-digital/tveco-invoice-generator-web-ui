@@ -139,7 +139,7 @@ export function SignupPage() {
           </form>
 
           <p style={{ marginTop: 14, color: C.muted, fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
-            Already have an account? <Link to="/login" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
+            Already have an account? <Link to="/client/login" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>Sign in</Link>
           </p>
           <p style={{ marginTop: 8, color: C.muted, fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
             Admin access? <Link to="/admin/login" style={{ color: '#C8D4E0', textDecoration: 'none', fontWeight: 600 }}>Operations login</Link>

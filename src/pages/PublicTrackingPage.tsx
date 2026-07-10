@@ -88,7 +88,7 @@ export function PublicTrackingPage() {
               <h1 className="font-display text-brand-white text-xl tracking-wide">TVECO Tracking Portal</h1>
               <p className="text-brand-muted text-xs">Track your export journey in real time</p>
             </div>
-            <Link to="/login" className="text-xs text-brand-muted hover:text-brand-white transition-colors">Back to login</Link>
+            <Link to="/client-zone/auth" className="text-xs text-brand-muted hover:text-brand-white transition-colors">Back to client zone</Link>
           </div>
 
           <div className="p-5 border-b border-brand-border">

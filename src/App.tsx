@@ -6,6 +6,7 @@ import { AppShell } from './components/layout/AppShell';
 import { SplashScreen } from './components/SplashScreen';
 import { LoginPage } from './pages/LoginPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
+import { ClientAuthLandingPage } from './pages/ClientAuthLandingPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { InvoicesPage } from './pages/InvoicesPage';
@@ -131,23 +132,43 @@ export default function App() {
               <Route path="/track/:token" element={<PublicTrackingPage />} />
               <Route
                 path="/login"
+                element={<Navigate to="/client-zone/auth" replace />}
+              />
+              <Route
+                path="/signup"
+                element={<Navigate to="/client/signup" replace />}
+              />
+              <Route
+                path="/client-zone/auth"
                 element={
                   user ? (
                     <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
                   ) : (
-                    <motion.div key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                    <motion.div key="client-auth-landing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <ClientAuthLandingPage />
+                    </motion.div>
+                  )
+                }
+              />
+              <Route
+                path="/client/login"
+                element={
+                  user ? (
+                    <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
+                  ) : (
+                    <motion.div key="client-login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                       <LoginPage />
                     </motion.div>
                   )
                 }
               />
               <Route
-                path="/signup"
+                path="/client/signup"
                 element={
                   user ? (
                     <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
                   ) : (
-                    <motion.div key="signup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                    <motion.div key="client-signup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                       <SignupPage />
                     </motion.div>
                   )
@@ -173,7 +194,7 @@ export default function App() {
                       {user.role === 'client' ? <PrivateClientRoutes /> : <PrivateAppRoutes />}
                     </motion.div>
                   ) : (
-                    <Navigate to="/login" replace />
+                    <Navigate to="/client-zone/auth" replace />
                   )
                 }
               />

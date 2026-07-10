@@ -142,8 +142,8 @@ export function AdminLoginPage() {
 
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.7, duration: 0.4 }} style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, color: C.muted, textAlign: 'center', margin: '8px 0 0' }}>
               Looking for Client Zone?{' '}
-              <Link to="/login" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>
-                Client login
+              <Link to="/client-zone/auth" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>
+                Client zone
               </Link>
             </motion.p>
 
