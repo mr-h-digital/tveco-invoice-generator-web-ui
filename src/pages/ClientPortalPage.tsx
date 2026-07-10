@@ -33,7 +33,6 @@ export function ClientPortalPage() {
     inquiryType: 'REQUEST' as 'INQUIRY' | 'REQUEST',
     destinationCountry: '',
     vehicleDescription: '',
-    projectValue: '',
     estimatedDepartureDate: '',
     estimatedArrivalDate: '',
     notes: '',
@@ -64,25 +63,18 @@ export function ClientPortalPage() {
 
   async function submitRequest(e: React.FormEvent) {
     e.preventDefault();
-    const projectValue = Number(request.projectValue);
-    if (!Number.isFinite(projectValue) || projectValue <= 0) {
-      toast.error('Project value must be greater than 0');
-      return;
-    }
-
     setSubmitting(true);
     try {
       const created = await clientPortalService.submitInquiry({
         inquiryType: request.inquiryType,
         destinationCountry: request.destinationCountry,
         vehicleDescription: request.vehicleDescription,
-        projectValue,
         estimatedDepartureDate: request.estimatedDepartureDate || undefined,
         estimatedArrivalDate: request.estimatedArrivalDate || undefined,
         notes: request.notes || undefined,
       });
       setInquiries((prev) => [created, ...prev]);
-      setRequest({ inquiryType: 'REQUEST', destinationCountry: '', vehicleDescription: '', projectValue: '', estimatedDepartureDate: '', estimatedArrivalDate: '', notes: '' });
+      setRequest({ inquiryType: 'REQUEST', destinationCountry: '', vehicleDescription: '', estimatedDepartureDate: '', estimatedArrivalDate: '', notes: '' });
       toast.success('Export inquiry submitted');
     } catch {
       toast.error('Could not submit export inquiry');
@@ -190,7 +182,6 @@ export function ClientPortalPage() {
               </select>
               <input required placeholder="Destination Country" value={request.destinationCountry} onChange={(e) => setRequest((p) => ({ ...p, destinationCountry: e.target.value }))} style={fieldStyle} />
               <input required placeholder="Vehicle Description" value={request.vehicleDescription} onChange={(e) => setRequest((p) => ({ ...p, vehicleDescription: e.target.value }))} style={fieldStyle} />
-              <input required type="number" min="0.01" step="0.01" placeholder="Project Value (ZAR)" value={request.projectValue} onChange={(e) => setRequest((p) => ({ ...p, projectValue: e.target.value }))} style={fieldStyle} />
               <input type="date" value={request.estimatedDepartureDate} onChange={(e) => setRequest((p) => ({ ...p, estimatedDepartureDate: e.target.value }))} style={fieldStyle} />
               <input type="date" value={request.estimatedArrivalDate} onChange={(e) => setRequest((p) => ({ ...p, estimatedArrivalDate: e.target.value }))} style={fieldStyle} />
             </div>

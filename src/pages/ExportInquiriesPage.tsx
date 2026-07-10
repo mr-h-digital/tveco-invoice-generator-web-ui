@@ -174,7 +174,7 @@ export function ExportInquiriesPage() {
               <div style={{ marginTop: 12, display: 'grid', gap: 8, gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
                 <div style={metaTileStyle}>Destination: <strong>{selectedInquiry.destinationCountry}</strong></div>
                 <div style={metaTileStyle}>Vehicle: <strong>{selectedInquiry.vehicleDescription}</strong></div>
-                <div style={metaTileStyle}>Project Value: <strong>ZAR {selectedInquiry.projectValue.toFixed(2)}</strong></div>
+                <div style={metaTileStyle}>Project Value: <strong>{selectedInquiry.projectValue == null ? 'Pending quote' : `ZAR ${selectedInquiry.projectValue.toFixed(2)}`}</strong></div>
                 <div style={metaTileStyle}>Linked Quote: <strong>{selectedInquiry.linkedQuoteNumber ?? 'Not yet created'}</strong></div>
               </div>
 

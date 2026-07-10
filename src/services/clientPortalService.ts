@@ -7,7 +7,7 @@ export interface ClientExportInquiryPayload {
   inquiryType: 'INQUIRY' | 'REQUEST';
   destinationCountry: string;
   vehicleDescription: string;
-  projectValue: number;
+  projectValue?: number;
   estimatedDepartureDate?: string;
   estimatedArrivalDate?: string;
   notes?: string;

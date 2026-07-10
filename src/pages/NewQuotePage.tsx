@@ -29,7 +29,7 @@ export function NewQuotePage() {
       destinationCountry: string;
       vehicleDescription: string;
       notes: string;
-      projectValue: number;
+      projectValue: number | null;
     };
   } | null)?.fromInquiry;
 
@@ -71,8 +71,8 @@ export function NewQuotePage() {
         name: `Export Service: ${fromInquiry.vehicleDescription}`,
         description: `Destination: ${fromInquiry.destinationCountry}`,
         quantity: 1,
-        unitPrice: fromInquiry.projectValue,
-        amount: fromInquiry.projectValue,
+        unitPrice: fromInquiry.projectValue ?? 0,
+        amount: fromInquiry.projectValue ?? 0,
         sortOrder: 0,
       },
     ]);

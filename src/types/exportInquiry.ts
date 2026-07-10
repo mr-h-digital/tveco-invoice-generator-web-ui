@@ -29,7 +29,7 @@ export interface ExportInquiry {
   sourceChannel: string;
   destinationCountry: string;
   vehicleDescription: string;
-  projectValue: number;
+  projectValue: number | null;
   estimatedDepartureDate: string | null;
   estimatedArrivalDate: string | null;
   notes: string;
