@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { ExportJob } from '../types/exportJob';
@@ -37,8 +37,6 @@ export function ClientPortalPage() {
     notes: '',
   });
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
-
-  const activeJobs = useMemo(() => jobs.filter((j) => j.status !== 'DELIVERED' && j.status !== 'CANCELLED').length, [jobs]);
 
   async function loadJobs() {
     setLoading(true);
