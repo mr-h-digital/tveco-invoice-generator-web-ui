@@ -144,6 +144,9 @@ export function SignupPage() {
           <p style={{ marginTop: 8, color: C.muted, fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
             Admin access? <Link to="/admin/login" style={{ color: '#C8D4E0', textDecoration: 'none', fontWeight: 600 }}>Operations login</Link>
           </p>
+          <p style={{ marginTop: 8, color: C.muted, fontFamily: "'Outfit', sans-serif", fontSize: 12 }}>
+            Admin access? <Link to="/admin/login" style={{ color: '#C8D4E0', textDecoration: 'none', fontWeight: 600 }}>Operations login</Link>
+          </p>
         </div>
       </div>
     </div>
