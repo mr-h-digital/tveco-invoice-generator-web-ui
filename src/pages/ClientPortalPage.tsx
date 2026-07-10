@@ -150,10 +150,10 @@ export function ClientPortalPage() {
             TVECO Client Zone
           </p>
           <h1 style={{ margin: '6px 0 8px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 2, fontWeight: 400, fontSize: 42 }}>
-            Track Your Export Jobs
+            Your TVECO Client Portal
           </h1>
           <p style={{ margin: 0, color: '#B9C4D1', fontFamily: "'Outfit', sans-serif" }}>
-            Active jobs: {activeJobs} of {jobs.length}. Submit export inquiries, answer clarification requests, and decide formal quotes from this portal.
+            Submit export inquiries, respond to clarification requests, review and decide on formal quotes, and track your active export jobs — all from one place.
           </p>
         </header>
 
