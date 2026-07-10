@@ -115,8 +115,8 @@ export function Sidebar({ onNavClick }: SidebarProps) {
         </div>
 
         {/* User + logout */}
-        <div className="flex items-center justify-between px-3 py-2.5 rounded-lg hover:bg-white/5 group transition-colors">
-          <div className="min-w-0">
+          <div className="px-3 py-2.5 rounded-lg hover:bg-white/5 group transition-colors space-y-2">
+            <div className="min-w-0">
             <p className="text-brand-text text-xs font-medium truncate">{user?.email ?? 'admin@tveco.co.za'}</p>
             <p className="text-brand-muted text-xs opacity-70 capitalize">{user?.role ?? 'admin'}</p>
           </div>
@@ -124,9 +124,10 @@ export function Sidebar({ onNavClick }: SidebarProps) {
             onClick={handleLogout}
             title="Sign out"
             aria-label="Sign out"
-            className="p-2 rounded-md text-brand-muted hover:text-red-400 transition-colors"
+              className="w-full inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-medium text-brand-muted border border-brand-border/60 hover:text-red-400 hover:border-red-400/50 transition-colors"
           >
             <LogOut size={15} />
+              <span>Sign out</span>
           </button>
         </div>
 

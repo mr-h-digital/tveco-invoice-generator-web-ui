@@ -1,13 +1,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { Sidebar } from './Sidebar';
-import { Compass, Menu, X } from 'lucide-react';
+import { Compass, LogOut, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 import tvecoLogo from '../../assets/tveco-logo.png';
 import navBg from '../../assets/tveco-nav-bg.jpg';
 import { Modal } from '../shared/Modal';
 import { ROUTE_TIPS, TOUR_STEPS } from '../../constants/onboardingTour';
 import { useOnboardingStore } from '../../store/onboardingStore';
+import { useAuthStore } from '../../store/authStore';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -26,6 +28,7 @@ export function AppShell({ children }: AppShellProps) {
   const lastAutoScrollKeyRef = useRef('');
   const navigate = useNavigate();
   const location = useLocation();
+  const logout = useAuthStore((s) => s.logout);
 
   const welcomeOpen = useOnboardingStore((s) => s.welcomeOpen);
   const tutorialMode = useOnboardingStore((s) => s.tutorialMode);
@@ -74,6 +77,12 @@ export function AppShell({ children }: AppShellProps) {
 
   function handleTourSkip() {
     skipTour();
+  }
+
+  async function handleMobileLogout() {
+    await logout();
+    setDrawerOpen(false);
+    toast.success('Signed out');
   }
 
   useEffect(() => {
@@ -204,7 +213,8 @@ export function AppShell({ children }: AppShellProps) {
           style={{ backgroundImage: `url(${navBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
         >
           <div className="absolute inset-0 bg-brand-night/90 pointer-events-none" />
-          <div className="relative flex items-center gap-2">
+          <div className="relative flex items-center justify-between gap-3 w-full">
+            <div className="flex items-center gap-2">
             <button
               onClick={() => setDrawerOpen((v) => !v)}
               className="p-2.5 rounded-lg text-brand-text hover:bg-white/10 active:bg-white/20 transition-colors"
@@ -225,6 +235,15 @@ export function AppShell({ children }: AppShellProps) {
             >
               TVECO
             </span>
+            </div>
+            <button
+              onClick={handleMobileLogout}
+              className="inline-flex items-center gap-2 rounded-lg border border-brand-border/60 px-2.5 sm:px-3 py-2 text-xs font-medium text-brand-text hover:border-red-400/50 hover:text-red-400 transition-colors"
+              aria-label="Sign out"
+            >
+              <LogOut size={15} />
+              <span className="hidden sm:inline">Sign out</span>
+            </button>
           </div>
         </div>
 
