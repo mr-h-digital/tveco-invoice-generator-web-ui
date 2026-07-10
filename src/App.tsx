@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 import { AppShell } from './components/layout/AppShell';
 import { SplashScreen } from './components/SplashScreen';
 import { LoginPage } from './pages/LoginPage';
+import { AdminLoginPage } from './pages/AdminLoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { InvoicesPage } from './pages/InvoicesPage';
@@ -148,6 +149,18 @@ export default function App() {
                   ) : (
                     <motion.div key="signup" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                       <SignupPage />
+                    </motion.div>
+                  )
+                }
+              />
+              <Route
+                path="/admin/login"
+                element={
+                  user ? (
+                    <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
+                  ) : (
+                    <motion.div key="admin-login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <AdminLoginPage />
                     </motion.div>
                   )
                 }
