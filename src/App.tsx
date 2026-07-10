@@ -18,6 +18,7 @@ import { QuoteDetailPage } from './pages/QuoteDetailPage';
 import { ClientsPage } from './pages/ClientsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { ExportJobsPage } from './pages/ExportJobsPage';
+import { ExportInquiriesPage } from './pages/ExportInquiriesPage';
 import { PublicTrackingPage } from './pages/PublicTrackingPage';
 import { NotificationsPage } from './pages/NotificationsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
@@ -62,6 +63,7 @@ function PrivateAppRoutes() {
           <Route path="/quotes/new" element={<AnimatedPage><NewQuotePage /></AnimatedPage>} />
           <Route path="/quotes/:id" element={<AnimatedPage><QuoteDetailPage /></AnimatedPage>} />
           <Route path="/quotes/:id/edit" element={<AnimatedPage><EditQuotePage /></AnimatedPage>} />
+          <Route path="/export-inquiries" element={<AnimatedPage><ExportInquiriesPage /></AnimatedPage>} />
           <Route path="/clients" element={<AnimatedPage><ClientsPage /></AnimatedPage>} />
           <Route path="/exports" element={<AnimatedPage><ExportJobsPage /></AnimatedPage>} />
           <Route path="/notifications" element={<AnimatedPage><NotificationsPage /></AnimatedPage>} />

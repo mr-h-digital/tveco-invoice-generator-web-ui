@@ -12,6 +12,7 @@ const navItems = [
   { to: '/dashboard',      label: 'Dashboard',      icon: LayoutDashboard },
   { to: '/clients',        label: 'Clients',        icon: Users },
   { to: '/quotes',         label: 'Quotes',         icon: ClipboardList },
+  { to: '/export-inquiries', label: 'Export Inquiries', icon: ClipboardList },
   { to: '/exports',        label: 'Exports',        icon: Ship },
   { to: '/invoices',       label: 'Invoices',       icon: FileText },
   { to: '/notifications',  label: 'Notifications',  icon: Bell },

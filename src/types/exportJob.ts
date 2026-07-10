@@ -54,6 +54,8 @@ export interface ExportJob {
   jobNumber: string;
   publicTrackingToken: string;
   clientId: string | null;
+  quoteId?: string | null;
+  inquiryId?: string | null;
   clientSnapshot: ExportJobClientSnapshot;
   destinationCountry: string;
   vehicleDescription: string;

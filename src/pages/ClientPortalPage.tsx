@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { ExportJob } from '../types/exportJob';
+import type { ExportInquiry } from '../types/exportInquiry';
+import type { Quote } from '../types/quote';
 import { clientPortalService } from '../services/clientPortalService';
 
 function currency(value: number) {
@@ -19,10 +21,14 @@ function toDataUrl(file: File): Promise<string> {
 
 export function ClientPortalPage() {
   const [jobs, setJobs] = useState<ExportJob[]>([]);
+  const [inquiries, setInquiries] = useState<ExportInquiry[]>([]);
+  const [quotes, setQuotes] = useState<Quote[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [replyingInquiryId, setReplyingInquiryId] = useState<string | null>(null);
   const [uploadingForJob, setUploadingForJob] = useState<string | null>(null);
   const [request, setRequest] = useState({
+    inquiryType: 'REQUEST' as 'INQUIRY' | 'REQUEST',
     destinationCountry: '',
     vehicleDescription: '',
     projectValue: '',
@@ -30,16 +36,23 @@ export function ClientPortalPage() {
     estimatedArrivalDate: '',
     notes: '',
   });
+  const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
   const activeJobs = useMemo(() => jobs.filter((j) => j.status !== 'DELIVERED' && j.status !== 'CANCELLED').length, [jobs]);
 
   async function loadJobs() {
     setLoading(true);
     try {
-      const data = await clientPortalService.getMyJobs();
-      setJobs(data);
+      const [jobData, inquiryData, quoteData] = await Promise.all([
+        clientPortalService.getMyJobs(),
+        clientPortalService.getMyInquiries(),
+        clientPortalService.getMyQuotes(),
+      ]);
+      setJobs(jobData);
+      setInquiries(inquiryData);
+      setQuotes(quoteData);
     } catch {
-      toast.error('Could not load your export jobs');
+      toast.error('Could not load your client portal data');
     } finally {
       setLoading(false);
     }
@@ -59,7 +72,8 @@ export function ClientPortalPage() {
 
     setSubmitting(true);
     try {
-      const created = await clientPortalService.submitRequest({
+      const created = await clientPortalService.submitInquiry({
+        inquiryType: request.inquiryType,
         destinationCountry: request.destinationCountry,
         vehicleDescription: request.vehicleDescription,
         projectValue,
@@ -67,13 +81,43 @@ export function ClientPortalPage() {
         estimatedArrivalDate: request.estimatedArrivalDate || undefined,
         notes: request.notes || undefined,
       });
-      setJobs((prev) => [created, ...prev]);
-      setRequest({ destinationCountry: '', vehicleDescription: '', projectValue: '', estimatedDepartureDate: '', estimatedArrivalDate: '', notes: '' });
-      toast.success('Export request submitted');
+      setInquiries((prev) => [created, ...prev]);
+      setRequest({ inquiryType: 'REQUEST', destinationCountry: '', vehicleDescription: '', projectValue: '', estimatedDepartureDate: '', estimatedArrivalDate: '', notes: '' });
+      toast.success('Export inquiry submitted');
     } catch {
-      toast.error('Could not submit export request');
+      toast.error('Could not submit export inquiry');
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function respondToInquiry(inquiryId: string) {
+    const message = (replyDrafts[inquiryId] ?? '').trim();
+    if (!message) {
+      toast.error('Response cannot be empty');
+      return;
+    }
+
+    setReplyingInquiryId(inquiryId);
+    try {
+      const updated = await clientPortalService.respondToInquiry(inquiryId, message);
+      setInquiries((prev) => prev.map((inquiry) => (inquiry.id === updated.id ? updated : inquiry)));
+      setReplyDrafts((prev) => ({ ...prev, [inquiryId]: '' }));
+      toast.success('Response sent to operations team');
+    } catch {
+      toast.error('Could not send response');
+    } finally {
+      setReplyingInquiryId(null);
+    }
+  }
+
+  async function decideQuote(quoteId: string, status: 'ACCEPTED' | 'DECLINED') {
+    try {
+      const updated = await clientPortalService.decideQuote(quoteId, status);
+      setQuotes((prev) => prev.map((quote) => (quote.id === updated.id ? updated : quote)));
+      toast.success(status === 'ACCEPTED' ? 'Quote accepted' : 'Quote declined');
+    } catch {
+      toast.error('Could not submit quote decision');
     }
   }
 
@@ -109,14 +153,18 @@ export function ClientPortalPage() {
             Track Your Export Jobs
           </h1>
           <p style={{ margin: 0, color: '#B9C4D1', fontFamily: "'Outfit', sans-serif" }}>
-            Active jobs: {activeJobs} of {jobs.length}. Submit new requests and upload documents directly from this portal.
+            Active jobs: {activeJobs} of {jobs.length}. Submit export inquiries, answer clarification requests, and decide formal quotes from this portal.
           </p>
         </header>
 
         <section style={{ border: '1px solid #252B35', borderRadius: 16, background: '#111318', padding: 20 }}>
-          <h2 style={{ marginTop: 0, marginBottom: 12, fontFamily: "'Space Grotesk', sans-serif", fontSize: 18 }}>Submit New Export Request</h2>
+          <h2 style={{ marginTop: 0, marginBottom: 12, fontFamily: "'Space Grotesk', sans-serif", fontSize: 18 }}>Submit Export Inquiry / Request</h2>
           <form onSubmit={submitRequest} style={{ display: 'grid', gap: 10 }}>
             <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+              <select value={request.inquiryType} onChange={(e) => setRequest((p) => ({ ...p, inquiryType: e.target.value as 'INQUIRY' | 'REQUEST' }))} style={fieldStyle}>
+                <option value="INQUIRY">Inquiry</option>
+                <option value="REQUEST">Request</option>
+              </select>
               <input required placeholder="Destination Country" value={request.destinationCountry} onChange={(e) => setRequest((p) => ({ ...p, destinationCountry: e.target.value }))} style={fieldStyle} />
               <input required placeholder="Vehicle Description" value={request.vehicleDescription} onChange={(e) => setRequest((p) => ({ ...p, vehicleDescription: e.target.value }))} style={fieldStyle} />
               <input required type="number" min="0.01" step="0.01" placeholder="Project Value (ZAR)" value={request.projectValue} onChange={(e) => setRequest((p) => ({ ...p, projectValue: e.target.value }))} style={fieldStyle} />
@@ -125,9 +173,80 @@ export function ClientPortalPage() {
             </div>
             <textarea placeholder="Additional notes" value={request.notes} onChange={(e) => setRequest((p) => ({ ...p, notes: e.target.value }))} style={{ ...fieldStyle, minHeight: 90, resize: 'vertical' }} />
             <button type="submit" disabled={submitting} style={buttonStyle(submitting)}>
-              {submitting ? 'Submitting...' : 'Submit Export Request'}
+              {submitting ? 'Submitting...' : 'Submit Inquiry'}
             </button>
           </form>
+        </section>
+
+        <section style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ margin: 0, fontFamily: "'Space Grotesk', sans-serif", fontSize: 18 }}>My Inquiries</h2>
+          {!loading && inquiries.length === 0 ? <div style={{ color: '#8A99AE' }}>No inquiries yet. Submit your first inquiry above.</div> : null}
+          {inquiries.map((inquiry) => (
+            <article key={inquiry.id} style={{ border: '1px solid #252B35', borderRadius: 14, background: '#111318', padding: 16, display: 'grid', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontFamily: "'Space Grotesk', sans-serif", fontSize: 16 }}>{inquiry.inquiryNumber}</h3>
+                  <p style={{ margin: '4px 0 0', color: '#B9C4D1', fontSize: 13 }}>{inquiry.vehicleDescription} to {inquiry.destinationCountry}</p>
+                </div>
+                <span style={{ border: '1px solid #3A4454', borderRadius: 999, padding: '4px 10px', fontSize: 12, color: '#D3DCE8' }}>{inquiry.status}</span>
+              </div>
+
+              <div style={{ display: 'grid', gap: 6 }}>
+                {inquiry.messages.map((msg) => (
+                  <div key={msg.id} style={{ borderTop: '1px dashed #252B35', paddingTop: 6, fontSize: 13, color: '#C7D2DF' }}>
+                    <strong>{msg.senderRole}</strong>: {msg.message}
+                    <div style={{ color: '#8A99AE', fontSize: 12 }}>{new Date(msg.createdAt).toLocaleString()}</div>
+                    {msg.requiresClientResponse && !msg.clientResponded ? (
+                      <div style={{ color: '#FBBF24', fontSize: 12 }}>Operations is waiting for your response.</div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+
+              <div style={{ display: 'grid', gap: 8 }}>
+                <textarea
+                  value={replyDrafts[inquiry.id] ?? ''}
+                  onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [inquiry.id]: e.target.value }))}
+                  placeholder="Reply to operations requests for more detail..."
+                  style={{ ...fieldStyle, minHeight: 70, resize: 'vertical' }}
+                />
+                <button
+                  type="button"
+                  disabled={replyingInquiryId === inquiry.id}
+                  onClick={() => void respondToInquiry(inquiry.id)}
+                  style={buttonStyle(replyingInquiryId === inquiry.id)}
+                >
+                  {replyingInquiryId === inquiry.id ? 'Sending...' : 'Send Response'}
+                </button>
+              </div>
+            </article>
+          ))}
+        </section>
+
+        <section style={{ display: 'grid', gap: 12 }}>
+          <h2 style={{ margin: 0, fontFamily: "'Space Grotesk', sans-serif", fontSize: 18 }}>My Quotes</h2>
+          {!loading && quotes.length === 0 ? <div style={{ color: '#8A99AE' }}>No quotes available yet.</div> : null}
+          {quotes.map((quote) => (
+            <article key={quote.id} style={{ border: '1px solid #252B35', borderRadius: 14, background: '#111318', padding: 16, display: 'grid', gap: 8 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <strong style={{ fontFamily: "'Space Grotesk', sans-serif" }}>{quote.quoteNumber}</strong>
+                <span style={{ border: '1px solid #3A4454', borderRadius: 999, padding: '4px 10px', fontSize: 12, color: '#D3DCE8' }}>{quote.status}</span>
+              </div>
+              <div style={{ color: '#B9C4D1', fontSize: 13 }}>
+                Total: {currency(quote.total)} • Expires: {new Date(quote.expiryDate).toLocaleDateString()}
+              </div>
+              {quote.status === 'SENT' ? (
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => void decideQuote(quote.id, 'ACCEPTED')} style={buttonStyle(false)}>
+                    Accept Quote
+                  </button>
+                  <button type="button" onClick={() => void decideQuote(quote.id, 'DECLINED')} style={{ ...buttonStyle(false), background: '#7A2E2E' }}>
+                    Decline Quote
+                  </button>
+                </div>
+              ) : null}
+            </article>
+          ))}
         </section>
 
         <section style={{ display: 'grid', gap: 12 }}>

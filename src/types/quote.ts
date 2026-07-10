@@ -26,6 +26,7 @@ export interface Quote {
   issueDate: string;
   expiryDate: string;
   clientId: string | null;
+  inquiryId?: string | null;
   clientSnapshot: QuoteClientSnapshot;
   lineItems: QuoteLineItem[];
   subtotal: number;
@@ -37,6 +38,8 @@ export interface Quote {
   vatAmount: number;
   total: number;
   notes: string;
+  clientDecisionAt?: string | null;
+  clientDecisionNote?: string | null;
   createdAt: string;
   updatedAt: string;
 }

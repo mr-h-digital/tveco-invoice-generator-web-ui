@@ -61,6 +61,7 @@ function toRequest(data: Omit<Quote, 'id' | 'createdAt' | 'updatedAt'>) {
     quoteNumber: data.quoteNumber,
     status: data.status,
     clientId: data.clientId ?? undefined,
+    inquiryId: data.inquiryId ?? undefined,
     issueDate: data.issueDate,
     expiryDate: data.expiryDate,
     lineItems: data.lineItems.map((li, i) => ({

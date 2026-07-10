@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useForm, useWatch, FormProvider, type SubmitHandler, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
@@ -18,8 +18,20 @@ import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 
 export function NewQuotePage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { addQuote } = useQuotes();
   const [activeTab, setActiveTab] = useState<'form' | 'preview'>('form');
+
+  const fromInquiry = (location.state as {
+    fromInquiry?: {
+      inquiryId: string;
+      clientId: string;
+      destinationCountry: string;
+      vehicleDescription: string;
+      notes: string;
+      projectValue: number;
+    };
+  } | null)?.fromInquiry;
 
   const today = todayISO();
 
@@ -47,6 +59,25 @@ export function NewQuotePage() {
     }).catch(() => {});
   }, [methods]);
 
+  useEffect(() => {
+    if (!fromInquiry) return;
+
+    methods.setValue('clientId', fromInquiry.clientId);
+    methods.setValue('status', 'DRAFT');
+    methods.setValue('notes', fromInquiry.notes || `Quote generated from inquiry for ${fromInquiry.vehicleDescription} to ${fromInquiry.destinationCountry}.`);
+    methods.setValue('lineItems', [
+      {
+        id: uuid(),
+        name: `Export Service: ${fromInquiry.vehicleDescription}`,
+        description: `Destination: ${fromInquiry.destinationCountry}`,
+        quantity: 1,
+        unitPrice: fromInquiry.projectValue,
+        amount: fromInquiry.projectValue,
+        sortOrder: 0,
+      },
+    ]);
+  }, [fromInquiry, methods]);
+
   const [quoteNumber, lineItems, discountType, discountValue, vatEnabled, vatRate, clientId, clientSnapshot, issueDate, expiryDate, status, notes] = useWatch({
     control: methods.control,
     name: ['quoteNumber', 'lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'clientId', 'clientSnapshot', 'issueDate', 'expiryDate', 'status', 'notes'],
@@ -71,7 +102,7 @@ export function NewQuotePage() {
       vatRate: data.vatRate,
     });
     try {
-      const quote = await addQuote({ ...data, ...computed } as never);
+      const quote = await addQuote({ ...data, ...computed, inquiryId: fromInquiry?.inquiryId ?? null } as never);
       toast.success(`Quote ${data.quoteNumber} created`);
       navigate(`/quotes/${quote.id}`);
     } catch {
