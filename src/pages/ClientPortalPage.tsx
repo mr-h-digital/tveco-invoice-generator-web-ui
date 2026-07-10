@@ -5,6 +5,7 @@ import type { ExportJob } from '../types/exportJob';
 import type { ExportInquiry } from '../types/exportInquiry';
 import type { Quote } from '../types/quote';
 import { clientPortalService } from '../services/clientPortalService';
+import { useAuthStore } from '../store/authStore';
 
 function currency(value: number) {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(value || 0);
@@ -20,6 +21,7 @@ function toDataUrl(file: File): Promise<string> {
 }
 
 export function ClientPortalPage() {
+  const { user, logout } = useAuthStore();
   const [jobs, setJobs] = useState<ExportJob[]>([]);
   const [inquiries, setInquiries] = useState<ExportInquiry[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
@@ -119,6 +121,11 @@ export function ClientPortalPage() {
     }
   }
 
+  async function handleLogout() {
+    await logout();
+    toast.success('Signed out');
+  }
+
   async function handleUpload(jobId: string, file: File | null) {
     if (!file) return;
     setUploadingForJob(jobId);
@@ -144,15 +151,33 @@ export function ClientPortalPage() {
     <div style={{ minHeight: '100vh', background: '#0A0C0F', color: '#F0F4F8', padding: '20px' }}>
       <div style={{ maxWidth: 1120, margin: '0 auto', display: 'grid', gap: 20 }}>
         <header style={{ border: '1px solid #252B35', borderRadius: 16, background: '#111318', padding: 20 }}>
-          <p style={{ margin: 0, color: '#8A99AE', fontFamily: "'Space Grotesk', sans-serif", letterSpacing: 2, textTransform: 'uppercase', fontSize: 11 }}>
-            TVECO Client Zone
-          </p>
-          <h1 style={{ margin: '6px 0 8px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 2, fontWeight: 400, fontSize: 42 }}>
-            Your TVECO Client Portal
-          </h1>
-          <p style={{ margin: 0, color: '#B9C4D1', fontFamily: "'Outfit', sans-serif" }}>
-            Submit export inquiries, respond to clarification requests, review and decide on formal quotes, and track your active export jobs — all from one place.
-          </p>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ margin: 0, color: '#8A99AE', fontFamily: "'Space Grotesk', sans-serif", letterSpacing: 2, textTransform: 'uppercase', fontSize: 11 }}>
+                TVECO Client Zone
+              </p>
+              <h1 style={{ margin: '6px 0 8px', fontFamily: "'Bebas Neue', sans-serif", letterSpacing: 2, fontWeight: 400, fontSize: 42 }}>
+                Your TVECO Client Portal
+              </h1>
+              <p style={{ margin: 0, color: '#B9C4D1', fontFamily: "'Outfit', sans-serif" }}>
+                Submit export inquiries, respond to clarification requests, review and decide on formal quotes, and track your active export jobs — all from one place.
+              </p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8, paddingTop: 4 }}>
+              {user?.email ? (
+                <p style={{ margin: 0, color: '#8A99AE', fontFamily: "'Outfit', sans-serif", fontSize: 13 }}>{user.email}</p>
+              ) : null}
+              <button
+                type="button"
+                onClick={() => void handleLogout()}
+                style={{ background: 'transparent', border: '1px solid #303949', borderRadius: 8, padding: '8px 16px', color: '#B9C4D1', fontFamily: "'Space Grotesk', sans-serif", fontSize: 13, cursor: 'pointer' }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#EF4444'; e.currentTarget.style.color = '#EF4444'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#303949'; e.currentTarget.style.color = '#B9C4D1'; }}
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
         </header>
 
         <section style={{ border: '1px solid #252B35', borderRadius: 16, background: '#111318', padding: 20 }}>
