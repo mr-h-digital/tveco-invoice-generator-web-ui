@@ -7,6 +7,7 @@ interface QuoteStore {
   loading: boolean;
   error: string | null;
   fetchQuotes: () => Promise<void>;
+  refreshQuotes: () => Promise<void>;
   addQuote: (data: Omit<Quote, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Quote>;
   updateQuote: (id: string, data: Partial<Omit<Quote, 'id' | 'createdAt'>>) => Promise<Quote>;
   deleteQuote: (id: string) => Promise<void>;
@@ -25,6 +26,15 @@ export const useQuoteStore = create<QuoteStore>((set) => ({
       set({ quotes, loading: false });
     } catch (e) {
       set({ error: String(e), loading: false });
+    }
+  },
+
+  refreshQuotes: async () => {
+    try {
+      const quotes = await quoteService.getQuotes();
+      set({ quotes, error: null });
+    } catch (e) {
+      set({ error: String(e) });
     }
   },
 

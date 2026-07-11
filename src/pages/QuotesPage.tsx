@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, FileText } from 'lucide-react';
@@ -23,11 +23,32 @@ const TABS: { label: string; value: QuoteStatus | 'all' }[] = [
 
 export function QuotesPage() {
   const navigate = useNavigate();
-  const { quotes, loading, deleteQuote, duplicateQuote } = useQuotes();
+  const { quotes, loading, deleteQuote, duplicateQuote, refreshQuotes } = useQuotes();
   const [filter, setFilter] = useState<QuoteStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      void refreshQuotes();
+    }, 30000);
+
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        void refreshQuotes();
+      }
+    }
+
+    window.addEventListener('focus', onVisibilityChange);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.clearInterval(intervalId);
+      window.removeEventListener('focus', onVisibilityChange);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [refreshQuotes]);
 
   const filtered = quotes
     .filter((quote) => filter === 'all' || quote.status === filter)

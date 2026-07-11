@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Ship, CheckCircle2, Circle, ArrowRight, Bell, Wallet, Send, Paperclip, Eye, EyeOff, Trash2, Download, Pencil, XCircle, FilePlus } from 'lucide-react';
 import { toast } from 'sonner';
@@ -96,6 +96,7 @@ export function ExportJobsPage() {
   } = useNotifications();
 
   const navigate = useNavigate();
+  const location = useLocation();
   const [filter, setFilter] = useState<ExportJobStatus | 'all'>('all');
   const [search, setSearch] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
@@ -145,6 +146,45 @@ export function ExportJobsPage() {
       })
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   }, [filter, jobs, search]);
+
+  useEffect(() => {
+    const fromQuote = (location.state as {
+      fromQuote?: {
+        quoteId: string;
+        quoteNumber: string;
+        clientId: string | null;
+        clientSnapshot: {
+          companyName: string;
+          contactName: string;
+          email: string;
+          phone: string;
+          address: string;
+        };
+        notes: string;
+        projectValue: number;
+      };
+    } | null)?.fromQuote;
+
+    if (!fromQuote) {
+      return;
+    }
+
+    setDraft((prev) => ({
+      ...prev,
+      clientId: fromQuote.clientId ?? '',
+      companyName: fromQuote.clientSnapshot.companyName,
+      contactName: fromQuote.clientSnapshot.contactName,
+      email: fromQuote.clientSnapshot.email,
+      phone: fromQuote.clientSnapshot.phone,
+      sourceChannel: 'Direct',
+      projectValue: String(Math.max(fromQuote.projectValue, 0)),
+      notes: `${fromQuote.notes}\n\nGenerated from accepted quote ${fromQuote.quoteNumber}.`.trim(),
+    }));
+    setModalOpen(true);
+    toast.success(`Export job draft created from ${fromQuote.quoteNumber}`);
+
+    navigate('/exports', { replace: true, state: null });
+  }, [location.state, navigate]);
 
   function handleClientPick(clientId: string) {
     setDraft((prev) => {

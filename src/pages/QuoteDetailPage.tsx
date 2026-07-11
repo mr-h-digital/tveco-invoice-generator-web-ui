@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { toast } from 'sonner';
-import { Pencil, Copy, Trash2, Printer, ArrowLeft, MoreVertical, FileText } from 'lucide-react';
+import { Pencil, Copy, Trash2, Printer, ArrowLeft, MoreVertical, FileText, Ship } from 'lucide-react';
 import { QuotePreview } from '../components/quote/QuotePreview';
 import { QuotePrintLayout } from '../components/quote/QuotePrintLayout';
 import { Badge } from '../components/shared/Badge';
@@ -20,13 +20,31 @@ import { calculateTotals } from '../utils/invoiceTotals';
 export function QuoteDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { updateQuote, deleteQuote, duplicateQuote } = useQuotes();
+  const { updateQuote, deleteQuote, duplicateQuote, refreshQuotes } = useQuotes();
   const { addInvoice } = useInvoices();
   const quote = useQuote(id);
   const { print } = usePrint();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    void refreshQuotes();
+
+    function onVisibilityChange() {
+      if (document.visibilityState === 'visible') {
+        void refreshQuotes();
+      }
+    }
+
+    window.addEventListener('focus', onVisibilityChange);
+    document.addEventListener('visibilitychange', onVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', onVisibilityChange);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
+  }, [refreshQuotes]);
 
   if (!quote) {
     return (
@@ -124,6 +142,27 @@ export function QuoteDetailPage() {
     }
   }
 
+  function handleCreateExportJob() {
+    if (!quote) return;
+    if (quote.status !== 'ACCEPTED') {
+      toast.error('Only accepted quotes can be converted to an export job');
+      return;
+    }
+
+    navigate('/exports', {
+      state: {
+        fromQuote: {
+          quoteId: quote.id,
+          quoteNumber: quote.quoteNumber,
+          clientId: quote.clientId,
+          clientSnapshot: quote.clientSnapshot,
+          notes: quote.notes,
+          projectValue: quote.total,
+        },
+      },
+    });
+  }
+
   return (
     <PageBackground image={invoicesBg} position="center 25%">
       <TopBar
@@ -148,6 +187,11 @@ export function QuoteDetailPage() {
               <button onClick={handleConvertToInvoice} className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-brand-card border border-brand-border text-brand-text rounded-lg hover:bg-brand-card2 transition-colors">
                 <FileText size={13} /> Convert to Invoice
               </button>
+              {quote.status === 'ACCEPTED' ? (
+                <button onClick={handleCreateExportJob} className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-brand-card border border-brand-border text-brand-text rounded-lg hover:bg-brand-card2 transition-colors">
+                  <Ship size={13} /> Create Export Job
+                </button>
+              ) : null}
               <button onClick={handleDuplicate} className="flex items-center gap-1.5 px-3 py-1.5 text-xs bg-brand-card border border-brand-border text-brand-text rounded-lg hover:bg-brand-card2 transition-colors">
                 <Copy size={13} /> Duplicate
               </button>
@@ -177,6 +221,11 @@ export function QuoteDetailPage() {
                       <button onClick={() => { handleConvertToInvoice(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm text-brand-text w-full text-left hover:bg-brand-border transition-colors">
                         <FileText size={14} /> Convert to Invoice
                       </button>
+                      {quote.status === 'ACCEPTED' ? (
+                        <button onClick={() => { handleCreateExportJob(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm text-brand-text w-full text-left hover:bg-brand-border transition-colors">
+                          <Ship size={14} /> Create Export Job
+                        </button>
+                      ) : null}
                       <button onClick={() => { handleDuplicate(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm text-brand-text w-full text-left hover:bg-brand-border transition-colors">
                         <Copy size={14} /> Duplicate
                       </button>
