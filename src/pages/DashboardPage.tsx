@@ -81,7 +81,7 @@ function SectionCard({
       transition={{ delay, duration: 0.35, ease: 'easeOut' }}
       className="bg-brand-card border border-brand-border rounded-xl overflow-hidden"
     >
-      <div className="flex items-center justify-between px-4 sm:px-6 py-4 border-b border-brand-border gap-3">
+      <div className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-4 border-b border-brand-border gap-3">
         <h2 className="font-head font-bold text-brand-white text-sm sm:text-base">{title}</h2>
         {action}
       </div>
@@ -267,7 +267,7 @@ export function DashboardPage() {
       />
 
       <div className="p-4 sm:p-6 lg:p-8 space-y-6">
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {kpis.map((item) => <KpiCard key={item.label} {...item} />)}
         </div>
 

@@ -125,7 +125,7 @@ export function ExportInquiriesPage() {
     <PageBackground image={invoicesBg} position="center 25%">
       <TopBar title="Export Inquiries" subtitle="Client requests, clarifications, quote handoff" />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(340px, 1fr) minmax(520px, 2fr)', gap: 16, padding: 16, minHeight: 0, flex: 1 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, padding: 'clamp(12px, 2.2vw, 16px)', minHeight: 0, flex: 1, alignItems: 'start' }}>
         <section style={cardStyle}>
           <h3 style={headingStyle}>Inquiry Queue</h3>
           {loading ? <p style={mutedStyle}>Loading...</p> : null}
@@ -159,12 +159,12 @@ export function ExportInquiriesPage() {
           {!selectedInquiry ? <p style={mutedStyle}>Select an inquiry to view details.</p> : null}
           {selectedInquiry ? (
             <>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
                 <div>
                   <h3 style={{ ...headingStyle, marginBottom: 4 }}>{selectedInquiry.inquiryNumber}</h3>
                   <p style={mutedStyle}>{selectedInquiry.inquiryType} • {selectedInquiry.sourceChannel}</p>
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'minmax(170px, 1fr) auto', gap: 8, alignItems: 'center', width: 'min(100%, 360px)' }}>
                   <select value={statusDraft} onChange={(e) => setStatusDraft(e.target.value as ExportInquiryStatus)} style={fieldStyle}>
                     {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{status}</option>)}
                   </select>
@@ -239,9 +239,9 @@ const cardStyle: React.CSSProperties = {
   border: '1px solid #252B35',
   borderRadius: 14,
   background: 'rgba(17,19,24,0.9)',
-  padding: 14,
+  padding: 'clamp(12px, 2vw, 14px)',
   minHeight: 0,
-  overflow: 'hidden',
+  overflow: 'visible',
 };
 
 const headingStyle: React.CSSProperties = {
@@ -278,6 +278,7 @@ const statusBadgeStyle: React.CSSProperties = {
   padding: '2px 8px',
   fontSize: 11,
   color: '#C7D2DF',
+  whiteSpace: 'nowrap',
 };
 
 const fieldStyle: React.CSSProperties = {
@@ -285,20 +286,24 @@ const fieldStyle: React.CSSProperties = {
   background: '#0A0C0F',
   border: '1px solid #2A3340',
   borderRadius: 8,
-  padding: '9px 10px',
+  padding: '10px 11px',
   color: '#F0F4F8',
+  fontSize: 16,
   boxSizing: 'border-box',
 };
 
 const actionButtonStyle: React.CSSProperties = {
   border: 'none',
   borderRadius: 8,
-  padding: '9px 12px',
+  padding: '10px 12px',
   background: '#FF6B00',
   color: '#fff',
   fontFamily: "'Space Grotesk', sans-serif",
   fontWeight: 700,
   cursor: 'pointer',
+  whiteSpace: 'normal',
+  textAlign: 'center',
+  lineHeight: 1.3,
 };
 
 const metaTileStyle: React.CSSProperties = {

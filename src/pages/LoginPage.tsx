@@ -36,7 +36,7 @@ export function LoginPage() {
   const C = { night: '#0A0C0F', dark: '#111318', card: '#181C23', border: '#252B35', muted: '#8A99AE', white: '#F0F4F8', orange: '#FF6B00' };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.night, overflow: 'hidden' }}>
+    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.night, overflowX: 'hidden', overflowY: 'auto', padding: '20px 0' }}>
 
       {/* Hero background — TVECO branded container truck */}
       <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${tvecoLoginBg})`, backgroundSize: 'cover', backgroundPosition: 'center 40%', pointerEvents: 'none' }} />
@@ -66,7 +66,7 @@ export function LoginPage() {
           animate={shake ? { x: [0, -10, 10, -8, 8, -4, 4, 0] } : { x: 0 }}
           transition={{ duration: 0.45, ease: 'easeInOut' }}
         >
-          <div style={{ background: 'rgba(17,19,24,0.95)', border: `1px solid ${C.border}`, borderRadius: 16, padding: '40px 40px 36px', backdropFilter: 'blur(20px)', boxShadow: `0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,107,0,0.06)` }}>
+          <div style={{ background: 'rgba(17,19,24,0.95)', border: `1px solid ${C.border}`, borderRadius: 16, padding: 'clamp(22px, 4.2vw, 40px) clamp(18px, 4vw, 40px) clamp(20px, 3.6vw, 36px)', backdropFilter: 'blur(20px)', boxShadow: `0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,107,0,0.06)` }}>
 
             {/* Header */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: 36 }}>
@@ -76,13 +76,13 @@ export function LoginPage() {
                 initial={{ opacity: 0, scale: 0.7 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.25, duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
-                style={{ width: 96, height: 96, objectFit: 'contain', marginBottom: 12, filter: 'drop-shadow(0 0 20px rgba(255,107,0,0.35))' }}
+                style={{ width: 'clamp(72px, 20vw, 96px)', height: 'clamp(72px, 20vw, 96px)', objectFit: 'contain', marginBottom: 12, filter: 'drop-shadow(0 0 20px rgba(255,107,0,0.35))' }}
               />
               <motion.h1
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.35, duration: 0.4 }}
-                style={{ fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, fontSize: 28, color: C.white, margin: '0 0 2px', letterSpacing: 3 }}
+                style={{ fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, fontSize: 'clamp(24px, 7vw, 28px)', color: C.white, margin: '0 0 2px', letterSpacing: 3 }}
               >
                 Client Zone
               </motion.h1>
@@ -118,7 +118,7 @@ export function LoginPage() {
                   placeholder="you@company.com"
                   autoComplete="username"
                   required
-                  style={{ width: '100%', background: '#0A0C0F', border: `1px solid ${error ? '#EF4444' : C.border}`, borderRadius: 8, padding: '12px 14px', fontSize: 14, fontFamily: "'Outfit', sans-serif", color: C.white, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                  style={{ width: '100%', background: '#0A0C0F', border: `1px solid ${error ? '#EF4444' : C.border}`, borderRadius: 8, padding: '12px 14px', fontSize: 16, fontFamily: "'Outfit', sans-serif", color: C.white, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
                   onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = C.orange; }}
                   onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = C.border; }}
                 />
@@ -134,7 +134,7 @@ export function LoginPage() {
                     placeholder="••••••••"
                     autoComplete="current-password"
                     required
-                    style={{ width: '100%', background: '#0A0C0F', border: `1px solid ${error ? '#EF4444' : C.border}`, borderRadius: 8, padding: '12px 44px 12px 14px', fontSize: 14, fontFamily: "'Outfit', sans-serif", color: C.white, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
+                    style={{ width: '100%', background: '#0A0C0F', border: `1px solid ${error ? '#EF4444' : C.border}`, borderRadius: 8, padding: '12px 44px 12px 14px', fontSize: 16, fontFamily: "'Outfit', sans-serif", color: C.white, outline: 'none', boxSizing: 'border-box', transition: 'border-color 0.2s' }}
                     onFocus={(e) => { if (!error) e.currentTarget.style.borderColor = C.orange; }}
                     onBlur={(e) => { if (!error) e.currentTarget.style.borderColor = C.border; }}
                   />
@@ -205,6 +205,7 @@ export function LoginPage() {
       <div style={{ position: 'absolute', bottom: 20, right: 32, fontFamily: "'Space Grotesk', monospace", fontSize: 10, color: C.border, letterSpacing: 1, zIndex: 1 }}>
         v1.0.0
       </div>
+
     </div>
   );
 }

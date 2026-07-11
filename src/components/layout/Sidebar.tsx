@@ -56,7 +56,7 @@ export function Sidebar({ onNavClick }: SidebarProps) {
 
   return (
     <aside
-      className="relative w-64 shrink-0 h-screen sticky top-0 flex flex-col border-r border-brand-border print:hidden overflow-hidden"
+      className="relative w-[min(16rem,85vw)] lg:w-64 shrink-0 h-dvh sticky top-0 flex flex-col border-r border-brand-border print:hidden overflow-hidden"
       style={{ backgroundImage: `url(${navBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }}
     >
       <div className="absolute inset-0 bg-brand-night/88 pointer-events-none" />

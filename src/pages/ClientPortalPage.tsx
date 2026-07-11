@@ -430,6 +430,7 @@ const fieldStyle: React.CSSProperties = {
   borderRadius: 12,
   padding: '12px 14px',
   color: '#F0F4F8',
+  fontSize: 16,
   fontFamily: "'Outfit', sans-serif",
   boxSizing: 'border-box',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
@@ -457,7 +458,7 @@ const secondaryDangerButtonStyle: React.CSSProperties = {
 };
 
 const pageStyle: React.CSSProperties = {
-  minHeight: '100vh',
+  minHeight: '100svh',
   background: '#0A0C0F',
   color: '#F0F4F8',
   position: 'relative',
@@ -494,7 +495,7 @@ const pageContentStyle: React.CSSProperties = {
   zIndex: 1,
   maxWidth: 1180,
   margin: '0 auto',
-  padding: '32px 20px 48px',
+  padding: 'clamp(18px, 3.2vw, 32px) clamp(12px, 2.4vw, 20px) clamp(28px, 5vw, 48px)',
   display: 'grid',
   gap: 20,
 };
@@ -505,7 +506,7 @@ const heroStyle: React.CSSProperties = {
   borderRadius: 28,
   background: 'linear-gradient(145deg, rgba(19,24,33,0.94) 0%, rgba(14,18,25,0.97) 100%)',
   boxShadow: '0 30px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03)',
-  padding: 24,
+  padding: 'clamp(16px, 2.8vw, 24px)',
   overflow: 'hidden',
 };
 
@@ -577,13 +578,13 @@ const heroSubtitleStyle: React.CSSProperties = {
 const heroAsideStyle: React.CSSProperties = {
   display: 'grid',
   gap: 10,
-  justifyItems: 'end',
+  justifyItems: 'start',
 };
 
 const clientIdentityStyle: React.CSSProperties = {
   display: 'grid',
   gap: 8,
-  justifyItems: 'end',
+  justifyItems: 'start',
 };
 
 const heroChipStyle: React.CSSProperties = {
@@ -662,12 +663,12 @@ const summaryValueStyle: React.CSSProperties = {
   color: '#F0F4F8',
   fontFamily: "'Space Grotesk', sans-serif",
   fontWeight: 700,
-  fontSize: 22,
+  fontSize: 'clamp(18px, 4.2vw, 22px)',
 };
 
 const featureGridStyle: React.CSSProperties = {
   display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1.5fr) minmax(280px, 0.9fr)',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
   gap: 20,
 };
 
@@ -675,7 +676,7 @@ const sectionCardStyle: React.CSSProperties = {
   border: '1px solid rgba(83, 96, 114, 0.34)',
   borderRadius: 24,
   background: 'linear-gradient(180deg, rgba(17,19,24,0.92) 0%, rgba(13,16,21,0.97) 100%)',
-  padding: 22,
+  padding: 'clamp(14px, 2.6vw, 22px)',
   boxShadow: '0 18px 46px rgba(0,0,0,0.28)',
 };
 
@@ -706,7 +707,7 @@ const sectionTitleStyle: React.CSSProperties = {
   margin: '6px 0 0',
   color: '#F0F4F8',
   fontFamily: "'Space Grotesk', sans-serif",
-  fontSize: 24,
+  fontSize: 'clamp(20px, 4.5vw, 24px)',
   lineHeight: 1.2,
 };
 

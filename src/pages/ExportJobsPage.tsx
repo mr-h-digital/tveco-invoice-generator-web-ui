@@ -559,7 +559,7 @@ export function ExportJobsPage() {
         title="Export Jobs"
         subtitle={`${jobs.length} active pipeline records`}
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end w-full sm:w-auto">
             <button
               data-tour-id="exports-new-button"
               onClick={() => setModalOpen(true)}
@@ -576,6 +576,13 @@ export function ExportJobsPage() {
             >
               <Bell size={15} />
               Run Reminders
+            </button>
+            <button
+              onClick={handleRunReminders}
+              className="sm:hidden flex items-center justify-center px-3 py-2 text-brand-text text-sm font-medium rounded-lg border border-brand-border hover:bg-brand-card2 transition-colors"
+              aria-label="Run reminders"
+            >
+              <Bell size={15} />
             </button>
           </div>
         }
