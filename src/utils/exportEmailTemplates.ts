@@ -3,7 +3,7 @@ import { formatCurrency } from './formatCurrency';
 import { formatDate } from './formatDate';
 import { TVECO_COMPANY_PROFILE } from '../constants/companyProfile';
 
-const APP_URL = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://app.tveco.co.za').replace(/\/$/, '');
+const APP_URL = (import.meta.env.VITE_PUBLIC_APP_URL || 'https://tveco.co.za').replace(/\/$/, '');
 
 interface ExportEmail {
   subject: string;
