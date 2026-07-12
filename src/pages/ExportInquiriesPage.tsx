@@ -26,6 +26,15 @@ export function ExportInquiriesPage() {
   const [adminMessage, setAdminMessage] = useState('');
   const [requiresClientResponse, setRequiresClientResponse] = useState(true);
   const [statusDraft, setStatusDraft] = useState<ExportInquiryStatus>('UNDER_REVIEW');
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list');
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 767px)');
+    const handler = (e: MediaQueryListEvent) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const selectedInquiry = useMemo(
     () => inquiries.find((item) => item.id === selectedId) ?? null,
@@ -125,7 +134,8 @@ export function ExportInquiriesPage() {
     <PageBackground image={invoicesBg} position="center 25%">
       <TopBar title="Export Inquiries" subtitle="Client requests, clarifications, quote handoff" />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, padding: 'clamp(12px, 2.2vw, 16px)', minHeight: 0, flex: 1, alignItems: 'start' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(320px, 1fr))', gap: 16, padding: 'clamp(12px, 2.2vw, 16px)', minHeight: 0, flex: 1, alignItems: 'start', width: '100%', minWidth: 0 }}>
+        {(!isMobile || mobileView === 'list') && (
         <section style={cardStyle}>
           <h3 style={headingStyle}>Inquiry Queue</h3>
           {loading ? <p style={mutedStyle}>Loading...</p> : null}
@@ -134,7 +144,7 @@ export function ExportInquiriesPage() {
             {inquiries.map((inquiry) => (
               <button
                 key={inquiry.id}
-                onClick={() => setSelectedId(inquiry.id)}
+                onClick={() => { setSelectedId(inquiry.id); setStatusDraft(inquiry.status); if (isMobile) setMobileView('detail'); }}
                 style={{
                   ...queueItemStyle,
                   border: inquiry.id === selectedId ? '1px solid #FF6B00' : '1px solid #252B35',
@@ -154,8 +164,18 @@ export function ExportInquiriesPage() {
             ))}
           </div>
         </section>
+        )}
 
+        {(!isMobile || mobileView === 'detail') && (
         <section style={cardStyle}>
+          {isMobile && (
+            <button
+              onClick={() => setMobileView('list')}
+              style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#FF6B00', cursor: 'pointer', fontSize: 13, fontWeight: 600, marginBottom: 12, padding: 0 }}
+            >
+              ← Back to inquiries
+            </button>
+          )}
           {!selectedInquiry ? <p style={mutedStyle}>Select an inquiry to view details.</p> : null}
           {selectedInquiry ? (
             <>
@@ -230,6 +250,7 @@ export function ExportInquiriesPage() {
             </>
           ) : null}
         </section>
+        )}
       </div>
     </PageBackground>
   );

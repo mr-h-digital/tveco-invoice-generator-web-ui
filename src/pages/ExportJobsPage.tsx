@@ -590,17 +590,20 @@ export function ExportJobsPage() {
 
       <div className="p-4 sm:p-6 lg:p-8">
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
-          <div className="flex bg-brand-card border border-brand-border rounded-lg p-1 gap-1 overflow-x-auto shrink-0">
-            {TABS.map((tab) => (
-              <button
-                key={tab.value}
-                onClick={() => setFilter(tab.value)}
-                className="px-3 py-2 rounded-md text-sm transition-colors whitespace-nowrap"
-                style={filter === tab.value ? { background: '#FF6B00', color: '#fff', fontWeight: 500 } : { color: '#8A99AE' }}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <div className="relative shrink-0">
+            <div className="flex bg-brand-card border border-brand-border rounded-lg p-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              {TABS.map((tab) => (
+                <button
+                  key={tab.value}
+                  onClick={() => setFilter(tab.value)}
+                  className="px-3 py-2 rounded-md text-sm transition-colors whitespace-nowrap"
+                  style={filter === tab.value ? { background: '#FF6B00', color: '#fff', fontWeight: 500 } : { color: '#8A99AE' }}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+            <div className="pointer-events-none absolute right-0 top-0 bottom-0 w-8 rounded-r-lg bg-gradient-to-l from-brand-card to-transparent sm:hidden" />
           </div>
           <div className="relative flex-1 sm:max-w-xs">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-brand-muted" />

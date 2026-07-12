@@ -251,16 +251,16 @@ export function DashboardPage() {
         subtitle={`Welcome back${user?.email ? `, ${user.email.split('@')[0]}` : ''}`}
         actions={
           <div className="flex items-center gap-2">
-            <Link to="/invoices/new" className="hidden sm:flex items-center gap-2 px-3 sm:px-4 py-2 text-brand-text text-sm font-medium rounded-lg border border-brand-border hover:bg-brand-card2 transition-colors">
+            <Link to="/invoices/new" className="hidden lg:flex items-center gap-2 px-3 sm:px-4 py-2 text-brand-text text-sm font-medium rounded-lg border border-brand-border hover:bg-brand-card2 transition-colors">
               <Plus size={15} /> Invoice
             </Link>
-            <Link to="/quotes/new" className="hidden sm:flex items-center gap-2 px-3 sm:px-4 py-2 text-brand-text text-sm font-medium rounded-lg border border-brand-border hover:bg-brand-card2 transition-colors">
+            <Link to="/quotes/new" className="hidden lg:flex items-center gap-2 px-3 sm:px-4 py-2 text-brand-text text-sm font-medium rounded-lg border border-brand-border hover:bg-brand-card2 transition-colors">
               <Plus size={15} /> Quote
             </Link>
             <Link to="/exports" className="flex items-center gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity" style={{ background: '#FF6B00' }}>
               <Plus size={16} />
-              <span className="hidden sm:inline">New Export Job</span>
-              <span className="sm:hidden">New</span>
+              <span className="hidden lg:inline">New Export Job</span>
+              <span className="lg:hidden">New</span>
             </Link>
           </div>
         }

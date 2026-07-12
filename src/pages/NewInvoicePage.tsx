@@ -124,10 +124,10 @@ export function NewInvoicePage() {
                 ))}
               </div>
               <Link to="/invoices" className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-brand-border text-brand-muted text-sm hover:text-brand-text hover:bg-brand-card2 transition-colors">
-                <X size={15} /><span className="hidden sm:inline">Cancel</span>
+                <X size={15} /><span className="hidden lg:inline">Cancel</span>
               </Link>
               <button onClick={methods.handleSubmit(onSubmit)} className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity" style={{ background: '#FF6B00' }}>
-                <Save size={15} /><span className="hidden sm:inline">Save Invoice</span><span className="sm:hidden">Save</span>
+                <Save size={15} /><span className="hidden lg:inline">Save Invoice</span><span className="lg:hidden">Save</span>
               </button>
             </div>
           }
