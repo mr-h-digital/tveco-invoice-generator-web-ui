@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import type { Invoice } from '../types/invoice';
 import api from './api';
 
-const USE_API = import.meta.env.VITE_USE_API === 'true';
+const USE_API = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
 const STORAGE_KEY = 'tveco_invoices_v2';
 
 const DEFAULT_INVOICES: Invoice[] = [

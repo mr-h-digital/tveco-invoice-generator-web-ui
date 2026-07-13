@@ -3,7 +3,7 @@ import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import { todayISO, addDaysISO } from '../utils/formatDate';
 import api from './api';
 
-const USE_API = import.meta.env.VITE_USE_API === 'true';
+const USE_API = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
 const STORAGE_KEY = 'tveco_export_jobs_v1';
 const TRACKING_WEBHOOK_URL = import.meta.env.VITE_TRACKING_WEBHOOK_URL?.trim();
 const TRACKING_WEBHOOK_SECRET = import.meta.env.VITE_TRACKING_WEBHOOK_SECRET?.trim();

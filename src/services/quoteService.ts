@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import type { Quote } from '../types/quote';
 import api from './api';
 
-const USE_API = import.meta.env.VITE_USE_API === 'true';
+const USE_API = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
 const STORAGE_KEY = 'tveco_quotes_v1';
 
 const DEFAULT_QUOTES: Quote[] = [

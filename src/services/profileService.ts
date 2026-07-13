@@ -2,7 +2,7 @@ import api from './api';
 import type { ChangePasswordPayload, UpdateProfilePayload, UserProfile } from '../types/profile';
 import { loadAuthSession, saveAuthSession } from './authSession';
 
-const USE_API = import.meta.env.VITE_USE_API === 'true';
+const USE_API = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
 
 export const profileService = {
   async getMyProfile(): Promise<UserProfile> {

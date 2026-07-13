@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import type { AppNotification, EmailOutboxNotification, NotificationEventType } from '../types/notification';
 import api from './api';
 
-const USE_API = import.meta.env.VITE_USE_API === 'true';
+const USE_API = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
 const NOTIFICATIONS_KEY = 'tveco_notifications_v1';
 const EMAIL_OUTBOX_KEY = 'tveco_email_outbox_v1';
 const WEBHOOK_URL = import.meta.env.VITE_NOTIFICATION_WEBHOOK_URL?.trim();

@@ -1,7 +1,7 @@
 import api from './api';
 import axios from 'axios';
 
-const USE_API = import.meta.env.VITE_USE_API === 'true';
+const USE_API = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
 const ADMIN_EMAIL = 'admin@tveco.co.za';
 const ADMIN_PASSWORD = import.meta.env.VITE_ADMIN_PASSWORD ?? 'tveco2026';
 

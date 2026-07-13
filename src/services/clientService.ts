@@ -2,7 +2,7 @@ import { v4 as uuid } from 'uuid';
 import type { Client } from '../types/client';
 import api from './api';
 
-const USE_API = import.meta.env.VITE_USE_API === 'true';
+const USE_API = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
 const STORAGE_KEY = 'tveco_clients_v2';
 
 const DEFAULT_CLIENTS: Client[] = [

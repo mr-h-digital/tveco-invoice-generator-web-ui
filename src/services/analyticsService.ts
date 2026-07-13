@@ -1,7 +1,7 @@
 import api from './api';
 import type { AnalyticsDto } from '../types/analytics';
 
-const USE_API = import.meta.env.VITE_USE_API === 'true';
+const USE_API = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
 
 export const analyticsService = {
   async getAnalytics(params: { from: string; to: string }): Promise<AnalyticsDto | null> {

@@ -5,7 +5,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ title, subtitle, actions }: TopBarProps) {
-  const useApi = import.meta.env.VITE_USE_API === 'true';
+  const useApi = import.meta.env.VITE_USE_API === 'true' || import.meta.env.PROD;
   const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
   let apiHost = 'configured API';
 
