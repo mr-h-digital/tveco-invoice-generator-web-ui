@@ -8,6 +8,9 @@ import { LoginPage } from './pages/LoginPage';
 import { AdminLoginPage } from './pages/AdminLoginPage';
 import { ClientAuthLandingPage } from './pages/ClientAuthLandingPage';
 import { SignupPage } from './pages/SignupPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { OtpRecoveryPage } from './pages/OtpRecoveryPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { InvoicesPage } from './pages/InvoicesPage';
 import { NewInvoicePage } from './pages/NewInvoicePage';
@@ -193,6 +196,42 @@ export default function App() {
                   ) : (
                     <motion.div key="admin-login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
                       <AdminLoginPage />
+                    </motion.div>
+                  )
+                }
+              />
+              <Route
+                path="/forgot-password"
+                element={
+                  user ? (
+                    <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
+                  ) : (
+                    <motion.div key="forgot-password" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <ForgotPasswordPage />
+                    </motion.div>
+                  )
+                }
+              />
+              <Route
+                path="/reset-password"
+                element={
+                  user ? (
+                    <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
+                  ) : (
+                    <motion.div key="reset-password" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <ResetPasswordPage />
+                    </motion.div>
+                  )
+                }
+              />
+              <Route
+                path="/auth/recovery/otp"
+                element={
+                  user ? (
+                    <Navigate to={user.role === 'client' ? '/client-zone' : '/dashboard'} replace />
+                  ) : (
+                    <motion.div key="otp-recovery" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.3 }}>
+                      <OtpRecoveryPage />
                     </motion.div>
                   )
                 }

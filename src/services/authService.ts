@@ -21,6 +21,24 @@ export interface AuthUser {
   expiresAt: string | null;
 }
 
+export interface OtpRecoveryRequestPayload {
+  purpose: 'USERNAME_RECOVERY' | 'PASSWORD_RESET';
+  channel: 'EMAIL' | 'SMS' | 'WHATSAPP';
+  identifier: string;
+}
+
+export interface OtpRecoveryVerifyPayload {
+  challengeId: string;
+  otp: string;
+  newPassword?: string;
+}
+
+export interface OtpRecoveryVerifyResult {
+  username: string | null;
+  passwordReset: boolean;
+  message: string;
+}
+
 export const authService = {
   async login(email: string, password: string): Promise<AuthUser> {
     if (!USE_API) {
@@ -93,6 +111,47 @@ export const authService = {
   async logout(): Promise<void> {
     if (!USE_API) return;
     await api.post('/auth/logout');
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    if (!USE_API) return;
+    await api.post('/auth/forgot-password', {
+      email: email.trim().toLowerCase(),
+    });
+  },
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    if (!USE_API) {
+      throw new Error('Password reset requires API mode');
+    }
+    await api.post('/auth/reset-password', {
+      token: token.trim(),
+      newPassword,
+    });
+  },
+
+  async requestOtpRecovery(payload: OtpRecoveryRequestPayload): Promise<{ challengeId: string; message: string }> {
+    if (!USE_API) {
+      throw new Error('OTP recovery requires API mode');
+    }
+    const res = await api.post<{ challengeId: string; message: string }>('/auth/recovery/otp/request', {
+      purpose: payload.purpose,
+      channel: payload.channel,
+      identifier: payload.identifier.trim(),
+    });
+    return res.data;
+  },
+
+  async verifyOtpRecovery(payload: OtpRecoveryVerifyPayload): Promise<OtpRecoveryVerifyResult> {
+    if (!USE_API) {
+      throw new Error('OTP recovery requires API mode');
+    }
+    const res = await api.post<OtpRecoveryVerifyResult>('/auth/recovery/otp/verify', {
+      challengeId: payload.challengeId.trim(),
+      otp: payload.otp.trim(),
+      newPassword: payload.newPassword,
+    });
+    return res.data;
   },
 };
 

@@ -147,6 +147,16 @@ export function AdminLoginPage() {
               </Link>
             </motion.p>
 
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.72, duration: 0.4 }} style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, color: C.muted, textAlign: 'center', margin: '8px 0 0' }}>
+              <Link to="/forgot-password" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>
+                Forgot password?
+              </Link>{' '}
+              <span style={{ color: C.border }}>|</span>{' '}
+              <Link to="/auth/recovery/otp" style={{ color: '#C8D4E0', textDecoration: 'none', fontWeight: 600 }}>
+                Username / OTP recovery
+              </Link>
+            </motion.p>
+
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.75, duration: 0.4 }} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginTop: 20, paddingTop: 16, borderTop: `1px solid ${C.border}` }}>
               <span style={{ fontFamily: "'Outfit', sans-serif", fontSize: 11, color: '#5A6478' }}>Built by</span>
               <img src={mrhLogo} alt="Mr. H Digital" style={{ height: 22, width: 'auto', opacity: 0.65, filter: 'brightness(1.1)' }} />

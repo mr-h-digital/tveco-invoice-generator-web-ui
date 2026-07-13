@@ -185,6 +185,17 @@ export function LoginPage() {
               </Link>
             </motion.p>
 
+            <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.72, duration: 0.4 }}
+              style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, color: C.muted, textAlign: 'center', margin: '8px 0 0' }}>
+              <Link to="/forgot-password" style={{ color: C.orange, textDecoration: 'none', fontWeight: 600 }}>
+                Forgot password?
+              </Link>{' '}
+              <span style={{ color: C.border }}>|</span>{' '}
+              <Link to="/auth/recovery/otp" style={{ color: '#C8D4E0', textDecoration: 'none', fontWeight: 600 }}>
+                Recover username / OTP
+              </Link>
+            </motion.p>
+
             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.73, duration: 0.4 }}
               style={{ fontFamily: "'Outfit', sans-serif", fontSize: 12, color: C.muted, textAlign: 'center', margin: '8px 0 0' }}>
               <Link to="/admin/login" style={{ color: '#C8D4E0', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
