@@ -26,6 +26,7 @@ import { ExportJobsPage } from './pages/ExportJobsPage';
 import { ExportInquiriesPage } from './pages/ExportInquiriesPage';
 import { PublicTrackingPage } from './pages/PublicTrackingPage';
 import { NotificationsPage } from './pages/NotificationsPage';
+import { ProfileSettingsPage } from './pages/ProfileSettingsPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 import { ClientPortalPage } from './pages/ClientPortalPage';
 import { useAuthStore } from './store/authStore';
@@ -72,6 +73,7 @@ function PrivateAppRoutes() {
           <Route path="/clients" element={<AnimatedPage><ClientsPage /></AnimatedPage>} />
           <Route path="/exports" element={<AnimatedPage><ExportJobsPage /></AnimatedPage>} />
           <Route path="/notifications" element={<AnimatedPage><NotificationsPage /></AnimatedPage>} />
+          <Route path="/profile" element={<AnimatedPage><ProfileSettingsPage /></AnimatedPage>} />
           <Route path="/analytics" element={<AnimatedPage><AnalyticsPage /></AnimatedPage>} />
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
@@ -86,6 +88,7 @@ function PrivateClientRoutes() {
       <Routes>
         <Route path="/" element={<Navigate to="/client-zone" replace />} />
         <Route path="/client-zone" element={<AnimatedPage><ClientPortalPage /></AnimatedPage>} />
+        <Route path="/client/profile" element={<AnimatedPage><ProfileSettingsPage /></AnimatedPage>} />
         <Route path="*" element={<Navigate to="/client-zone" replace />} />
       </Routes>
     </AnimatePresence>

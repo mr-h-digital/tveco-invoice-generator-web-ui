@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight, BellRing, Clock3, FileText, LogOut, PackageCheck, Send, ShieldCheck } from 'lucide-react';
+import { ArrowRight, BellRing, Clock3, FileText, LogOut, PackageCheck, Send, ShieldCheck, UserCog } from 'lucide-react';
 import { toast } from 'sonner';
 import type { ExportJob } from '../types/exportJob';
 import type { ExportInquiry } from '../types/exportInquiry';
@@ -176,6 +176,9 @@ export function ClientPortalPage() {
               <div style={clientIdentityStyle}>
                 <span style={heroChipStyle}><ShieldCheck size={13} /> Secure client session</span>
                 {user?.email ? <p style={heroEmailStyle}>{user.email}</p> : null}
+                <Link to="/client/profile" style={{ ...heroActionLinkStyle, marginTop: 8 }}>
+                  <UserCog size={14} /> Profile settings
+                </Link>
               </div>
               <button
                 type="button"
@@ -605,6 +608,20 @@ const heroEmailStyle: React.CSSProperties = {
   color: '#8A99AE',
   fontFamily: "'Outfit', sans-serif",
   fontSize: 13,
+};
+
+const heroActionLinkStyle: React.CSSProperties = {
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  color: '#D9E1EB',
+  fontFamily: "'Space Grotesk', sans-serif",
+  fontSize: 12,
+  textDecoration: 'none',
+  border: '1px solid #303949',
+  borderRadius: 10,
+  padding: '8px 10px',
+  background: 'rgba(10,12,15,0.45)',
 };
 
 const signOutButtonStyle: React.CSSProperties = {

@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, FileText, ClipboardList, Users, BarChart2, LogOut, RotateCcw, Lightbulb, Ship, Bell } from 'lucide-react';
+import { LayoutDashboard, FileText, ClipboardList, Users, BarChart2, LogOut, RotateCcw, Lightbulb, Ship, Bell, UserCog } from 'lucide-react';
 import { clsx } from 'clsx';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/authStore';
@@ -16,6 +16,7 @@ const navItems = [
   { to: '/exports',        label: 'Exports',        icon: Ship },
   { to: '/invoices',       label: 'Invoices',       icon: FileText },
   { to: '/notifications',  label: 'Notifications',  icon: Bell },
+  { to: '/profile',        label: 'Profile',        icon: UserCog },
   { to: '/analytics',      label: 'Analytics',      icon: BarChart2 },
 ];
 

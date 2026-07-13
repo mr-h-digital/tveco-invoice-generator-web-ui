@@ -19,6 +19,7 @@ interface AuthStore {
     password: string;
   }) => Promise<AuthActionResult>;
   logout: () => Promise<void>;
+  updateUserEmail: (email: string) => void;
 }
 
 export const useAuthStore = create<AuthStore>(() => ({
@@ -59,6 +60,15 @@ export const useAuthStore = create<AuthStore>(() => ({
       clearAuthSession();
       useAuthStore.setState({ user: null });
     }
+  },
+
+  updateUserEmail: (email) => {
+    const currentUser = useAuthStore.getState().user;
+    if (!currentUser) return;
+
+    const nextUser = { ...currentUser, email: email.trim().toLowerCase() };
+    saveAuthSession(nextUser);
+    useAuthStore.setState({ user: nextUser });
   },
 }));
 
