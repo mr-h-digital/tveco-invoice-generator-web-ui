@@ -16,7 +16,21 @@ export function ClientAuthLandingPage() {
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.night, overflowX: 'hidden', overflowY: 'auto', padding: '20px 0' }}>
+    <div
+      className="client-auth-shell auth-fullscreen-shell"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 100,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: C.night,
+        overflowX: 'hidden',
+        overflowY: 'auto',
+        padding: '20px 0',
+      }}
+    >
       <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${tvecoLoginBg})`, backgroundSize: 'cover', backgroundPosition: 'center 35%', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(circle at 16% 22%, rgba(255,107,0,0.20) 0%, rgba(255,107,0,0.00) 42%), linear-gradient(112deg, rgba(8,10,14,0.98) 0%, rgba(9,12,16,0.90) 48%, rgba(8,10,14,0.58) 100%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', inset: 0, backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '38px 38px', opacity: 0.25, pointerEvents: 'none' }} />
@@ -103,6 +117,12 @@ export function ClientAuthLandingPage() {
       </motion.div>
 
       <style>{`@media (max-width: 860px) {
+        .client-auth-shell {
+          align-items: flex-start !important;
+          padding-top: max(12px, env(safe-area-inset-top, 0px)) !important;
+          padding-bottom: max(16px, env(safe-area-inset-bottom, 0px)) !important;
+        }
+
         .client-auth-stack { grid-template-columns: 1fr !important; }
         .client-auth-left { border-right: 0 !important; border-bottom: 1px solid #2A3342 !important; }
       }

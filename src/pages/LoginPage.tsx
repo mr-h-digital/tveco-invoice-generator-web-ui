@@ -36,7 +36,7 @@ export function LoginPage() {
   const C = { night: '#0A0C0F', dark: '#111318', card: '#181C23', border: '#252B35', muted: '#8A99AE', white: '#F0F4F8', orange: '#FF6B00' };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.night, overflowX: 'hidden', overflowY: 'auto', padding: '20px 0' }}>
+    <div className="auth-fullscreen-shell" style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.night, overflowX: 'hidden', overflowY: 'auto', padding: '20px 0' }}>
 
       {/* Hero background — TVECO branded container truck */}
       <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${tvecoLoginBg})`, backgroundSize: 'cover', backgroundPosition: 'center 40%', pointerEvents: 'none' }} />

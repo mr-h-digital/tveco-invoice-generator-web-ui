@@ -38,7 +38,7 @@ export function AdminLoginPage() {
   const C = { night: '#0A0C0F', dark: '#111318', card: '#181C23', border: '#252B35', muted: '#8A99AE', white: '#F0F4F8', orange: '#FF6B00' };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.night, overflowX: 'hidden', overflowY: 'auto', padding: '20px 0' }}>
+    <div className="auth-fullscreen-shell" style={{ position: 'fixed', inset: 0, zIndex: 100, display: 'flex', alignItems: 'center', justifyContent: 'center', background: C.night, overflowX: 'hidden', overflowY: 'auto', padding: '20px 0' }}>
       <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${tvecoLoginBg})`, backgroundSize: 'cover', backgroundPosition: 'center 40%', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(105deg, rgba(10,12,15,0.97) 0%, rgba(10,12,15,0.88) 45%, rgba(10,12,15,0.55) 100%)', pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 200, background: 'linear-gradient(to top, rgba(10,12,15,1), transparent)', pointerEvents: 'none' }} />

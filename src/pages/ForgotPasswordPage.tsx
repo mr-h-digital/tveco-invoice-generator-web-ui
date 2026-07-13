@@ -26,7 +26,7 @@ export function ForgotPasswordPage() {
   const C = { night: '#0A0C0F', border: '#252B35', muted: '#8A99AE', white: '#F0F4F8', orange: '#FF6B00' };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: C.night, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
+    <div className="auth-fullscreen-shell" style={{ position: 'fixed', inset: 0, background: C.night, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, overflowY: 'auto' }}>
       <div style={{ position: 'absolute', inset: 0, backgroundImage: `url(${tvecoLoginBg})`, backgroundSize: 'cover', backgroundPosition: 'center 40%', opacity: 0.25 }} />
       <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(115deg, rgba(10,12,15,0.96), rgba(10,12,15,0.78))' }} />
 
