@@ -42,6 +42,11 @@ export function ClientPortalPage() {
   });
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
 
+  const welcomeName =
+    user?.email?.split('@')[0]
+      ?.replace(/[._-]+/g, ' ')
+      .replace(/\b\w/g, (char) => char.toUpperCase()) ?? 'Client';
+
   const openInquiryCount = inquiries.filter((inquiry) => inquiry.status !== 'CLOSED' && inquiry.status !== 'CONVERTED_TO_JOB').length;
   const quoteActionCount = quotes.filter((quote) => quote.status === 'SENT').length;
   const activeJobCount = jobs.filter((job) => job.status !== 'DELIVERED' && job.status !== 'CANCELLED').length;
@@ -165,6 +170,7 @@ export function ClientPortalPage() {
               </div>
               <div>
                 <p style={eyebrowStyle}>TVECO Client Zone</p>
+                <p style={welcomeLineStyle}>Welcome back, {welcomeName}</p>
                 <h1 style={heroTitleStyle}>Your TVECO Client Portal</h1>
                 <p style={heroSubtitleStyle}>
                   Submit export inquiries, respond to clarification requests, review formal quotes, and monitor active shipments from one polished workspace.
@@ -197,9 +203,18 @@ export function ClientPortalPage() {
             <SummaryCard icon={<FileText size={16} />} label="Quotes awaiting decision" value={quoteActionCount} accent="#7DD3FC" />
             <SummaryCard icon={<PackageCheck size={16} />} label="Active export jobs" value={activeJobCount} accent="#4ADE80" />
           </div>
+
+          <nav aria-label="Client portal sections" style={portalNavStyle}>
+            <a href="#inquiry-request" style={portalNavLinkStyle}>Inquiry Request</a>
+            <a href="#my-inquiries" style={portalNavLinkStyle}>Inquiries</a>
+            <a href="#my-quotes" style={portalNavLinkStyle}>Quotes</a>
+            <a href="#my-jobs" style={portalNavLinkStyle}>Export Jobs</a>
+            <a href="#my-jobs" style={portalNavLinkStyle}>Documents</a>
+            <Link to="/client/profile" style={portalNavLinkStyle}>Profile</Link>
+          </nav>
         </header>
 
-        <section style={featureGridStyle}>
+        <section id="inquiry-request" style={featureGridStyle}>
           <div style={sectionCardStyle}>
             <div style={sectionHeadStyle}>
               <div>
@@ -250,7 +265,7 @@ export function ClientPortalPage() {
           </aside>
         </section>
 
-        <section style={contentSectionStyle}>
+        <section id="my-inquiries" style={contentSectionStyle}>
           <div style={sectionHeaderBarStyle}>
             <div>
               <p style={sectionEyebrowStyle}>Conversation</p>
@@ -306,7 +321,7 @@ export function ClientPortalPage() {
           </div>
         </section>
 
-        <section style={contentSectionStyle}>
+        <section id="my-quotes" style={contentSectionStyle}>
           <div style={sectionHeaderBarStyle}>
             <div>
               <p style={sectionEyebrowStyle}>Commercial</p>
@@ -340,7 +355,7 @@ export function ClientPortalPage() {
           </div>
         </section>
 
-        <section style={contentSectionStyle}>
+        <section id="my-jobs" style={contentSectionStyle}>
           <div style={sectionHeaderBarStyle}>
             <div>
               <p style={sectionEyebrowStyle}>Fulfilment</p>
@@ -560,6 +575,14 @@ const eyebrowStyle: React.CSSProperties = {
   fontSize: 11,
 };
 
+const welcomeLineStyle: React.CSSProperties = {
+  margin: '8px 0 0',
+  color: '#F7C8A6',
+  fontFamily: "'Outfit', sans-serif",
+  fontSize: 13,
+  letterSpacing: 0.4,
+};
+
 const heroTitleStyle: React.CSSProperties = {
   margin: '6px 0 8px',
   fontFamily: "'Bebas Neue', sans-serif",
@@ -644,6 +667,27 @@ const heroSummaryGridStyle: React.CSSProperties = {
   gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
   gap: 12,
   marginTop: 22,
+};
+
+const portalNavStyle: React.CSSProperties = {
+  marginTop: 14,
+  display: 'flex',
+  gap: 8,
+  overflowX: 'auto',
+  paddingBottom: 2,
+  WebkitOverflowScrolling: 'touch',
+};
+
+const portalNavLinkStyle: React.CSSProperties = {
+  border: '1px solid rgba(255,255,255,0.12)',
+  borderRadius: 999,
+  padding: '8px 12px',
+  color: '#D7E0EA',
+  textDecoration: 'none',
+  fontFamily: "'Space Grotesk', sans-serif",
+  fontSize: 12,
+  whiteSpace: 'nowrap',
+  background: 'rgba(10,12,15,0.48)',
 };
 
 const summaryCardStyle = (accent: string): React.CSSProperties => ({
