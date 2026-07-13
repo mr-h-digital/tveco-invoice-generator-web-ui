@@ -42,6 +42,10 @@ export function ClientPortalPage() {
   });
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [activeSectionId, setActiveSectionId] = useState<'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'>('inquiry-request');
+  const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1280);
+
+  const isMobile = viewportWidth <= 768;
+  const sectionScrollMarginTop = isMobile ? 156 : 122;
 
   const welcomeName =
     user?.email?.split('@')[0]
@@ -78,6 +82,12 @@ export function ClientPortalPage() {
   }, []);
 
   useEffect(() => {
+    const onResize = () => setViewportWidth(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+
+  useEffect(() => {
     const sectionIds: Array<'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'> = [
       'inquiry-request',
       'my-inquiries',
@@ -95,7 +105,7 @@ export function ClientPortalPage() {
         .filter((entry): entry is { id: 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'; top: number } => Boolean(entry));
 
       const current = sectionOffsets
-        .filter((entry) => entry.top <= 180)
+        .filter((entry) => entry.top <= (isMobile ? 220 : 180))
         .sort((a, b) => b.top - a.top)[0];
 
       if (current) {
@@ -109,7 +119,7 @@ export function ClientPortalPage() {
     return () => {
       window.removeEventListener('scroll', onScroll);
     };
-  }, []);
+  }, [isMobile]);
 
   function navigateToSection(sectionId: 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs') {
     const element = document.getElementById(sectionId);
@@ -202,12 +212,12 @@ export function ClientPortalPage() {
       <div style={pageBgOverlayStyle} />
       <div style={gridOverlayStyle} />
 
-      <div style={pageContentStyle}>
+      <div style={pageContentStyle(isMobile)}>
         <header style={heroStyle}>
           <div style={heroGlowStyle} />
-          <div style={heroTopRowStyle}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-              <div style={logoWrapStyle}>
+          <div style={heroTopRowStyle(isMobile)}>
+            <div style={heroBrandRowStyle(isMobile)}>
+              <div style={logoWrapStyle(isMobile)}>
                 <img src={tvecoLogo} alt="TVECO" style={logoStyle} />
               </div>
               <div>
@@ -220,18 +230,18 @@ export function ClientPortalPage() {
               </div>
             </div>
 
-            <div style={heroAsideStyle}>
+            <div style={heroAsideStyle(isMobile)}>
               <div style={clientIdentityStyle}>
                 <span style={heroChipStyle}><ShieldCheck size={13} /> Secure client session</span>
                 {user?.email ? <p style={heroEmailStyle}>{user.email}</p> : null}
-                <Link to="/client/profile" style={{ ...heroActionLinkStyle, marginTop: 8 }}>
+                <Link to="/client/profile" style={{ ...heroActionLinkStyle, marginTop: 8, ...(isMobile ? { width: '100%', justifyContent: 'center' } : {}) }}>
                   <UserCog size={14} /> Profile settings
                 </Link>
               </div>
               <button
                 type="button"
                 onClick={() => void handleLogout()}
-                style={signOutButtonStyle}
+                style={signOutButtonStyle(isMobile)}
               >
                 <LogOut size={15} />
                 <span>Sign out</span>
@@ -239,7 +249,7 @@ export function ClientPortalPage() {
             </div>
           </div>
 
-          <div style={heroSummaryGridStyle}>
+          <div style={heroSummaryGridStyle(isMobile)}>
             <SummaryCard icon={<BellRing size={16} />} label="Open inquiries" value={openInquiryCount} accent="#FF8C35" />
             <SummaryCard icon={<Send size={16} />} label="Needs your response" value={awaitingClientResponseCount} accent="#FBBF24" />
             <SummaryCard icon={<FileText size={16} />} label="Quotes awaiting decision" value={quoteActionCount} accent="#7DD3FC" />
@@ -248,21 +258,21 @@ export function ClientPortalPage() {
 
         </header>
 
-        <div style={portalNavWrapStyle}>
+        <div style={portalNavWrapStyle(isMobile)}>
           <p style={portalNavLabelStyle}>Quick Navigation</p>
-          <div style={portalNavEdgeFadeLeftStyle} />
-          <div style={portalNavEdgeFadeRightStyle} />
-          <nav aria-label="Client portal sections" style={portalNavStyle}>
-            <button type="button" onClick={() => navigateToSection('inquiry-request')} style={portalNavItemStyle(activeSectionId === 'inquiry-request')}>Inquiry Request</button>
-            <button type="button" onClick={() => navigateToSection('my-inquiries')} style={portalNavItemStyle(activeSectionId === 'my-inquiries')}>Inquiries</button>
-            <button type="button" onClick={() => navigateToSection('my-quotes')} style={portalNavItemStyle(activeSectionId === 'my-quotes')}>Quotes</button>
-            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs')}>Export Jobs</button>
-            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs')}>Documents</button>
-            <Link to="/client/profile" style={portalNavLinkStyle}>Profile</Link>
+          {!isMobile ? <div style={portalNavEdgeFadeLeftStyle} /> : null}
+          {!isMobile ? <div style={portalNavEdgeFadeRightStyle} /> : null}
+          <nav aria-label="Client portal sections" style={portalNavStyle(isMobile)}>
+            <button type="button" onClick={() => navigateToSection('inquiry-request')} style={portalNavItemStyle(activeSectionId === 'inquiry-request', isMobile)}>Inquiry Request</button>
+            <button type="button" onClick={() => navigateToSection('my-inquiries')} style={portalNavItemStyle(activeSectionId === 'my-inquiries', isMobile)}>Inquiries</button>
+            <button type="button" onClick={() => navigateToSection('my-quotes')} style={portalNavItemStyle(activeSectionId === 'my-quotes', isMobile)}>Quotes</button>
+            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs', isMobile)}>Export Jobs</button>
+            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs', isMobile)}>Documents</button>
+            <Link to="/client/profile" style={portalNavLinkStyle(isMobile)}>Profile</Link>
           </nav>
         </div>
 
-        <section id="inquiry-request" style={featureGridStyle}>
+        <section id="inquiry-request" style={{ ...featureGridStyle(isMobile), scrollMarginTop: sectionScrollMarginTop }}>
           <div style={sectionCardStyle}>
             <div style={sectionHeadStyle}>
               <div>
@@ -273,7 +283,7 @@ export function ClientPortalPage() {
             </div>
 
             <form onSubmit={submitRequest} style={{ display: 'grid', gap: 12 }}>
-              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
+              <div style={{ display: 'grid', gap: 10, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))' }}>
                 <select value={request.inquiryType} onChange={(e) => setRequest((p) => ({ ...p, inquiryType: e.target.value as 'INQUIRY' | 'REQUEST' }))} style={fieldStyle}>
                   <option value="INQUIRY">Inquiry</option>
                   <option value="REQUEST">Request</option>
@@ -313,7 +323,7 @@ export function ClientPortalPage() {
           </aside>
         </section>
 
-        <section id="my-inquiries" style={contentSectionStyle}>
+        <section id="my-inquiries" style={{ ...contentSectionStyle, scrollMarginTop: sectionScrollMarginTop }}>
           <div style={sectionHeaderBarStyle}>
             <div>
               <p style={sectionEyebrowStyle}>Conversation</p>
@@ -369,7 +379,7 @@ export function ClientPortalPage() {
           </div>
         </section>
 
-        <section id="my-quotes" style={contentSectionStyle}>
+        <section id="my-quotes" style={{ ...contentSectionStyle, scrollMarginTop: sectionScrollMarginTop }}>
           <div style={sectionHeaderBarStyle}>
             <div>
               <p style={sectionEyebrowStyle}>Commercial</p>
@@ -403,7 +413,7 @@ export function ClientPortalPage() {
           </div>
         </section>
 
-        <section id="my-jobs" style={contentSectionStyle}>
+        <section id="my-jobs" style={{ ...contentSectionStyle, scrollMarginTop: sectionScrollMarginTop }}>
           <div style={sectionHeaderBarStyle}>
             <div>
               <p style={sectionEyebrowStyle}>Fulfilment</p>
@@ -556,15 +566,15 @@ const gridOverlayStyle: React.CSSProperties = {
   pointerEvents: 'none',
 };
 
-const pageContentStyle: React.CSSProperties = {
+const pageContentStyle = (isMobile: boolean): React.CSSProperties => ({
   position: 'relative',
   zIndex: 1,
   maxWidth: 1180,
   margin: '0 auto',
-  padding: 'clamp(18px, 3.2vw, 32px) clamp(12px, 2.4vw, 20px) clamp(28px, 5vw, 48px)',
+  padding: isMobile ? '12px 10px 24px' : 'clamp(18px, 3.2vw, 32px) clamp(12px, 2.4vw, 20px) clamp(28px, 5vw, 48px)',
   display: 'grid',
-  gap: 20,
-};
+  gap: isMobile ? 14 : 20,
+});
 
 const heroStyle: React.CSSProperties = {
   position: 'relative',
@@ -587,25 +597,33 @@ const heroGlowStyle: React.CSSProperties = {
   pointerEvents: 'none',
 };
 
-const heroTopRowStyle: React.CSSProperties = {
+const heroTopRowStyle = (isMobile: boolean): React.CSSProperties => ({
   position: 'relative',
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'flex-start',
-  gap: 18,
+  gap: isMobile ? 12 : 18,
   flexWrap: 'wrap',
-};
+});
 
-const logoWrapStyle: React.CSSProperties = {
-  width: 72,
-  height: 72,
-  borderRadius: 18,
+const heroBrandRowStyle = (isMobile: boolean): React.CSSProperties => ({
+  display: 'flex',
+  alignItems: isMobile ? 'flex-start' : 'center',
+  flexDirection: isMobile ? 'column' : 'row',
+  gap: 14,
+  maxWidth: isMobile ? '100%' : 'unset',
+});
+
+const logoWrapStyle = (isMobile: boolean): React.CSSProperties => ({
+  width: isMobile ? 58 : 72,
+  height: isMobile ? 58 : 72,
+  borderRadius: isMobile ? 14 : 18,
   border: '1px solid rgba(255,255,255,0.08)',
   background: 'linear-gradient(180deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)',
   display: 'grid',
   placeItems: 'center',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05)',
-};
+});
 
 const logoStyle: React.CSSProperties = {
   width: 52,
@@ -649,11 +667,12 @@ const heroSubtitleStyle: React.CSSProperties = {
   fontSize: 14,
 };
 
-const heroAsideStyle: React.CSSProperties = {
+const heroAsideStyle = (isMobile: boolean): React.CSSProperties => ({
   display: 'grid',
   gap: 10,
   justifyItems: 'start',
-};
+  width: isMobile ? '100%' : 'auto',
+});
 
 const clientIdentityStyle: React.CSSProperties = {
   display: 'grid',
@@ -695,9 +714,11 @@ const heroActionLinkStyle: React.CSSProperties = {
   background: 'rgba(10,12,15,0.45)',
 };
 
-const signOutButtonStyle: React.CSSProperties = {
+const signOutButtonStyle = (isMobile: boolean): React.CSSProperties => ({
   display: 'inline-flex',
   alignItems: 'center',
+  justifyContent: isMobile ? 'center' : 'flex-start',
+  width: isMobile ? '100%' : 'auto',
   gap: 8,
   border: '1px solid #303949',
   borderRadius: 12,
@@ -707,34 +728,34 @@ const signOutButtonStyle: React.CSSProperties = {
   fontFamily: "'Space Grotesk', sans-serif",
   fontSize: 13,
   cursor: 'pointer',
-};
+});
 
-const heroSummaryGridStyle: React.CSSProperties = {
+const heroSummaryGridStyle = (isMobile: boolean): React.CSSProperties => ({
   position: 'relative',
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))',
+  gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(190px, 1fr))',
   gap: 12,
   marginTop: 22,
-};
+});
 
-const portalNavStyle: React.CSSProperties = {
+const portalNavStyle = (isMobile: boolean): React.CSSProperties => ({
   display: 'flex',
   gap: 8,
   overflowX: 'auto',
-  padding: '2px 4px 4px',
+  padding: isMobile ? '2px 1px 4px' : '2px 4px 4px',
   WebkitOverflowScrolling: 'touch',
-};
+});
 
-const portalNavWrapStyle: React.CSSProperties = {
+const portalNavWrapStyle = (isMobile: boolean): React.CSSProperties => ({
   position: 'sticky',
-  top: 8,
+  top: isMobile ? 4 : 8,
   zIndex: 30,
-  borderRadius: 16,
+  borderRadius: isMobile ? 14 : 16,
   border: '1px solid rgba(255,140,53,0.28)',
   background: 'linear-gradient(180deg, rgba(18,22,30,0.95) 0%, rgba(14,18,25,0.98) 100%)',
   boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
   padding: '8px 8px 6px',
-};
+});
 
 const portalNavLabelStyle: React.CSSProperties = {
   margin: '0 4px 6px',
@@ -765,15 +786,15 @@ const portalNavEdgeFadeRightStyle: React.CSSProperties = {
   background: 'linear-gradient(270deg, rgba(14,18,25,0.96), rgba(14,18,25,0))',
 };
 
-function portalNavItemStyle(active: boolean): React.CSSProperties {
+function portalNavItemStyle(active: boolean, isMobile: boolean): React.CSSProperties {
   return {
     border: active ? '1px solid rgba(255,140,53,0.76)' : '1px solid rgba(255,255,255,0.16)',
     borderRadius: 999,
-    padding: '9px 13px',
+    padding: isMobile ? '10px 12px' : '9px 13px',
     color: active ? '#111318' : '#E7EEF7',
     textDecoration: 'none',
     fontFamily: "'Space Grotesk', sans-serif",
-    fontSize: 12,
+    fontSize: isMobile ? 13 : 12,
     whiteSpace: 'nowrap',
     background: active ? 'linear-gradient(135deg, #FF8C35 0%, #FFD2B3 100%)' : 'rgba(10,12,15,0.56)',
     fontWeight: active ? 700 : 600,
@@ -781,18 +802,18 @@ function portalNavItemStyle(active: boolean): React.CSSProperties {
   };
 }
 
-const portalNavLinkStyle: React.CSSProperties = {
+const portalNavLinkStyle = (isMobile: boolean): React.CSSProperties => ({
   border: '1px solid rgba(255,255,255,0.16)',
   borderRadius: 999,
-  padding: '9px 13px',
+  padding: isMobile ? '10px 12px' : '9px 13px',
   color: '#E7EEF7',
   textDecoration: 'none',
   fontFamily: "'Space Grotesk', sans-serif",
-  fontSize: 12,
+  fontSize: isMobile ? 13 : 12,
   fontWeight: 600,
   whiteSpace: 'nowrap',
   background: 'rgba(10,12,15,0.56)',
-};
+});
 
 const summaryCardStyle = (accent: string): React.CSSProperties => ({
   borderRadius: 18,
@@ -831,11 +852,11 @@ const summaryValueStyle: React.CSSProperties = {
   fontSize: 'clamp(18px, 4.2vw, 22px)',
 };
 
-const featureGridStyle: React.CSSProperties = {
+const featureGridStyle = (isMobile: boolean): React.CSSProperties => ({
   display: 'grid',
-  gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-  gap: 20,
-};
+  gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
+  gap: isMobile ? 14 : 20,
+});
 
 const sectionCardStyle: React.CSSProperties = {
   border: '1px solid rgba(83, 96, 114, 0.34)',
