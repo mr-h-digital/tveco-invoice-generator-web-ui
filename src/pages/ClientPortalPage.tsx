@@ -41,6 +41,7 @@ export function ClientPortalPage() {
     notes: '',
   });
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
+  const [activeSectionId, setActiveSectionId] = useState<'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'>('inquiry-request');
 
   const welcomeName =
     user?.email?.split('@')[0]
@@ -75,6 +76,47 @@ export function ClientPortalPage() {
   useEffect(() => {
     void loadJobs();
   }, []);
+
+  useEffect(() => {
+    const sectionIds: Array<'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'> = [
+      'inquiry-request',
+      'my-inquiries',
+      'my-quotes',
+      'my-jobs',
+    ];
+
+    const onScroll = () => {
+      const sectionOffsets = sectionIds
+        .map((id) => {
+          const element = document.getElementById(id);
+          if (!element) return null;
+          return { id, top: element.getBoundingClientRect().top };
+        })
+        .filter((entry): entry is { id: 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'; top: number } => Boolean(entry));
+
+      const current = sectionOffsets
+        .filter((entry) => entry.top <= 180)
+        .sort((a, b) => b.top - a.top)[0];
+
+      if (current) {
+        setActiveSectionId(current.id);
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+    };
+  }, []);
+
+  function navigateToSection(sectionId: 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs') {
+    const element = document.getElementById(sectionId);
+    if (!element) return;
+    setActiveSectionId(sectionId);
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   async function submitRequest(e: React.FormEvent) {
     e.preventDefault();
@@ -204,15 +246,21 @@ export function ClientPortalPage() {
             <SummaryCard icon={<PackageCheck size={16} />} label="Active export jobs" value={activeJobCount} accent="#4ADE80" />
           </div>
 
+        </header>
+
+        <div style={portalNavWrapStyle}>
+          <p style={portalNavLabelStyle}>Quick Navigation</p>
+          <div style={portalNavEdgeFadeLeftStyle} />
+          <div style={portalNavEdgeFadeRightStyle} />
           <nav aria-label="Client portal sections" style={portalNavStyle}>
-            <a href="#inquiry-request" style={portalNavLinkStyle}>Inquiry Request</a>
-            <a href="#my-inquiries" style={portalNavLinkStyle}>Inquiries</a>
-            <a href="#my-quotes" style={portalNavLinkStyle}>Quotes</a>
-            <a href="#my-jobs" style={portalNavLinkStyle}>Export Jobs</a>
-            <a href="#my-jobs" style={portalNavLinkStyle}>Documents</a>
+            <button type="button" onClick={() => navigateToSection('inquiry-request')} style={portalNavItemStyle(activeSectionId === 'inquiry-request')}>Inquiry Request</button>
+            <button type="button" onClick={() => navigateToSection('my-inquiries')} style={portalNavItemStyle(activeSectionId === 'my-inquiries')}>Inquiries</button>
+            <button type="button" onClick={() => navigateToSection('my-quotes')} style={portalNavItemStyle(activeSectionId === 'my-quotes')}>Quotes</button>
+            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs')}>Export Jobs</button>
+            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs')}>Documents</button>
             <Link to="/client/profile" style={portalNavLinkStyle}>Profile</Link>
           </nav>
-        </header>
+        </div>
 
         <section id="inquiry-request" style={featureGridStyle}>
           <div style={sectionCardStyle}>
@@ -670,24 +718,80 @@ const heroSummaryGridStyle: React.CSSProperties = {
 };
 
 const portalNavStyle: React.CSSProperties = {
-  marginTop: 14,
   display: 'flex',
   gap: 8,
   overflowX: 'auto',
-  paddingBottom: 2,
+  padding: '2px 4px 4px',
   WebkitOverflowScrolling: 'touch',
 };
 
+const portalNavWrapStyle: React.CSSProperties = {
+  position: 'sticky',
+  top: 8,
+  zIndex: 30,
+  borderRadius: 16,
+  border: '1px solid rgba(255,140,53,0.28)',
+  background: 'linear-gradient(180deg, rgba(18,22,30,0.95) 0%, rgba(14,18,25,0.98) 100%)',
+  boxShadow: '0 16px 40px rgba(0,0,0,0.35)',
+  padding: '8px 8px 6px',
+};
+
+const portalNavLabelStyle: React.CSSProperties = {
+  margin: '0 4px 6px',
+  color: '#FFC9A2',
+  fontFamily: "'Space Grotesk', sans-serif",
+  fontSize: 11,
+  letterSpacing: 1.2,
+  textTransform: 'uppercase',
+};
+
+const portalNavEdgeFadeLeftStyle: React.CSSProperties = {
+  position: 'absolute',
+  left: 0,
+  bottom: 0,
+  top: 26,
+  width: 18,
+  pointerEvents: 'none',
+  background: 'linear-gradient(90deg, rgba(14,18,25,0.96), rgba(14,18,25,0))',
+};
+
+const portalNavEdgeFadeRightStyle: React.CSSProperties = {
+  position: 'absolute',
+  right: 0,
+  bottom: 0,
+  top: 26,
+  width: 18,
+  pointerEvents: 'none',
+  background: 'linear-gradient(270deg, rgba(14,18,25,0.96), rgba(14,18,25,0))',
+};
+
+function portalNavItemStyle(active: boolean): React.CSSProperties {
+  return {
+    border: active ? '1px solid rgba(255,140,53,0.76)' : '1px solid rgba(255,255,255,0.16)',
+    borderRadius: 999,
+    padding: '9px 13px',
+    color: active ? '#111318' : '#E7EEF7',
+    textDecoration: 'none',
+    fontFamily: "'Space Grotesk', sans-serif",
+    fontSize: 12,
+    whiteSpace: 'nowrap',
+    background: active ? 'linear-gradient(135deg, #FF8C35 0%, #FFD2B3 100%)' : 'rgba(10,12,15,0.56)',
+    fontWeight: active ? 700 : 600,
+    cursor: 'pointer',
+  };
+}
+
 const portalNavLinkStyle: React.CSSProperties = {
-  border: '1px solid rgba(255,255,255,0.12)',
+  border: '1px solid rgba(255,255,255,0.16)',
   borderRadius: 999,
-  padding: '8px 12px',
-  color: '#D7E0EA',
+  padding: '9px 13px',
+  color: '#E7EEF7',
   textDecoration: 'none',
   fontFamily: "'Space Grotesk', sans-serif",
   fontSize: 12,
+  fontWeight: 600,
   whiteSpace: 'nowrap',
-  background: 'rgba(10,12,15,0.48)',
+  background: 'rgba(10,12,15,0.56)',
 };
 
 const summaryCardStyle = (accent: string): React.CSSProperties => ({
