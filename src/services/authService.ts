@@ -13,6 +13,10 @@ interface AuthLoginApiResponse {
   expiresInSeconds: number;
 }
 
+type PartialAuthLoginApiResponse = Partial<AuthLoginApiResponse> & {
+  data?: Partial<AuthLoginApiResponse>;
+};
+
 export interface AuthUser {
   email: string;
   role: 'admin' | 'client';
@@ -54,23 +58,39 @@ export const authService = {
       throw new Error('Invalid email or password');
     }
 
-    let res;
     try {
-      res = await api.post<AuthLoginApiResponse>('/auth/login', {
+      const res = await api.post<PartialAuthLoginApiResponse>('/auth/login', {
         email: email.trim().toLowerCase(),
         password,
       });
+
+      const parsedFromLogin = toAuthUser(res.data);
+      if (parsedFromLogin) {
+        return parsedFromLogin;
+      }
+
+      // Fallback: if login succeeded but response body is missing/malformed,
+      // use refresh cookie to retrieve a fresh auth payload.
+      const refreshed = await authService.refreshFromCookie();
+      if (refreshed) {
+        return refreshed;
+      }
+
+      throw new Error('Login succeeded but token response was invalid. Please try again.');
     } catch (error) {
       throw new Error(extractApiErrorMessage(error, 'Invalid email or password'));
     }
+  },
 
-    return {
-      email: res.data.email,
-      role: res.data.role,
-      clientId: res.data.clientId,
-      accessToken: res.data.accessToken,
-      expiresAt: new Date(Date.now() + res.data.expiresInSeconds * 1000).toISOString(),
-    };
+  async refreshFromCookie(): Promise<AuthUser | null> {
+    if (!USE_API) return null;
+
+    try {
+      const res = await api.post<PartialAuthLoginApiResponse>('/auth/refresh');
+      return toAuthUser(res.data);
+    } catch {
+      return null;
+    }
   },
 
   async signup(payload: {
@@ -160,10 +180,44 @@ function extractApiErrorMessage(error: unknown, fallback: string): string {
     return fallback;
   }
 
+  if (!error.response) {
+    return 'Login request reached the server, but the browser could not read the response. Please refresh and try again.';
+  }
+
   const message = error.response?.data?.message;
   if (typeof message === 'string' && message.trim()) {
     return message;
   }
 
   return fallback;
+}
+
+function toAuthUser(response: PartialAuthLoginApiResponse | undefined): AuthUser | null {
+  const payload = response?.data && typeof response.data === 'object' ? response.data : response;
+  if (!payload || typeof payload !== 'object') {
+    return null;
+  }
+
+  const email = typeof payload.email === 'string' ? payload.email.trim().toLowerCase() : '';
+  const roleValue = typeof payload.role === 'string' ? payload.role.trim().toLowerCase() : '';
+  const role = roleValue === 'admin' || roleValue === 'client' ? roleValue : null;
+  const accessToken = typeof payload.accessToken === 'string' ? payload.accessToken : '';
+  const expiresInSeconds =
+    typeof payload.expiresInSeconds === 'number'
+      ? payload.expiresInSeconds
+      : Number(payload.expiresInSeconds);
+
+  if (!email || !role || !accessToken || !Number.isFinite(expiresInSeconds) || expiresInSeconds <= 0) {
+    return null;
+  }
+
+  const clientId = typeof payload.clientId === 'string' ? payload.clientId : null;
+
+  return {
+    email,
+    role,
+    clientId,
+    accessToken,
+    expiresAt: new Date(Date.now() + expiresInSeconds * 1000).toISOString(),
+  };
 }
