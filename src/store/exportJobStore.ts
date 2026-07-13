@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { exportJobService } from '../services/exportJobService';
 import type { ExportJob, ExportJobStatus } from '../types/exportJob';
 import { notificationService } from '../services/notificationService';
-import { buildDocumentCompletedEmail, buildPaymentReminderEmail, buildStatusChangedEmail } from '../utils/exportEmailTemplates';
+import { buildDocumentCompletedEmail, buildPaymentReminderEmail } from '../utils/exportEmailTemplates';
 import { v4 as uuid } from 'uuid';
 import { documentVaultStorageService } from '../services/documentVaultStorageService';
 
@@ -88,17 +88,6 @@ export const useExportJobStore = create<ExportJobStore>((set, get) => ({
     if (currentIdx === -1 || currentIdx >= STATUS_ORDER.length - 1) return job;
 
     const updated = await exportJobService.updateJob(id, { status: STATUS_ORDER[currentIdx + 1] });
-    const statusEmail = buildStatusChangedEmail(updated);
-    await notificationService.emit({
-      eventType: 'EXPORT_STATUS_CHANGED',
-      title: `${updated.jobNumber} moved to ${updated.status}`,
-      message: `${updated.clientSnapshot.companyName} export stage is now ${updated.status}.`,
-      referenceId: updated.id,
-      emailTo: updated.clientSnapshot.email,
-      emailSubject: statusEmail.subject,
-      emailBody: statusEmail.text,
-      emailHtmlBody: statusEmail.html,
-    });
     set((state) => ({ jobs: state.jobs.map((j) => (j.id === id ? updated : j)) }));
     return updated;
   },

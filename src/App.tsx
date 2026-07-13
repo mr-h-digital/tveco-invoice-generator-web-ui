@@ -107,8 +107,6 @@ export default function App() {
     currentHash.includes('/clients');
   const splashMode: 'client' | 'admin' = user?.role === 'admin' || isAdminRoute ? 'admin' : 'client';
   const initializeOnboarding = useOnboardingStore((s) => s.initialize);
-  const dispatchOutbox = useNotificationStore((s) => s.dispatchOutbox);
-  const dispatchingOutbox = useNotificationStore((s) => s.dispatchingOutbox);
   const refreshOutboxStats = useNotificationStore((s) => s.refreshOutboxStats);
 
   useEffect(() => {
@@ -116,18 +114,9 @@ export default function App() {
   }, [initializeOnboarding, user?.email]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || user.role !== 'admin') return;
     refreshOutboxStats();
-
-    const intervalMs = 120000;
-    const run = async () => {
-      if (dispatchingOutbox) return;
-      await dispatchOutbox();
-    };
-
-    const timer = window.setInterval(run, intervalMs);
-    return () => window.clearInterval(timer);
-  }, [user, dispatchOutbox, dispatchingOutbox, refreshOutboxStats]);
+  }, [user, refreshOutboxStats]);
 
   return (
     <>
