@@ -46,7 +46,7 @@ export function ClientPortalPage() {
   });
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [profileContactName, setProfileContactName] = useState('');
-  const [activeSectionId, setActiveSectionId] = useState<'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'>('inquiry-request');
+  const [activeSectionId, setActiveSectionId] = useState<'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'>('inquiry-request');
   const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1280);
 
   const isMobile = viewportWidth <= 768;
@@ -71,6 +71,7 @@ export function ClientPortalPage() {
   const awaitingClientResponseCount = inquiries.filter((inquiry) =>
     inquiry.messages.some((message) => message.requiresClientResponse && !message.clientResponded)
   ).length;
+  const actionRequiredCount = quoteActionCount + awaitingClientResponseCount;
 
   async function loadJobs() {
     setLoading(true);
@@ -119,7 +120,8 @@ export function ClientPortalPage() {
   }, []);
 
   useEffect(() => {
-    const sectionIds: Array<'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'> = [
+    const sectionIds: Array<'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'> = [
+      'action-required',
       'inquiry-request',
       'my-inquiries',
       'my-quotes',
@@ -133,7 +135,7 @@ export function ClientPortalPage() {
           if (!element) return null;
           return { id, top: element.getBoundingClientRect().top };
         })
-        .filter((entry): entry is { id: 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'; top: number } => Boolean(entry));
+        .filter((entry): entry is { id: 'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'; top: number } => Boolean(entry));
 
       const current = sectionOffsets
         .filter((entry) => entry.top <= (isMobile ? 220 : 180))
@@ -152,7 +154,7 @@ export function ClientPortalPage() {
     };
   }, [isMobile]);
 
-  function navigateToSection(sectionId: 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs') {
+  function navigateToSection(sectionId: 'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs') {
     const element = document.getElementById(sectionId);
     if (!element) return;
     setActiveSectionId(sectionId);
@@ -294,6 +296,7 @@ export function ClientPortalPage() {
           {!isMobile ? <div style={portalNavEdgeFadeLeftStyle} /> : null}
           {!isMobile ? <div style={portalNavEdgeFadeRightStyle} /> : null}
           <nav aria-label="Client portal sections" style={portalNavStyle(isMobile)}>
+            <button type="button" onClick={() => navigateToSection('action-required')} style={portalNavItemStyle(activeSectionId === 'action-required', isMobile, isNarrowMobile)}>Action Required</button>
             <button type="button" onClick={() => navigateToSection('inquiry-request')} style={portalNavItemStyle(activeSectionId === 'inquiry-request', isMobile, isNarrowMobile)}>Inquiry Request</button>
             <button type="button" onClick={() => navigateToSection('my-inquiries')} style={portalNavItemStyle(activeSectionId === 'my-inquiries', isMobile, isNarrowMobile)}>Inquiries</button>
             <button type="button" onClick={() => navigateToSection('my-quotes')} style={portalNavItemStyle(activeSectionId === 'my-quotes', isMobile, isNarrowMobile)}>Quotes</button>
@@ -302,6 +305,48 @@ export function ClientPortalPage() {
             <Link to="/client/profile" style={portalNavLinkStyle(isMobile, isNarrowMobile)}>Profile</Link>
           </nav>
         </div>
+
+        <section id="action-required" style={{ ...contentSectionStyle, scrollMarginTop: sectionScrollMarginTop }}>
+          <div style={sectionHeaderBarStyle(isMobile)}>
+            <div>
+              <p style={sectionEyebrowStyle}>Action Required</p>
+              <h2 style={sectionTitleStyle}>What needs your attention</h2>
+            </div>
+            <span style={sectionMutedMetaStyle}>{actionRequiredCount} open actions</span>
+          </div>
+          {actionRequiredCount === 0 ? <EmptyState text="No immediate actions. New quote reviews and reply requests from operations will surface here." /> : null}
+          <div style={stackStyle(isCompactMobile)}>
+            {quoteActionCount > 0 ? (
+              <article style={itemCardStyle(isCompactMobile)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <h3 style={itemTitleStyle}>Quote review pending</h3>
+                    <p style={itemSubtitleStyle}>{quoteActionCount} quote{quoteActionCount === 1 ? '' : 's'} waiting for your acceptance or decline.</p>
+                  </div>
+                  <span style={statusPillStyle}>Review quotes</span>
+                </div>
+                <button type="button" onClick={() => navigateToSection('my-quotes')} style={buttonStyle(false)}>
+                  Review Quotes
+                </button>
+              </article>
+            ) : null}
+
+            {awaitingClientResponseCount > 0 ? (
+              <article style={itemCardStyle(isCompactMobile)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <h3 style={itemTitleStyle}>Operations needs clarification</h3>
+                    <p style={itemSubtitleStyle}>{awaitingClientResponseCount} inquiry thread{awaitingClientResponseCount === 1 ? '' : 's'} waiting for your reply.</p>
+                  </div>
+                  <span style={statusPillStyle}>Reply needed</span>
+                </div>
+                <button type="button" onClick={() => navigateToSection('my-inquiries')} style={buttonStyle(false)}>
+                  Reply to Inquiries
+                </button>
+              </article>
+            ) : null}
+          </div>
+        </section>
 
         <section id="inquiry-request" style={{ ...featureGridStyle(isMobile), scrollMarginTop: sectionScrollMarginTop }}>
           <div style={sectionCardStyle(isCompactMobile)}>
