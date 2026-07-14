@@ -13,15 +13,6 @@ export interface ClientExportInquiryPayload {
   notes?: string;
 }
 
-export interface ClientDocumentUploadPayload {
-  name: string;
-  mimeType: string;
-  sizeBytes: number;
-  category: 'Compliance' | 'Shipping' | 'Customs' | 'Payment' | 'General';
-  dataUrl?: string;
-  fileUrl?: string;
-}
-
 export const clientPortalService = {
   async getMyJobs(): Promise<ExportJob[]> {
     const res = await api.get<ExportJob[]>('/client-portal/jobs');
@@ -50,11 +41,6 @@ export const clientPortalService = {
 
   async decideQuote(quoteId: string, status: 'ACCEPTED' | 'DECLINED', note?: string): Promise<Quote> {
     const res = await api.post<Quote>(`/client-portal/quotes/${quoteId}/decision`, { status, note });
-    return res.data;
-  },
-
-  async uploadDocument(jobId: string, payload: ClientDocumentUploadPayload): Promise<ExportJob> {
-    const res = await api.post<ExportJob>(`/client-portal/jobs/${jobId}/documents`, payload);
     return res.data;
   },
 };
