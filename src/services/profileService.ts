@@ -21,8 +21,24 @@ export const profileService = {
       };
     }
 
-    const res = await api.get<UserProfile>('/profile/me');
-    return res.data;
+    try {
+      const res = await api.get<UserProfile>('/profile/me');
+      return res.data;
+    } catch (error) {
+      // Fallback: if API fails, return data from session
+      const session = loadAuthSession();
+      if (!session) {
+        throw error;
+      }
+      return {
+        email: session.email,
+        role: session.role,
+        companyName: null,
+        contactName: null,
+        phone: null,
+        address: null,
+      };
+    }
   },
 
   async updateMyProfile(payload: UpdateProfilePayload): Promise<UserProfile> {
