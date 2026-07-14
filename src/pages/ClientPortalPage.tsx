@@ -8,7 +8,6 @@ import type { Quote } from '../types/quote';
 import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
 import tvecoLogo from '../assets/tveco-logo.png';
 import { clientPortalService } from '../services/clientPortalService';
-import { profileService } from '../services/profileService';
 import { useAuthStore } from '../store/authStore';
 
 function currency(value: number) {
@@ -42,7 +41,6 @@ export function ClientPortalPage() {
     notes: '',
   });
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
-  const [profileContactName, setProfileContactName] = useState('');
   const [activeSectionId, setActiveSectionId] = useState<'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'>('inquiry-request');
   const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1280);
 
@@ -56,7 +54,11 @@ export function ClientPortalPage() {
     user?.email?.split('@')[0]
       ?.replace(/[._-]+/g, ' ')
       .replace(/\b\w/g, (char) => char.toUpperCase()) ?? 'Client';
-  const welcomeName = profileContactName || emailDerivedName;
+  const snapshotContactName =
+    jobs.find((job) => job.clientSnapshot?.contactName)?.clientSnapshot?.contactName?.trim() ||
+    quotes.find((quote) => quote.clientSnapshot?.contactName)?.clientSnapshot?.contactName?.trim() ||
+    '';
+  const welcomeName = snapshotContactName || emailDerivedName;
 
   const openInquiryCount = inquiries.filter((inquiry) => inquiry.status !== 'CLOSED' && inquiry.status !== 'CONVERTED_TO_JOB').length;
   const quoteActionCount = quotes.filter((quote) => quote.status === 'SENT').length;
@@ -85,23 +87,6 @@ export function ClientPortalPage() {
 
   useEffect(() => {
     void loadJobs();
-  }, []);
-
-  useEffect(() => {
-    let disposed = false;
-    void profileService
-      .getMyProfile()
-      .then((profile) => {
-        if (disposed) return;
-        setProfileContactName((profile.contactName ?? '').trim());
-      })
-      .catch(() => {
-        // Keep email-based fallback name when profile lookup is unavailable.
-      });
-
-    return () => {
-      disposed = true;
-    };
   }, []);
 
   useEffect(() => {
