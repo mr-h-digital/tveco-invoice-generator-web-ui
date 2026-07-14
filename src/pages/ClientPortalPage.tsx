@@ -597,14 +597,15 @@ const gridOverlayStyle: React.CSSProperties = {
 const pageContentStyle = (isMobile: boolean, pageBottomPadding: number): React.CSSProperties => ({
   position: 'relative',
   zIndex: 1,
-  maxWidth: 1180,
+  maxWidth: isMobile ? '100%' : 1180,
   width: '100%',
   minWidth: 0,
   margin: '0 auto',
   padding: isMobile ? `12px 10px ${pageBottomPadding}px` : 'clamp(18px, 3.2vw, 32px) clamp(12px, 2.4vw, 20px) clamp(28px, 5vw, 48px)',
   boxSizing: 'border-box',
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1fr)',
+  display: isMobile ? 'flex' : 'grid',
+  flexDirection: isMobile ? 'column' : undefined,
+  gridTemplateColumns: isMobile ? undefined : 'minmax(0, 1fr)',
   gap: isMobile ? 14 : 20,
 });
 
@@ -634,10 +635,12 @@ const heroGlowStyle: React.CSSProperties = {
 const heroTopRowStyle = (isMobile: boolean): React.CSSProperties => ({
   position: 'relative',
   display: 'flex',
+  flexDirection: isMobile ? 'column' : 'row',
   justifyContent: 'space-between',
   alignItems: 'flex-start',
   gap: isMobile ? 12 : 18,
-  flexWrap: 'wrap',
+  flexWrap: isMobile ? 'nowrap' : 'wrap',
+  minWidth: 0,
 });
 
 const heroBrandRowStyle = (isMobile: boolean): React.CSSProperties => ({
@@ -645,6 +648,8 @@ const heroBrandRowStyle = (isMobile: boolean): React.CSSProperties => ({
   alignItems: isMobile ? 'flex-start' : 'center',
   flexDirection: isMobile ? 'column' : 'row',
   gap: 14,
+  width: isMobile ? '100%' : 'auto',
+  minWidth: 0,
   maxWidth: isMobile ? '100%' : 'unset',
 });
 
@@ -667,6 +672,7 @@ const logoStyle: React.CSSProperties = {
 };
 
 const heroCopyStyle = (isNarrowMobile: boolean): React.CSSProperties => ({
+  width: '100%',
   minWidth: 0,
   maxWidth: isNarrowMobile ? '100%' : 640,
 });
@@ -695,6 +701,8 @@ const heroTitleStyle = (isNarrowMobile: boolean): React.CSSProperties => ({
   fontWeight: 400,
   fontSize: isNarrowMobile ? 'clamp(2rem, 9vw, 2.7rem)' : 'clamp(2.4rem, 5vw, 4rem)',
   lineHeight: isNarrowMobile ? 0.98 : 0.95,
+  whiteSpace: 'normal',
+  maxWidth: '100%',
   wordBreak: 'break-word',
 });
 
@@ -793,6 +801,7 @@ const portalNavWrapStyle = (isMobile: boolean): React.CSSProperties => ({
   minWidth: 0,
   top: isMobile ? 4 : 8,
   zIndex: 30,
+  overflow: 'hidden',
   borderRadius: isMobile ? 14 : 16,
   border: '1px solid rgba(255,140,53,0.28)',
   background: 'linear-gradient(180deg, rgba(18,22,30,0.95) 0%, rgba(14,18,25,0.98) 100%)',
