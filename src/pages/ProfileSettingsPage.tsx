@@ -137,13 +137,44 @@ export function ProfileSettingsPage() {
           </div>
         ) : null}
 
+        {isClient && profile ? (
+          <div className="rounded-2xl border border-brand-border bg-brand-card-alt p-4 sm:p-5 grid gap-4">
+            <h2 className="font-head text-lg text-brand-white">Current Profile Information</h2>
+            <div className="grid gap-3 sm:grid-cols-2 text-sm">
+              <div>
+                <p className="field-label">Email</p>
+                <p className="text-brand-text">{profile.email || '—'}</p>
+              </div>
+              <div>
+                <p className="field-label">Contact Name</p>
+                <p className="text-brand-text">{profile.contactName || '—'}</p>
+              </div>
+              <div>
+                <p className="field-label">Company Name</p>
+                <p className="text-brand-text">{profile.companyName || '—'}</p>
+              </div>
+              <div>
+                <p className="field-label">Phone</p>
+                <p className="text-brand-text">{profile.phone || '—'}</p>
+              </div>
+              <div className="sm:col-span-2">
+                <p className="field-label">Address</p>
+                <p className="text-brand-text">{profile.address || '—'}</p>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
         <form onSubmit={saveProfile} className="rounded-2xl border border-brand-border bg-brand-card p-4 sm:p-5 grid gap-4">
-          <h2 className="font-head text-lg text-brand-white">Account Details</h2>
+          <div className="grid gap-1">
+            <h2 className="font-head text-lg text-brand-white">Account Details</h2>
+            <p className="text-xs text-brand-muted">Update only the fields you want to change. All fields are optional.</p>
+          </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <label>
               <span className="field-label">Email</span>
-              <input className="input-field" type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} required />
+              <input className="input-field" type="email" value={form.email} onChange={(e) => setForm((p) => ({ ...p, email: e.target.value }))} />
             </label>
 
             {isClient ? (
