@@ -16,6 +16,17 @@ function currency(value: number) {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(value || 0);
 }
 
+const CLIENT_ACTIONABLE_QUOTE_STATUSES = new Set([
+  'SENT',
+  'QUOTED',
+  'PENDING_CLIENT_DECISION',
+  'PENDING_CLIENT_RESPONSE',
+]);
+
+function isQuoteAwaitingClientDecision(status: string): boolean {
+  return CLIENT_ACTIONABLE_QUOTE_STATUSES.has((status ?? '').trim().toUpperCase());
+}
+
 export function ClientPortalPage() {
   const { user, logout } = useAuthStore();
   const [jobs, setJobs] = useState<ExportJob[]>([]);
@@ -55,7 +66,7 @@ export function ClientPortalPage() {
   const welcomeName = profileContactName || snapshotContactName || emailDerivedName;
 
   const openInquiryCount = inquiries.filter((inquiry) => inquiry.status !== 'CLOSED' && inquiry.status !== 'CONVERTED_TO_JOB').length;
-  const quoteActionCount = quotes.filter((quote) => quote.status === 'SENT').length;
+  const quoteActionCount = quotes.filter((quote) => isQuoteAwaitingClientDecision(quote.status)).length;
   const activeJobCount = jobs.filter((job) => job.status !== 'DELIVERED' && job.status !== 'CANCELLED').length;
   const awaitingClientResponseCount = inquiries.filter((inquiry) =>
     inquiry.messages.some((message) => message.requiresClientResponse && !message.clientResponded)
@@ -418,7 +429,7 @@ export function ClientPortalPage() {
                 <div style={{ color: '#B9C4D1', fontSize: 13 }}>
                   Total: {currency(quote.total)} • Expires: {new Date(quote.expiryDate).toLocaleDateString()}
                 </div>
-                {quote.status === 'SENT' ? (
+                {isQuoteAwaitingClientDecision(quote.status) ? (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button type="button" onClick={() => void decideQuote(quote.id, 'ACCEPTED')} style={buttonStyle(false)}>
                       Accept Quote
