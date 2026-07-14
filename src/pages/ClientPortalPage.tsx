@@ -45,9 +45,10 @@ export function ClientPortalPage() {
   const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1280);
 
   const isMobile = viewportWidth <= 768;
+  const isCompactMobile = viewportWidth <= 390;
   const isNarrowMobile = viewportWidth <= 420;
-  const sectionScrollMarginTop = isMobile ? 156 : 122;
-  const pageBottomPadding = isMobile ? 94 : 0;
+  const sectionScrollMarginTop = isMobile ? (isCompactMobile ? 170 : 160) : 122;
+  const pageBottomPadding = isMobile ? (isCompactMobile ? 114 : 102) : 0;
 
   const welcomeName =
     user?.email?.split('@')[0]
@@ -215,7 +216,7 @@ export function ClientPortalPage() {
       <div style={gridOverlayStyle} />
 
       <div style={pageContentStyle(isMobile, pageBottomPadding)}>
-        <header style={heroStyle}>
+        <header style={heroStyle(isCompactMobile)}>
           <div style={heroGlowStyle} />
           <div style={heroTopRowStyle(isMobile)}>
             <div style={heroBrandRowStyle(isMobile)}>
@@ -275,36 +276,36 @@ export function ClientPortalPage() {
         </div>
 
         <section id="inquiry-request" style={{ ...featureGridStyle(isMobile), scrollMarginTop: sectionScrollMarginTop }}>
-          <div style={sectionCardStyle}>
-            <div style={sectionHeadStyle}>
+          <div style={sectionCardStyle(isCompactMobile)}>
+            <div style={sectionHeadStyle(isMobile)}>
               <div>
                 <p style={sectionEyebrowStyle}>Start here</p>
                 <h2 style={sectionTitleStyle}>Submit Export Inquiry / Request</h2>
               </div>
-              <span style={sectionPillStyle}>Pricing is confirmed by TVECO quote</span>
+              <span style={sectionPillStyle(isCompactMobile)}>Pricing is confirmed by TVECO quote</span>
             </div>
 
             <form onSubmit={submitRequest} style={{ display: 'grid', gap: 12 }}>
               <div style={{ display: 'grid', gap: 10, gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-                <select value={request.inquiryType} onChange={(e) => setRequest((p) => ({ ...p, inquiryType: e.target.value as 'INQUIRY' | 'REQUEST' }))} style={fieldStyle}>
+                <select value={request.inquiryType} onChange={(e) => setRequest((p) => ({ ...p, inquiryType: e.target.value as 'INQUIRY' | 'REQUEST' }))} style={fieldStyle(isCompactMobile)}>
                   <option value="INQUIRY">Inquiry</option>
                   <option value="REQUEST">Request</option>
                 </select>
-                <input required placeholder="Destination Country" value={request.destinationCountry} onChange={(e) => setRequest((p) => ({ ...p, destinationCountry: e.target.value }))} style={fieldStyle} />
-                <input required placeholder="Vehicle Description" value={request.vehicleDescription} onChange={(e) => setRequest((p) => ({ ...p, vehicleDescription: e.target.value }))} style={fieldStyle} />
-                <input type="date" value={request.estimatedDepartureDate} onChange={(e) => setRequest((p) => ({ ...p, estimatedDepartureDate: e.target.value }))} style={fieldStyle} />
-                <input type="date" value={request.estimatedArrivalDate} onChange={(e) => setRequest((p) => ({ ...p, estimatedArrivalDate: e.target.value }))} style={fieldStyle} />
+                <input required placeholder="Destination Country" value={request.destinationCountry} onChange={(e) => setRequest((p) => ({ ...p, destinationCountry: e.target.value }))} style={fieldStyle(isCompactMobile)} />
+                <input required placeholder="Vehicle Description" value={request.vehicleDescription} onChange={(e) => setRequest((p) => ({ ...p, vehicleDescription: e.target.value }))} style={fieldStyle(isCompactMobile)} />
+                <input type="date" value={request.estimatedDepartureDate} onChange={(e) => setRequest((p) => ({ ...p, estimatedDepartureDate: e.target.value }))} style={fieldStyle(isCompactMobile)} />
+                <input type="date" value={request.estimatedArrivalDate} onChange={(e) => setRequest((p) => ({ ...p, estimatedArrivalDate: e.target.value }))} style={fieldStyle(isCompactMobile)} />
               </div>
-              <textarea placeholder="Additional notes" value={request.notes} onChange={(e) => setRequest((p) => ({ ...p, notes: e.target.value }))} style={{ ...fieldStyle, minHeight: 108, resize: 'vertical' }} />
+              <textarea placeholder="Additional notes" value={request.notes} onChange={(e) => setRequest((p) => ({ ...p, notes: e.target.value }))} style={{ ...fieldStyle(isCompactMobile), minHeight: 108, resize: 'vertical' }} />
               <button type="submit" disabled={submitting} style={buttonStyle(submitting)}>
                 {submitting ? 'Submitting...' : 'Submit Inquiry'}
               </button>
             </form>
           </div>
 
-          <aside style={sideGuideCardStyle}>
+          <aside style={sideGuideCardStyle(isCompactMobile)}>
             <p style={sectionEyebrowStyle}>How it works</p>
-            <h3 style={{ ...sectionTitleStyle, fontSize: 22, marginBottom: 8 }}>Clear flow from inquiry to export job</h3>
+            <h3 style={{ ...sectionTitleStyle, fontSize: isCompactMobile ? 20 : 22, marginBottom: 8 }}>Clear flow from inquiry to export job</h3>
             <div style={{ display: 'grid', gap: 12 }}>
               {[
                 'Send your destination, vehicle details, and any timing notes.',
@@ -326,7 +327,7 @@ export function ClientPortalPage() {
         </section>
 
         <section id="my-inquiries" style={{ ...contentSectionStyle, scrollMarginTop: sectionScrollMarginTop }}>
-          <div style={sectionHeaderBarStyle}>
+          <div style={sectionHeaderBarStyle(isMobile)}>
             <div>
               <p style={sectionEyebrowStyle}>Conversation</p>
               <h2 style={sectionTitleStyle}>My Inquiries</h2>
@@ -334,11 +335,11 @@ export function ClientPortalPage() {
             <span style={sectionMutedMetaStyle}>{openInquiryCount} active</span>
           </div>
           {!loading && inquiries.length === 0 ? <EmptyState text="No inquiries yet. Submit your first inquiry above to start the workflow." /> : null}
-          <div style={stackStyle}>
+          <div style={stackStyle(isCompactMobile)}>
             {inquiries.map((inquiry) => (
-              <article key={inquiry.id} style={itemCardStyle}>
+              <article key={inquiry.id} style={itemCardStyle(isCompactMobile)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <h3 style={itemTitleStyle}>{inquiry.inquiryNumber}</h3>
                     <p style={itemSubtitleStyle}>{inquiry.vehicleDescription} to {inquiry.destinationCountry}</p>
                   </div>
@@ -365,7 +366,7 @@ export function ClientPortalPage() {
                     value={replyDrafts[inquiry.id] ?? ''}
                     onChange={(e) => setReplyDrafts((prev) => ({ ...prev, [inquiry.id]: e.target.value }))}
                     placeholder="Reply to operations requests for more detail..."
-                    style={{ ...fieldStyle, minHeight: 78, resize: 'vertical' }}
+                    style={{ ...fieldStyle(isCompactMobile), minHeight: 78, resize: 'vertical' }}
                   />
                   <button
                     type="button"
@@ -382,7 +383,7 @@ export function ClientPortalPage() {
         </section>
 
         <section id="my-quotes" style={{ ...contentSectionStyle, scrollMarginTop: sectionScrollMarginTop }}>
-          <div style={sectionHeaderBarStyle}>
+          <div style={sectionHeaderBarStyle(isMobile)}>
             <div>
               <p style={sectionEyebrowStyle}>Commercial</p>
               <h2 style={sectionTitleStyle}>My Quotes</h2>
@@ -390,9 +391,9 @@ export function ClientPortalPage() {
             <span style={sectionMutedMetaStyle}>{quoteActionCount} awaiting action</span>
           </div>
           {!loading && quotes.length === 0 ? <EmptyState text="No quotes available yet. Once TVECO prices your request, your formal quote will appear here." /> : null}
-          <div style={stackStyle}>
+          <div style={stackStyle(isCompactMobile)}>
             {quotes.map((quote) => (
-              <article key={quote.id} style={itemCardStyle}>
+              <article key={quote.id} style={itemCardStyle(isCompactMobile)}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
                   <strong style={itemTitleStyle}>{quote.quoteNumber}</strong>
                   <span style={statusPillStyle}>{quote.status}</span>
@@ -416,7 +417,7 @@ export function ClientPortalPage() {
         </section>
 
         <section id="my-jobs" style={{ ...contentSectionStyle, scrollMarginTop: sectionScrollMarginTop }}>
-          <div style={sectionHeaderBarStyle}>
+          <div style={sectionHeaderBarStyle(isMobile)}>
             <div>
               <p style={sectionEyebrowStyle}>Fulfilment</p>
               <h2 style={sectionTitleStyle}>My Export Jobs</h2>
@@ -425,11 +426,11 @@ export function ClientPortalPage() {
           </div>
           {loading ? <EmptyState text="Loading jobs..." /> : null}
           {!loading && jobs.length === 0 ? <EmptyState text="No jobs yet. Once a quote is accepted and converted, your export job will appear here." /> : null}
-          <div style={stackStyle}>
+          <div style={stackStyle(isCompactMobile)}>
             {jobs.map((job) => (
-              <article key={job.id} style={itemCardStyle}>
+              <article key={job.id} style={itemCardStyle(isCompactMobile)}>
                 <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 10, alignItems: 'center' }}>
-                  <div>
+                  <div style={{ minWidth: 0 }}>
                     <h3 style={itemTitleStyle}>{job.jobNumber}</h3>
                     <p style={itemSubtitleStyle}>{job.vehicleDescription} to {job.destinationCountry}</p>
                   </div>
@@ -442,17 +443,17 @@ export function ClientPortalPage() {
                   </div>
                 </div>
 
-                <div style={jobMetaGridStyle}>
-                  <div style={jobMetaCardStyle}><span style={jobMetaLabelStyle}>Project value</span><strong>{currency(job.projectValue)}</strong></div>
-                  <div style={jobMetaCardStyle}><span style={jobMetaLabelStyle}>Updated</span><strong>{new Date(job.updatedAt).toLocaleString()}</strong></div>
-                  <div style={jobMetaCardStyle}><span style={jobMetaLabelStyle}>Payment milestones</span><strong>{job.paymentMilestones.length}</strong></div>
-                  <div style={jobMetaCardStyle}><span style={jobMetaLabelStyle}>Vault documents</span><strong>{job.vaultDocuments.length}</strong></div>
+                <div style={jobMetaGridStyle(isCompactMobile)}>
+                  <div style={jobMetaCardStyle}><span style={jobMetaLabelStyle}>Project value</span><strong style={jobMetaValueStyle}>{currency(job.projectValue)}</strong></div>
+                  <div style={jobMetaCardStyle}><span style={jobMetaLabelStyle}>Updated</span><strong style={jobMetaValueStyle}>{new Date(job.updatedAt).toLocaleString()}</strong></div>
+                  <div style={jobMetaCardStyle}><span style={jobMetaLabelStyle}>Payment milestones</span><strong style={jobMetaValueStyle}>{job.paymentMilestones.length}</strong></div>
+                  <div style={jobMetaCardStyle}><span style={jobMetaLabelStyle}>Vault documents</span><strong style={jobMetaValueStyle}>{job.vaultDocuments.length}</strong></div>
                 </div>
 
                 <div style={{ marginTop: 12, display: 'grid', gap: 8 }}>
                   <strong style={{ fontSize: 13, color: '#F0F4F8', fontFamily: "'Space Grotesk', sans-serif" }}>Progress</strong>
                   {job.milestones.map((m) => (
-                    <div key={m.key} style={progressRowStyle}>
+                    <div key={m.key} style={progressRowStyle(isCompactMobile)}>
                       <span>{m.label}</span>
                       <span>{m.completedAt ? new Date(m.completedAt).toLocaleDateString() : 'Pending'}</span>
                     </div>
@@ -526,18 +527,18 @@ function EmptyState({ text }: { text: string }) {
   return <div style={emptyStateStyle}>{text}</div>;
 }
 
-const fieldStyle: React.CSSProperties = {
+const fieldStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   width: '100%',
   background: 'rgba(8, 11, 16, 0.9)',
   border: '1px solid #2C3542',
   borderRadius: 12,
-  padding: '12px 14px',
+  padding: isCompactMobile ? '11px 12px' : '12px 14px',
   color: '#F0F4F8',
-  fontSize: 16,
+  fontSize: isCompactMobile ? 15 : 16,
   fontFamily: "'Outfit', sans-serif",
   boxSizing: 'border-box',
   boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.02)',
-};
+});
 
 function buttonStyle(disabled: boolean): React.CSSProperties {
   return {
@@ -599,19 +600,20 @@ const pageContentStyle = (isMobile: boolean, pageBottomPadding: number): React.C
   maxWidth: 1180,
   margin: '0 auto',
   padding: isMobile ? `12px 10px ${pageBottomPadding}px` : 'clamp(18px, 3.2vw, 32px) clamp(12px, 2.4vw, 20px) clamp(28px, 5vw, 48px)',
+  boxSizing: 'border-box',
   display: 'grid',
   gap: isMobile ? 14 : 20,
 });
 
-const heroStyle: React.CSSProperties = {
+const heroStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   position: 'relative',
   border: '1px solid rgba(83, 96, 114, 0.34)',
-  borderRadius: 28,
+  borderRadius: isCompactMobile ? 22 : 28,
   background: 'linear-gradient(145deg, rgba(19,24,33,0.94) 0%, rgba(14,18,25,0.97) 100%)',
   boxShadow: '0 30px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.03)',
-  padding: 'clamp(16px, 2.8vw, 24px)',
+  padding: isCompactMobile ? '14px' : 'clamp(16px, 2.8vw, 24px)',
   overflow: 'hidden',
-};
+});
 
 const heroGlowStyle: React.CSSProperties = {
   position: 'absolute',
@@ -731,6 +733,7 @@ const heroEmailStyle: React.CSSProperties = {
   color: '#8A99AE',
   fontFamily: "'Outfit', sans-serif",
   fontSize: 13,
+  overflowWrap: 'anywhere',
 };
 
 const heroActionLinkStyle: React.CSSProperties = {
@@ -932,27 +935,27 @@ const featureGridStyle = (isMobile: boolean): React.CSSProperties => ({
   gap: isMobile ? 14 : 20,
 });
 
-const sectionCardStyle: React.CSSProperties = {
+const sectionCardStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   border: '1px solid rgba(83, 96, 114, 0.34)',
-  borderRadius: 24,
+  borderRadius: isCompactMobile ? 18 : 24,
   background: 'linear-gradient(180deg, rgba(17,19,24,0.92) 0%, rgba(13,16,21,0.97) 100%)',
-  padding: 'clamp(14px, 2.6vw, 22px)',
+  padding: isCompactMobile ? '12px' : 'clamp(14px, 2.6vw, 22px)',
   boxShadow: '0 18px 46px rgba(0,0,0,0.28)',
-};
+});
 
-const sideGuideCardStyle: React.CSSProperties = {
-  ...sectionCardStyle,
+const sideGuideCardStyle = (isCompactMobile: boolean): React.CSSProperties => ({
+  ...sectionCardStyle(isCompactMobile),
   background: 'linear-gradient(180deg, rgba(24,30,39,0.94) 0%, rgba(14,18,25,0.98) 100%)',
-};
+});
 
-const sectionHeadStyle: React.CSSProperties = {
+const sectionHeadStyle = (isMobile: boolean): React.CSSProperties => ({
   display: 'flex',
   justifyContent: 'space-between',
   gap: 12,
-  alignItems: 'center',
+  alignItems: isMobile ? 'flex-start' : 'center',
   flexWrap: 'wrap',
   marginBottom: 14,
-};
+});
 
 const sectionEyebrowStyle: React.CSSProperties = {
   margin: 0,
@@ -971,15 +974,15 @@ const sectionTitleStyle: React.CSSProperties = {
   lineHeight: 1.2,
 };
 
-const sectionPillStyle: React.CSSProperties = {
+const sectionPillStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   borderRadius: 999,
   border: '1px solid rgba(255,140,53,0.32)',
-  padding: '7px 11px',
+  padding: isCompactMobile ? '6px 9px' : '7px 11px',
   color: '#FFD5B8',
-  fontSize: 11,
+  fontSize: isCompactMobile ? 10 : 11,
   fontFamily: "'Space Grotesk', sans-serif",
   background: 'rgba(255,107,0,0.1)',
-};
+});
 
 const timelineRowStyle: React.CSSProperties = {
   display: 'grid',
@@ -1027,13 +1030,13 @@ const contentSectionStyle: React.CSSProperties = {
   gap: 12,
 };
 
-const sectionHeaderBarStyle: React.CSSProperties = {
+const sectionHeaderBarStyle = (isMobile: boolean): React.CSSProperties => ({
   display: 'flex',
   justifyContent: 'space-between',
-  alignItems: 'end',
+  alignItems: isMobile ? 'flex-start' : 'end',
   gap: 10,
   flexWrap: 'wrap',
-};
+});
 
 const sectionMutedMetaStyle: React.CSSProperties = {
   color: '#8A99AE',
@@ -1041,20 +1044,20 @@ const sectionMutedMetaStyle: React.CSSProperties = {
   fontFamily: "'Space Grotesk', sans-serif",
 };
 
-const stackStyle: React.CSSProperties = {
+const stackStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   display: 'grid',
-  gap: 12,
-};
+  gap: isCompactMobile ? 10 : 12,
+});
 
-const itemCardStyle: React.CSSProperties = {
+const itemCardStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   border: '1px solid rgba(83, 96, 114, 0.3)',
-  borderRadius: 18,
+  borderRadius: isCompactMobile ? 15 : 18,
   background: 'linear-gradient(180deg, rgba(17,19,24,0.9) 0%, rgba(11,14,18,0.96) 100%)',
-  padding: 18,
+  padding: isCompactMobile ? 14 : 18,
   display: 'grid',
   gap: 12,
   boxShadow: '0 14px 30px rgba(0,0,0,0.18)',
-};
+});
 
 const itemTitleStyle: React.CSSProperties = {
   margin: 0,
@@ -1067,6 +1070,7 @@ const itemSubtitleStyle: React.CSSProperties = {
   margin: '4px 0 0',
   color: '#B9C4D1',
   fontSize: 13,
+  overflowWrap: 'anywhere',
 };
 
 const statusPillStyle: React.CSSProperties = {
@@ -1077,6 +1081,8 @@ const statusPillStyle: React.CSSProperties = {
   color: '#D3DCE8',
   background: 'rgba(125,211,252,0.08)',
   fontFamily: "'Space Grotesk', sans-serif",
+  maxWidth: '100%',
+  overflowWrap: 'anywhere',
 };
 
 const messageCardStyle: React.CSSProperties = {
@@ -1102,12 +1108,12 @@ const inlineLinkStyle: React.CSSProperties = {
   gap: 6,
 };
 
-const jobMetaGridStyle: React.CSSProperties = {
+const jobMetaGridStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   marginTop: 12,
   display: 'grid',
   gap: 8,
-  gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
-};
+  gridTemplateColumns: isCompactMobile ? '1fr' : 'repeat(auto-fit, minmax(160px, 1fr))',
+});
 
 const jobMetaCardStyle: React.CSSProperties = {
   borderRadius: 12,
@@ -1118,6 +1124,11 @@ const jobMetaCardStyle: React.CSSProperties = {
   gap: 4,
   color: '#D5DEE8',
   fontSize: 13,
+  minWidth: 0,
+};
+
+const jobMetaValueStyle: React.CSSProperties = {
+  overflowWrap: 'anywhere',
 };
 
 const jobMetaLabelStyle: React.CSSProperties = {
@@ -1128,15 +1139,16 @@ const jobMetaLabelStyle: React.CSSProperties = {
   fontFamily: "'Space Grotesk', sans-serif",
 };
 
-const progressRowStyle: React.CSSProperties = {
+const progressRowStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   display: 'flex',
   justifyContent: 'space-between',
-  gap: 10,
+  flexWrap: isCompactMobile ? 'wrap' : 'nowrap',
+  gap: isCompactMobile ? 6 : 10,
   borderTop: '1px dashed #252B35',
   paddingTop: 8,
   fontSize: 13,
   color: '#C7D2DF',
-};
+});
 
 const uploadButtonWrapStyle = (disabled: boolean): React.CSSProperties => ({
   display: 'inline-flex',
