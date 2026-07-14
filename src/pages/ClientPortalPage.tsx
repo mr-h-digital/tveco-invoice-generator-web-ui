@@ -45,6 +45,7 @@ export function ClientPortalPage() {
   const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1280);
 
   const isMobile = viewportWidth <= 768;
+  const isNarrowMobile = viewportWidth <= 420;
   const sectionScrollMarginTop = isMobile ? 156 : 122;
 
   const welcomeName =
@@ -220,11 +221,11 @@ export function ClientPortalPage() {
               <div style={logoWrapStyle(isMobile)}>
                 <img src={tvecoLogo} alt="TVECO" style={logoStyle} />
               </div>
-              <div>
+              <div style={heroCopyStyle(isNarrowMobile)}>
                 <p style={eyebrowStyle}>TVECO Client Zone</p>
                 <p style={welcomeLineStyle}>Welcome back, {welcomeName}</p>
-                <h1 style={heroTitleStyle}>Your TVECO Client Portal</h1>
-                <p style={heroSubtitleStyle}>
+                <h1 style={heroTitleStyle(isNarrowMobile)}>Your TVECO Client Portal</h1>
+                <p style={heroSubtitleStyle(isNarrowMobile)}>
                   Submit export inquiries, respond to clarification requests, review formal quotes, and monitor active shipments from one polished workspace.
                 </p>
               </div>
@@ -249,7 +250,7 @@ export function ClientPortalPage() {
             </div>
           </div>
 
-          <div style={heroSummaryGridStyle(isMobile)}>
+          <div style={heroSummaryGridStyle(isMobile, isNarrowMobile)}>
             <SummaryCard icon={<BellRing size={16} />} label="Open inquiries" value={openInquiryCount} accent="#FF8C35" />
             <SummaryCard icon={<Send size={16} />} label="Needs your response" value={awaitingClientResponseCount} accent="#FBBF24" />
             <SummaryCard icon={<FileText size={16} />} label="Quotes awaiting decision" value={quoteActionCount} accent="#7DD3FC" />
@@ -263,12 +264,12 @@ export function ClientPortalPage() {
           {!isMobile ? <div style={portalNavEdgeFadeLeftStyle} /> : null}
           {!isMobile ? <div style={portalNavEdgeFadeRightStyle} /> : null}
           <nav aria-label="Client portal sections" style={portalNavStyle(isMobile)}>
-            <button type="button" onClick={() => navigateToSection('inquiry-request')} style={portalNavItemStyle(activeSectionId === 'inquiry-request', isMobile)}>Inquiry Request</button>
-            <button type="button" onClick={() => navigateToSection('my-inquiries')} style={portalNavItemStyle(activeSectionId === 'my-inquiries', isMobile)}>Inquiries</button>
-            <button type="button" onClick={() => navigateToSection('my-quotes')} style={portalNavItemStyle(activeSectionId === 'my-quotes', isMobile)}>Quotes</button>
-            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs', isMobile)}>Export Jobs</button>
-            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs', isMobile)}>Documents</button>
-            <Link to="/client/profile" style={portalNavLinkStyle(isMobile)}>Profile</Link>
+            <button type="button" onClick={() => navigateToSection('inquiry-request')} style={portalNavItemStyle(activeSectionId === 'inquiry-request', isMobile, isNarrowMobile)}>Inquiry Request</button>
+            <button type="button" onClick={() => navigateToSection('my-inquiries')} style={portalNavItemStyle(activeSectionId === 'my-inquiries', isMobile, isNarrowMobile)}>Inquiries</button>
+            <button type="button" onClick={() => navigateToSection('my-quotes')} style={portalNavItemStyle(activeSectionId === 'my-quotes', isMobile, isNarrowMobile)}>Quotes</button>
+            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs', isMobile, isNarrowMobile)}>Export Jobs</button>
+            <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs', isMobile, isNarrowMobile)}>Documents</button>
+            <Link to="/client/profile" style={portalNavLinkStyle(isMobile, isNarrowMobile)}>Profile</Link>
           </nav>
         </div>
 
@@ -632,6 +633,11 @@ const logoStyle: React.CSSProperties = {
   filter: 'drop-shadow(0 0 14px rgba(255,107,0,0.32))',
 };
 
+const heroCopyStyle = (isNarrowMobile: boolean): React.CSSProperties => ({
+  minWidth: 0,
+  maxWidth: isNarrowMobile ? '100%' : 640,
+});
+
 const eyebrowStyle: React.CSSProperties = {
   margin: 0,
   color: '#8A99AE',
@@ -649,23 +655,24 @@ const welcomeLineStyle: React.CSSProperties = {
   letterSpacing: 0.4,
 };
 
-const heroTitleStyle: React.CSSProperties = {
+const heroTitleStyle = (isNarrowMobile: boolean): React.CSSProperties => ({
   margin: '6px 0 8px',
   fontFamily: "'Bebas Neue', sans-serif",
-  letterSpacing: 2.5,
+  letterSpacing: isNarrowMobile ? 1.6 : 2.5,
   fontWeight: 400,
-  fontSize: 'clamp(2.4rem, 5vw, 4rem)',
-  lineHeight: 0.95,
-};
+  fontSize: isNarrowMobile ? 'clamp(2rem, 9vw, 2.7rem)' : 'clamp(2.4rem, 5vw, 4rem)',
+  lineHeight: isNarrowMobile ? 0.98 : 0.95,
+  wordBreak: 'break-word',
+});
 
-const heroSubtitleStyle: React.CSSProperties = {
+const heroSubtitleStyle = (isNarrowMobile: boolean): React.CSSProperties => ({
   margin: 0,
   color: '#B9C4D1',
   fontFamily: "'Outfit', sans-serif",
   maxWidth: 640,
-  lineHeight: 1.6,
-  fontSize: 14,
-};
+  lineHeight: isNarrowMobile ? 1.5 : 1.6,
+  fontSize: isNarrowMobile ? 13 : 14,
+});
 
 const heroAsideStyle = (isMobile: boolean): React.CSSProperties => ({
   display: 'grid',
@@ -730,10 +737,10 @@ const signOutButtonStyle = (isMobile: boolean): React.CSSProperties => ({
   cursor: 'pointer',
 });
 
-const heroSummaryGridStyle = (isMobile: boolean): React.CSSProperties => ({
+const heroSummaryGridStyle = (isMobile: boolean, isNarrowMobile: boolean): React.CSSProperties => ({
   position: 'relative',
   display: 'grid',
-  gridTemplateColumns: isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(190px, 1fr))',
+  gridTemplateColumns: isNarrowMobile ? '1fr' : isMobile ? 'repeat(2, minmax(0, 1fr))' : 'repeat(auto-fit, minmax(190px, 1fr))',
   gap: 12,
   marginTop: 22,
 });
@@ -786,15 +793,15 @@ const portalNavEdgeFadeRightStyle: React.CSSProperties = {
   background: 'linear-gradient(270deg, rgba(14,18,25,0.96), rgba(14,18,25,0))',
 };
 
-function portalNavItemStyle(active: boolean, isMobile: boolean): React.CSSProperties {
+function portalNavItemStyle(active: boolean, isMobile: boolean, isNarrowMobile: boolean): React.CSSProperties {
   return {
     border: active ? '1px solid rgba(255,140,53,0.76)' : '1px solid rgba(255,255,255,0.16)',
     borderRadius: 999,
-    padding: isMobile ? '10px 12px' : '9px 13px',
+    padding: isNarrowMobile ? '9px 11px' : isMobile ? '10px 12px' : '9px 13px',
     color: active ? '#111318' : '#E7EEF7',
     textDecoration: 'none',
     fontFamily: "'Space Grotesk', sans-serif",
-    fontSize: isMobile ? 13 : 12,
+    fontSize: isNarrowMobile ? 12 : isMobile ? 13 : 12,
     whiteSpace: 'nowrap',
     background: active ? 'linear-gradient(135deg, #FF8C35 0%, #FFD2B3 100%)' : 'rgba(10,12,15,0.56)',
     fontWeight: active ? 700 : 600,
@@ -802,14 +809,14 @@ function portalNavItemStyle(active: boolean, isMobile: boolean): React.CSSProper
   };
 }
 
-const portalNavLinkStyle = (isMobile: boolean): React.CSSProperties => ({
+const portalNavLinkStyle = (isMobile: boolean, isNarrowMobile: boolean): React.CSSProperties => ({
   border: '1px solid rgba(255,255,255,0.16)',
   borderRadius: 999,
-  padding: isMobile ? '10px 12px' : '9px 13px',
+  padding: isNarrowMobile ? '9px 11px' : isMobile ? '10px 12px' : '9px 13px',
   color: '#E7EEF7',
   textDecoration: 'none',
   fontFamily: "'Space Grotesk', sans-serif",
-  fontSize: isMobile ? 13 : 12,
+  fontSize: isNarrowMobile ? 12 : isMobile ? 13 : 12,
   fontWeight: 600,
   whiteSpace: 'nowrap',
   background: 'rgba(10,12,15,0.56)',
