@@ -517,8 +517,8 @@ export function ExportJobsPage() {
     toast.success('Document removed');
   }
 
-  async function handleDownloadVaultDocument(doc: ExportJob['vaultDocuments'][number]) {
-    const url = await documentVaultStorageService.resolveDownloadUrl(doc);
+  async function handleDownloadVaultDocument(jobId: string, doc: ExportJob['vaultDocuments'][number]) {
+    const url = await documentVaultStorageService.resolveDownloadUrl(doc, { scope: 'admin', jobId });
     if (!url) {
       toast.error('Download link is not available for this document');
       return;
@@ -898,7 +898,7 @@ export function ExportJobsPage() {
                                     {doc.visibleToClient ? <Eye size={12} /> : <EyeOff size={12} className="text-brand-muted" />}
                                   </button>
                                   <button
-                                    onClick={() => handleDownloadVaultDocument(doc)}
+                                    onClick={() => handleDownloadVaultDocument(job.id, doc)}
                                     className="p-1.5 rounded-md border border-brand-border hover:bg-brand-card2 transition-colors"
                                     title="Download"
                                   >

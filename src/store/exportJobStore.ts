@@ -141,7 +141,15 @@ export const useExportJobStore = create<ExportJobStore>((set, get) => ({
       jobId: id,
       category: file.category,
       visibleToClient: file.visibleToClient,
+      scope: 'admin',
     });
+
+    if (uploadResult.storageProvider === 'REMOTE') {
+      const refreshedJobs = await exportJobService.getJobs();
+      const updated = refreshedJobs.find((candidate) => candidate.id === id) ?? null;
+      set({ jobs: refreshedJobs });
+      return updated;
+    }
 
     const vaultDocuments = [
       ...job.vaultDocuments,

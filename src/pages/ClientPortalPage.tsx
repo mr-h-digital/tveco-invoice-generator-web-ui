@@ -8,20 +8,12 @@ import type { Quote } from '../types/quote';
 import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
 import tvecoLogo from '../assets/tveco-logo.png';
 import { clientPortalService } from '../services/clientPortalService';
+import { documentVaultStorageService } from '../services/documentVaultStorageService';
 import { profileService } from '../services/profileService';
 import { useAuthStore } from '../store/authStore';
 
 function currency(value: number) {
   return new Intl.NumberFormat('en-ZA', { style: 'currency', currency: 'ZAR' }).format(value || 0);
-}
-
-function toDataUrl(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result ?? ''));
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 }
 
 export function ClientPortalPage() {
@@ -217,15 +209,15 @@ export function ClientPortalPage() {
     if (!file) return;
     setUploadingForJob(jobId);
     try {
-      const dataUrl = await toDataUrl(file);
-      const updated = await clientPortalService.uploadDocument(jobId, {
-        name: file.name,
-        mimeType: file.type || 'application/octet-stream',
-        sizeBytes: file.size,
+      await documentVaultStorageService.upload(file, {
+        jobId,
         category: 'General',
-        dataUrl,
+        visibleToClient: true,
+        scope: 'client',
       });
-      setJobs((prev) => prev.map((job) => (job.id === jobId ? updated : job)));
+
+      const refreshedJobs = await clientPortalService.getMyJobs();
+      setJobs(refreshedJobs);
       toast.success('Document uploaded');
     } catch {
       toast.error('Could not upload document');

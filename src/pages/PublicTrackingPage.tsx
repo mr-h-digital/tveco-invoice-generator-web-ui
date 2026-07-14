@@ -64,7 +64,7 @@ export function PublicTrackingPage() {
   const visibleVaultDocuments = job ? job.vaultDocuments.filter((d) => d.visibleToClient) : [];
 
   async function handleDownloadDocument(doc: NonNullable<typeof job>['vaultDocuments'][number]) {
-    const url = await documentVaultStorageService.resolveDownloadUrl(doc);
+    const url = await documentVaultStorageService.resolveDownloadUrl(doc, { scope: 'tracking', trackingToken: token });
     if (!url) {
       toast.error('Download link is not available right now. Please contact TVECO support.');
       return;
