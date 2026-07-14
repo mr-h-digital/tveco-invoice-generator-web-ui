@@ -598,15 +598,20 @@ const pageContentStyle = (isMobile: boolean, pageBottomPadding: number): React.C
   position: 'relative',
   zIndex: 1,
   maxWidth: 1180,
+  width: '100%',
+  minWidth: 0,
   margin: '0 auto',
   padding: isMobile ? `12px 10px ${pageBottomPadding}px` : 'clamp(18px, 3.2vw, 32px) clamp(12px, 2.4vw, 20px) clamp(28px, 5vw, 48px)',
   boxSizing: 'border-box',
   display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr)',
   gap: isMobile ? 14 : 20,
 });
 
 const heroStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   position: 'relative',
+  width: '100%',
+  minWidth: 0,
   border: '1px solid rgba(83, 96, 114, 0.34)',
   borderRadius: isCompactMobile ? 22 : 28,
   background: 'linear-gradient(145deg, rgba(19,24,33,0.94) 0%, rgba(14,18,25,0.97) 100%)',
@@ -784,6 +789,8 @@ const portalNavStyle = (isMobile: boolean): React.CSSProperties => ({
 
 const portalNavWrapStyle = (isMobile: boolean): React.CSSProperties => ({
   position: 'sticky',
+  width: '100%',
+  minWidth: 0,
   top: isMobile ? 4 : 8,
   zIndex: 30,
   borderRadius: isMobile ? 14 : 16,
@@ -931,6 +938,8 @@ const summaryValueStyle: React.CSSProperties = {
 
 const featureGridStyle = (isMobile: boolean): React.CSSProperties => ({
   display: 'grid',
+  width: '100%',
+  minWidth: 0,
   gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fit, minmax(280px, 1fr))',
   gap: isMobile ? 14 : 20,
 });
@@ -1027,6 +1036,8 @@ const guideNoteStyle: React.CSSProperties = {
 
 const contentSectionStyle: React.CSSProperties = {
   display: 'grid',
+  width: '100%',
+  minWidth: 0,
   gap: 12,
 };
 
