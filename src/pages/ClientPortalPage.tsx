@@ -697,7 +697,7 @@ const welcomeLineStyle: React.CSSProperties = {
 const heroTitleStyle = (isNarrowMobile: boolean): React.CSSProperties => ({
   margin: '6px 0 8px',
   fontFamily: "'Bebas Neue', sans-serif",
-  letterSpacing: isNarrowMobile ? 1.6 : 2.5,
+  letterSpacing: isNarrowMobile ? 1.2 : 2.5,
   fontWeight: 400,
   fontSize: isNarrowMobile ? 'clamp(2rem, 9vw, 2.7rem)' : 'clamp(2.4rem, 5vw, 4rem)',
   lineHeight: isNarrowMobile ? 0.98 : 0.95,
@@ -799,7 +799,7 @@ const portalNavWrapStyle = (isMobile: boolean): React.CSSProperties => ({
   position: 'sticky',
   width: '100%',
   minWidth: 0,
-  top: isMobile ? 4 : 8,
+  top: 0,
   zIndex: 30,
   overflow: 'hidden',
   borderRadius: isMobile ? 14 : 16,
@@ -957,7 +957,7 @@ const sectionCardStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   border: '1px solid rgba(83, 96, 114, 0.34)',
   borderRadius: isCompactMobile ? 18 : 24,
   background: 'linear-gradient(180deg, rgba(17,19,24,0.92) 0%, rgba(13,16,21,0.97) 100%)',
-  padding: isCompactMobile ? '12px' : 'clamp(14px, 2.6vw, 22px)',
+  padding: isCompactMobile ? '10px' : 'clamp(14px, 2.6vw, 22px)',
   boxShadow: '0 18px 46px rgba(0,0,0,0.28)',
 });
 
@@ -1073,7 +1073,7 @@ const itemCardStyle = (isCompactMobile: boolean): React.CSSProperties => ({
   border: '1px solid rgba(83, 96, 114, 0.3)',
   borderRadius: isCompactMobile ? 15 : 18,
   background: 'linear-gradient(180deg, rgba(17,19,24,0.9) 0%, rgba(11,14,18,0.96) 100%)',
-  padding: isCompactMobile ? 14 : 18,
+  padding: isCompactMobile ? 12 : 18,
   display: 'grid',
   gap: 12,
   boxShadow: '0 14px 30px rgba(0,0,0,0.18)',
