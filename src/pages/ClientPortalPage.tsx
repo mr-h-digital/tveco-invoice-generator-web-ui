@@ -47,6 +47,7 @@ export function ClientPortalPage() {
   const isMobile = viewportWidth <= 768;
   const isNarrowMobile = viewportWidth <= 420;
   const sectionScrollMarginTop = isMobile ? 156 : 122;
+  const pageBottomPadding = isMobile ? 94 : 0;
 
   const welcomeName =
     user?.email?.split('@')[0]
@@ -213,7 +214,7 @@ export function ClientPortalPage() {
       <div style={pageBgOverlayStyle} />
       <div style={gridOverlayStyle} />
 
-      <div style={pageContentStyle(isMobile)}>
+      <div style={pageContentStyle(isMobile, pageBottomPadding)}>
         <header style={heroStyle}>
           <div style={heroGlowStyle} />
           <div style={heroTopRowStyle(isMobile)}>
@@ -479,6 +480,31 @@ export function ClientPortalPage() {
             ))}
           </div>
         </section>
+
+        {isMobile ? (
+          <nav aria-label="Mobile client portal navigation" style={mobileBottomNavStyle}>
+            <button type="button" onClick={() => navigateToSection('inquiry-request')} style={mobileBottomNavItemStyle(activeSectionId === 'inquiry-request')}>
+              <Send size={16} />
+              <span>Request</span>
+            </button>
+            <button type="button" onClick={() => navigateToSection('my-inquiries')} style={mobileBottomNavItemStyle(activeSectionId === 'my-inquiries')}>
+              <BellRing size={16} />
+              <span>Inquiries</span>
+            </button>
+            <button type="button" onClick={() => navigateToSection('my-quotes')} style={mobileBottomNavItemStyle(activeSectionId === 'my-quotes')}>
+              <FileText size={16} />
+              <span>Quotes</span>
+            </button>
+            <button type="button" onClick={() => navigateToSection('my-jobs')} style={mobileBottomNavItemStyle(activeSectionId === 'my-jobs')}>
+              <PackageCheck size={16} />
+              <span>Jobs</span>
+            </button>
+            <Link to="/client/profile" style={mobileBottomProfileLinkStyle}>
+              <UserCog size={16} />
+              <span>Profile</span>
+            </Link>
+          </nav>
+        ) : null}
       </div>
     </div>
   );
@@ -567,12 +593,12 @@ const gridOverlayStyle: React.CSSProperties = {
   pointerEvents: 'none',
 };
 
-const pageContentStyle = (isMobile: boolean): React.CSSProperties => ({
+const pageContentStyle = (isMobile: boolean, pageBottomPadding: number): React.CSSProperties => ({
   position: 'relative',
   zIndex: 1,
   maxWidth: 1180,
   margin: '0 auto',
-  padding: isMobile ? '12px 10px 24px' : 'clamp(18px, 3.2vw, 32px) clamp(12px, 2.4vw, 20px) clamp(28px, 5vw, 48px)',
+  padding: isMobile ? `12px 10px ${pageBottomPadding}px` : 'clamp(18px, 3.2vw, 32px) clamp(12px, 2.4vw, 20px) clamp(28px, 5vw, 48px)',
   display: 'grid',
   gap: isMobile ? 14 : 20,
 });
@@ -771,6 +797,47 @@ const portalNavLabelStyle: React.CSSProperties = {
   fontSize: 11,
   letterSpacing: 1.2,
   textTransform: 'uppercase',
+};
+
+const mobileBottomNavStyle: React.CSSProperties = {
+  position: 'fixed',
+  left: 10,
+  right: 10,
+  bottom: 10,
+  zIndex: 45,
+  display: 'grid',
+  gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+  gap: 6,
+  borderRadius: 18,
+  border: '1px solid rgba(255,140,53,0.22)',
+  background: 'rgba(12, 15, 20, 0.9)',
+  backdropFilter: 'blur(18px)',
+  boxShadow: '0 18px 40px rgba(0,0,0,0.32)',
+  padding: '8px 8px calc(8px + env(safe-area-inset-bottom, 0px))',
+};
+
+function mobileBottomNavItemStyle(active: boolean): React.CSSProperties {
+  return {
+    border: 'none',
+    borderRadius: 14,
+    minHeight: 54,
+    padding: '8px 4px',
+    display: 'grid',
+    justifyItems: 'center',
+    alignContent: 'center',
+    gap: 4,
+    background: active ? 'linear-gradient(180deg, rgba(255,140,53,0.96) 0%, rgba(255,107,0,0.96) 100%)' : 'rgba(255,255,255,0.03)',
+    color: active ? '#111318' : '#EAF0F6',
+    fontFamily: "'Space Grotesk', sans-serif",
+    fontSize: 10,
+    fontWeight: active ? 700 : 600,
+    cursor: 'pointer',
+  };
+}
+
+const mobileBottomProfileLinkStyle: React.CSSProperties = {
+  ...mobileBottomNavItemStyle(false),
+  textDecoration: 'none',
 };
 
 const portalNavEdgeFadeLeftStyle: React.CSSProperties = {
