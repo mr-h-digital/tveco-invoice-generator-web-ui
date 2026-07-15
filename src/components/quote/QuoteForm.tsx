@@ -10,9 +10,9 @@ import { formatCurrency } from '../../utils/formatCurrency';
 export function QuoteForm() {
   const { register, control, setValue, formState: { errors } } = useFormContext<QuoteFormValues>();
 
-  const [lineItems, discountType, discountValue, vatEnabled, vatRate] = useWatch({
+  const [lineItems, discountType, discountValue, vatEnabled, vatRate, status] = useWatch({
     control,
-    name: ['lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate'],
+    name: ['lineItems', 'discountType', 'discountValue', 'vatEnabled', 'vatRate', 'status'],
   });
 
   const totals = calculateTotals({
@@ -64,7 +64,7 @@ export function QuoteForm() {
             <label className="field-label">Status</label>
             <select {...register('status')} className="input-field">
               <option value="DRAFT">Draft</option>
-              <option value="SENT">Sent</option>
+              {status === 'SENT' ? <option value="SENT" disabled>Sent (via Send to Client)</option> : null}
               <option value="ACCEPTED">Accepted</option>
               <option value="REJECTED">Rejected</option>
               <option value="EXPIRED">Expired</option>

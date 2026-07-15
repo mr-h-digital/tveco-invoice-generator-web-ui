@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { toast } from 'sonner';
-import { Pencil, Copy, Trash2, Printer, ArrowLeft, MoreVertical, FileText, Ship } from 'lucide-react';
+import { Pencil, Copy, Send, Trash2, Printer, ArrowLeft, MoreVertical, FileText, Ship } from 'lucide-react';
 import { QuotePreview } from '../components/quote/QuotePreview';
 import { QuotePrintLayout } from '../components/quote/QuotePrintLayout';
 import { Badge } from '../components/shared/Badge';
@@ -62,6 +62,16 @@ export function QuoteDetailPage() {
       toast.success(`Marked as ${status}`);
     } catch {
       toast.error('Failed to update status');
+    }
+  }
+
+  async function handleSendToClient() {
+    if (!id) return;
+    try {
+      await updateQuote(id, { status: 'SENT' });
+      toast.success('Quote sent to client');
+    } catch {
+      toast.error('Failed to send quote to client');
     }
   }
 
@@ -173,10 +183,15 @@ export function QuoteDetailPage() {
             <Badge status={quote.status} />
 
             <div className="hidden md:flex items-center gap-2">
+              {quote.status === 'DRAFT' ? (
+                <button onClick={handleSendToClient} className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-colors" style={{ background: 'rgba(96,165,250,0.12)', color: '#7DD3FC', borderColor: 'rgba(96,165,250,0.35)' }}>
+                  <Send size={13} /> Send to Client
+                </button>
+              ) : null}
               <select value={quote.status} onChange={(e) => handleStatusChange(e.target.value as QuoteStatus)}
                 className="bg-brand-card border border-brand-border text-brand-text text-xs rounded-lg px-2 py-1.5" aria-label="Change status">
                 <option value="DRAFT">Draft</option>
-                <option value="SENT">Sent</option>
+                {quote.status === 'SENT' ? <option value="SENT" disabled>Sent (via Send to Client)</option> : null}
                 <option value="ACCEPTED">Accepted</option>
                 <option value="REJECTED">Rejected</option>
                 <option value="EXPIRED">Expired</option>
@@ -215,6 +230,11 @@ export function QuoteDetailPage() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
                     <div className="absolute right-0 top-full mt-1 w-44 bg-brand-card2 border border-brand-border rounded-xl shadow-2xl z-50 py-1 overflow-hidden">
+                      {quote.status === 'DRAFT' ? (
+                        <button onClick={() => { void handleSendToClient(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm w-full text-left hover:bg-brand-border transition-colors" style={{ color: '#7DD3FC' }}>
+                          <Send size={14} /> Send to Client
+                        </button>
+                      ) : null}
                       <button onClick={() => { print(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm text-brand-text w-full text-left hover:bg-brand-border transition-colors">
                         <Printer size={14} /> Print / PDF
                       </button>
