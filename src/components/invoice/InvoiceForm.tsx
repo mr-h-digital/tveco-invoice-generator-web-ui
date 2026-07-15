@@ -151,7 +151,6 @@ export function InvoiceForm() {
             <label className="field-label">Status</label>
             <select {...register('status')} className="input-field">
               <option value="DRAFT">Draft</option>
-              <option value="SENT">Sent</option>
               <option value="PAID">Paid</option>
               <option value="OVERDUE">Overdue</option>
             </select>

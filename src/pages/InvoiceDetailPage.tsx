@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import invoicesBg from '../assets/tveco-invoices-bg.jpg';
 import { toast } from 'sonner';
-import { Pencil, Copy, CheckCircle, Trash2, Printer, ArrowLeft, MoreVertical } from 'lucide-react';
+import { Pencil, Copy, CheckCircle, Send, Trash2, Printer, ArrowLeft, MoreVertical } from 'lucide-react';
 import { InvoicePreview } from '../components/invoice/InvoicePreview';
 import { InvoicePrintLayout } from '../components/invoice/InvoicePrintLayout';
 import { Badge } from '../components/shared/Badge';
@@ -38,6 +38,16 @@ export function InvoiceDetailPage() {
     catch { toast.error('Failed to update status'); }
   }
 
+  async function handleSendToClient() {
+    if (!id) return;
+    try {
+      await updateInvoice(id, { status: 'SENT' });
+      toast.success('Invoice sent to client');
+    } catch {
+      toast.error('Failed to send invoice to client');
+    }
+  }
+
   async function handleDuplicate() {
     if (!id) return;
     try {
@@ -66,6 +76,11 @@ export function InvoiceDetailPage() {
 
             {/* Desktop actions */}
             <div className="hidden md:flex items-center gap-2">
+              {invoice.status === 'DRAFT' && (
+                <button onClick={handleSendToClient} className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-colors" style={{ background: 'rgba(96,165,250,0.12)', color: '#7DD3FC', borderColor: 'rgba(96,165,250,0.35)' }}>
+                  <Send size={13} /> Send to Client
+                </button>
+              )}
               {invoice.status !== 'PAID' && (
                 <button onClick={() => handleStatusChange('PAID')} className="flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg border transition-colors" style={{ background: 'rgba(255,107,0,0.1)', color: '#FF6B00', borderColor: 'rgba(255,107,0,0.25)' }}>
                   <CheckCircle size={13} /> Mark Paid
@@ -74,7 +89,6 @@ export function InvoiceDetailPage() {
               <select value={invoice.status} onChange={(e) => handleStatusChange(e.target.value as InvoiceStatus)}
                 className="bg-brand-card border border-brand-border text-brand-text text-xs rounded-lg px-2 py-1.5" aria-label="Change status">
                 <option value="DRAFT">Draft</option>
-                <option value="SENT">Sent</option>
                 <option value="PAID">Paid</option>
                 <option value="OVERDUE">Overdue</option>
               </select>
@@ -105,6 +119,11 @@ export function InvoiceDetailPage() {
                   <>
                     <div className="fixed inset-0 z-40" onClick={() => setMobileMenuOpen(false)} />
                     <div className="absolute right-0 top-full mt-1 w-44 bg-brand-card2 border border-brand-border rounded-xl shadow-2xl z-50 py-1 overflow-hidden">
+                      {invoice.status === 'DRAFT' && (
+                        <button onClick={() => { void handleSendToClient(); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm w-full text-left hover:bg-brand-border transition-colors" style={{ color: '#7DD3FC' }}>
+                          <Send size={14} /> Send to Client
+                        </button>
+                      )}
                       {invoice.status !== 'PAID' && (
                         <button onClick={() => { handleStatusChange('PAID'); setMobileMenuOpen(false); }} className="flex items-center gap-2 px-4 py-3 text-sm w-full text-left hover:bg-brand-border transition-colors" style={{ color: '#FF6B00' }}>
                           <CheckCircle size={14} /> Mark Paid
