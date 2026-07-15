@@ -4,6 +4,7 @@ import { ArrowRight, BellRing, Clock3, FileText, LogOut, PackageCheck, Send, Shi
 import { toast } from 'sonner';
 import type { ExportJob } from '../types/exportJob';
 import type { ExportInquiry } from '../types/exportInquiry';
+import type { Invoice } from '../types/invoice';
 import type { Quote } from '../types/quote';
 import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
 import tvecoLogo from '../assets/tveco-logo.png';
@@ -27,11 +28,57 @@ function isQuoteAwaitingClientDecision(status: string): boolean {
   return CLIENT_ACTIONABLE_QUOTE_STATUSES.has((status ?? '').trim().toUpperCase());
 }
 
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function printDocument(title: string, bodyHtml: string): void {
+  const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=960,height=700');
+  if (!printWindow) {
+    toast.error('Could not open print window. Please allow pop-ups and try again.');
+    return;
+  }
+
+  printWindow.document.write(`<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(title)}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 28px; color: #111; }
+    h1 { margin: 0 0 6px; font-size: 24px; }
+    .meta { margin: 2px 0; color: #444; font-size: 14px; }
+    .section { margin-top: 18px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; font-size: 13px; }
+    th { background: #f6f7f9; }
+    .right { text-align: right; }
+    .totals { margin-top: 14px; width: 320px; margin-left: auto; }
+    .totals-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; }
+    .totals-row strong { font-size: 16px; }
+    .print-btn { margin-top: 16px; padding: 10px 14px; border: none; background: #FF6B00; color: #fff; border-radius: 6px; cursor: pointer; }
+    @media print { .print-btn { display: none; } body { margin: 12mm; } }
+  </style>
+</head>
+<body>
+  ${bodyHtml}
+  <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
+</body>
+</html>`);
+  printWindow.document.close();
+}
+
 export function ClientPortalPage() {
   const { user, logout } = useAuthStore();
   const [jobs, setJobs] = useState<ExportJob[]>([]);
   const [inquiries, setInquiries] = useState<ExportInquiry[]>([]);
   const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [replyingInquiryId, setReplyingInquiryId] = useState<string | null>(null);
@@ -46,7 +93,7 @@ export function ClientPortalPage() {
   });
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [profileContactName, setProfileContactName] = useState('');
-  const [activeSectionId, setActiveSectionId] = useState<'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'>('inquiry-request');
+  const [activeSectionId, setActiveSectionId] = useState<'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs' | 'my-invoices'>('inquiry-request');
   const [viewportWidth, setViewportWidth] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1280);
 
   const isMobile = viewportWidth <= 768;
@@ -67,23 +114,26 @@ export function ClientPortalPage() {
 
   const openInquiryCount = inquiries.filter((inquiry) => inquiry.status !== 'CLOSED' && inquiry.status !== 'CONVERTED_TO_JOB').length;
   const quoteActionCount = quotes.filter((quote) => isQuoteAwaitingClientDecision(quote.status)).length;
+  const invoicePaymentDueCount = invoices.filter((invoice) => invoice.status === 'SENT' || invoice.status === 'OVERDUE').length;
   const activeJobCount = jobs.filter((job) => job.status !== 'DELIVERED' && job.status !== 'CANCELLED').length;
   const awaitingClientResponseCount = inquiries.filter((inquiry) =>
     inquiry.messages.some((message) => message.requiresClientResponse && !message.clientResponded)
   ).length;
-  const actionRequiredCount = quoteActionCount + awaitingClientResponseCount;
+  const actionRequiredCount = quoteActionCount + awaitingClientResponseCount + invoicePaymentDueCount;
 
   async function loadJobs() {
     setLoading(true);
     try {
-      const [jobData, inquiryData, quoteData] = await Promise.all([
+      const [jobData, inquiryData, quoteData, invoiceData] = await Promise.all([
         clientPortalService.getMyJobs(),
         clientPortalService.getMyInquiries(),
         clientPortalService.getMyQuotes(),
+        clientPortalService.getMyInvoices(),
       ]);
       setJobs(jobData);
       setInquiries(inquiryData);
       setQuotes(quoteData);
+      setInvoices(invoiceData);
     } catch {
       toast.error('Could not load your client portal data');
     } finally {
@@ -120,12 +170,13 @@ export function ClientPortalPage() {
   }, []);
 
   useEffect(() => {
-    const sectionIds: Array<'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'> = [
+    const sectionIds: Array<'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs' | 'my-invoices'> = [
       'action-required',
       'inquiry-request',
       'my-inquiries',
       'my-quotes',
       'my-jobs',
+      'my-invoices',
     ];
 
     const onScroll = () => {
@@ -135,7 +186,7 @@ export function ClientPortalPage() {
           if (!element) return null;
           return { id, top: element.getBoundingClientRect().top };
         })
-        .filter((entry): entry is { id: 'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs'; top: number } => Boolean(entry));
+        .filter((entry): entry is { id: 'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs' | 'my-invoices'; top: number } => Boolean(entry));
 
       const current = sectionOffsets
         .filter((entry) => entry.top <= (isMobile ? 220 : 180))
@@ -154,7 +205,7 @@ export function ClientPortalPage() {
     };
   }, [isMobile]);
 
-  function navigateToSection(sectionId: 'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs') {
+  function navigateToSection(sectionId: 'action-required' | 'inquiry-request' | 'my-inquiries' | 'my-quotes' | 'my-jobs' | 'my-invoices') {
     const element = document.getElementById(sectionId);
     if (!element) return;
     setActiveSectionId(sectionId);
@@ -211,6 +262,63 @@ export function ClientPortalPage() {
     } catch {
       toast.error('Could not submit quote decision');
     }
+  }
+
+  function printQuote(quote: Quote) {
+    const rows = quote.lineItems
+      .map((item) => `<tr><td>${escapeHtml(item.name)}</td><td class="right">${item.quantity}</td><td class="right">${currency(item.unitPrice)}</td><td class="right">${currency(item.amount)}</td></tr>`)
+      .join('');
+
+    printDocument(
+      `Quote ${quote.quoteNumber}`,
+      `<h1>Quote ${escapeHtml(quote.quoteNumber)}</h1>
+       <p class="meta">Status: ${escapeHtml(quote.status)}</p>
+       <p class="meta">Issue Date: ${escapeHtml(new Date(quote.issueDate).toLocaleDateString())}</p>
+       <p class="meta">Expiry Date: ${escapeHtml(new Date(quote.expiryDate).toLocaleDateString())}</p>
+       <p class="meta">Client: ${escapeHtml(quote.clientSnapshot.companyName || 'Client')}</p>
+       <div class="section">
+         <table>
+           <thead><tr><th>Description</th><th class="right">Qty</th><th class="right">Unit Price</th><th class="right">Amount</th></tr></thead>
+           <tbody>${rows}</tbody>
+         </table>
+       </div>
+       <div class="totals">
+         <div class="totals-row"><span>Subtotal</span><span>${currency(quote.subtotal)}</span></div>
+         <div class="totals-row"><span>Discount</span><span>${currency(quote.discountAmount)}</span></div>
+         <div class="totals-row"><span>VAT</span><span>${currency(quote.vatAmount)}</span></div>
+         <div class="totals-row"><strong>Total</strong><strong>${currency(quote.total)}</strong></div>
+       </div>
+       <div class="section"><strong>Notes</strong><p>${escapeHtml(quote.notes || 'No notes provided.')}</p></div>`
+    );
+  }
+
+  function printInvoice(invoice: Invoice) {
+    const rows = invoice.lineItems
+      .map((item) => `<tr><td>${escapeHtml(item.name)}</td><td class="right">${item.quantity}</td><td class="right">${currency(item.unitPrice)}</td><td class="right">${currency(item.amount)}</td></tr>`)
+      .join('');
+
+    printDocument(
+      `Invoice ${invoice.invoiceNumber}`,
+      `<h1>Invoice ${escapeHtml(invoice.invoiceNumber)}</h1>
+       <p class="meta">Status: ${escapeHtml(invoice.status)}</p>
+       <p class="meta">Issue Date: ${escapeHtml(new Date(invoice.issueDate).toLocaleDateString())}</p>
+       <p class="meta">Due Date: ${escapeHtml(new Date(invoice.dueDate).toLocaleDateString())}</p>
+       <p class="meta">Client: ${escapeHtml(invoice.clientSnapshot.companyName || 'Client')}</p>
+       <div class="section">
+         <table>
+           <thead><tr><th>Description</th><th class="right">Qty</th><th class="right">Unit Price</th><th class="right">Amount</th></tr></thead>
+           <tbody>${rows}</tbody>
+         </table>
+       </div>
+       <div class="totals">
+         <div class="totals-row"><span>Subtotal</span><span>${currency(invoice.subtotal)}</span></div>
+         <div class="totals-row"><span>Discount</span><span>${currency(invoice.discountAmount)}</span></div>
+         <div class="totals-row"><span>VAT</span><span>${currency(invoice.vatAmount)}</span></div>
+         <div class="totals-row"><strong>Total</strong><strong>${currency(invoice.total)}</strong></div>
+       </div>
+       <div class="section"><strong>Payment Reference</strong><p>${escapeHtml(invoice.paymentDetails?.reference || invoice.invoiceNumber)}</p></div>
+       <div class="section"><strong>Notes</strong><p>${escapeHtml(invoice.notes || 'No notes provided.')}</p></div>`
+    );
   }
 
   async function handleLogout() {
@@ -287,6 +395,7 @@ export function ClientPortalPage() {
             <SummaryCard icon={<Send size={16} />} label="Needs your response" value={awaitingClientResponseCount} accent="#FBBF24" />
             <SummaryCard icon={<FileText size={16} />} label="Quotes awaiting decision" value={quoteActionCount} accent="#7DD3FC" />
             <SummaryCard icon={<PackageCheck size={16} />} label="Active export jobs" value={activeJobCount} accent="#4ADE80" />
+            <SummaryCard icon={<FileText size={16} />} label="Invoices pending payment" value={invoicePaymentDueCount} accent="#F97316" />
           </div>
 
         </header>
@@ -301,6 +410,7 @@ export function ClientPortalPage() {
             <button type="button" onClick={() => navigateToSection('my-inquiries')} style={portalNavItemStyle(activeSectionId === 'my-inquiries', isMobile, isNarrowMobile)}>Inquiries</button>
             <button type="button" onClick={() => navigateToSection('my-quotes')} style={portalNavItemStyle(activeSectionId === 'my-quotes', isMobile, isNarrowMobile)}>Quotes</button>
             <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs', isMobile, isNarrowMobile)}>Export Jobs</button>
+            <button type="button" onClick={() => navigateToSection('my-invoices')} style={portalNavItemStyle(activeSectionId === 'my-invoices', isMobile, isNarrowMobile)}>Invoices</button>
             <button type="button" onClick={() => navigateToSection('my-jobs')} style={portalNavItemStyle(activeSectionId === 'my-jobs', isMobile, isNarrowMobile)}>Documents</button>
             <Link to="/client/profile" style={portalNavLinkStyle(isMobile, isNarrowMobile)}>Profile</Link>
           </nav>
@@ -342,6 +452,21 @@ export function ClientPortalPage() {
                 </div>
                 <button type="button" onClick={() => navigateToSection('my-inquiries')} style={buttonStyle(false)}>
                   Reply to Inquiries
+                </button>
+              </article>
+            ) : null}
+
+            {invoicePaymentDueCount > 0 ? (
+              <article style={itemCardStyle(isCompactMobile)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 0 }}>
+                    <h3 style={itemTitleStyle}>Invoice ready for payment</h3>
+                    <p style={itemSubtitleStyle}>{invoicePaymentDueCount} invoice{invoicePaymentDueCount === 1 ? '' : 's'} awaiting payment action.</p>
+                  </div>
+                  <span style={statusPillStyle}>Payment due</span>
+                </div>
+                <button type="button" onClick={() => navigateToSection('my-invoices')} style={buttonStyle(false)}>
+                  View Invoices
                 </button>
               </article>
             ) : null}
@@ -474,6 +599,11 @@ export function ClientPortalPage() {
                 <div style={{ color: '#B9C4D1', fontSize: 13 }}>
                   Total: {currency(quote.total)} • Expires: {new Date(quote.expiryDate).toLocaleDateString()}
                 </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => printQuote(quote)} style={buttonStyle(false)}>
+                    Printable View
+                  </button>
+                </div>
                 {isQuoteAwaitingClientDecision(quote.status) ? (
                   <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     <button type="button" onClick={() => void decideQuote(quote.id, 'ACCEPTED')} style={buttonStyle(false)}>
@@ -549,6 +679,38 @@ export function ClientPortalPage() {
                     />
                   </label>
                   {uploadingForJob === job.id ? <span style={{ fontSize: 12, color: '#8A99AE' }}>Uploading...</span> : null}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section id="my-invoices" style={{ ...contentSectionStyle, scrollMarginTop: sectionScrollMarginTop }}>
+          <div style={sectionHeaderBarStyle(isMobile)}>
+            <div>
+              <p style={sectionEyebrowStyle}>Finance</p>
+              <h2 style={sectionTitleStyle}>My Invoices</h2>
+            </div>
+            <span style={sectionMutedMetaStyle}>{invoicePaymentDueCount} payment due</span>
+          </div>
+          {!loading && invoices.length === 0 ? <EmptyState text="No invoices ready yet. Sent invoices from operations will appear here for payment follow-up." /> : null}
+          <div style={stackStyle(isCompactMobile)}>
+            {invoices.map((invoice) => (
+              <article key={invoice.id} style={itemCardStyle(isCompactMobile)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <strong style={itemTitleStyle}>{invoice.invoiceNumber}</strong>
+                  <span style={statusPillStyle}>{invoice.status}</span>
+                </div>
+                <div style={{ color: '#B9C4D1', fontSize: 13 }}>
+                  Total: {currency(invoice.total)} • Due: {new Date(invoice.dueDate).toLocaleDateString()}
+                </div>
+                <div style={{ color: '#8FA0B7', fontSize: 12 }}>
+                  Reference: {invoice.paymentDetails?.reference || invoice.invoiceNumber}
+                </div>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  <button type="button" onClick={() => printInvoice(invoice)} style={buttonStyle(false)}>
+                    Printable View
+                  </button>
                 </div>
               </article>
             ))}

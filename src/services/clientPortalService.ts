@@ -1,6 +1,7 @@
 import api from './api';
 import type { ExportJob } from '../types/exportJob';
 import type { ExportInquiry } from '../types/exportInquiry';
+import type { Invoice } from '../types/invoice';
 import type { Quote } from '../types/quote';
 
 export interface ClientExportInquiryPayload {
@@ -36,6 +37,11 @@ export const clientPortalService = {
 
   async getMyQuotes(): Promise<Quote[]> {
     const res = await api.get<Quote[]>('/client-portal/quotes');
+    return res.data;
+  },
+
+  async getMyInvoices(): Promise<Invoice[]> {
+    const res = await api.get<Invoice[]>('/client-portal/invoices');
     return res.data;
   },
 
