@@ -38,13 +38,15 @@ function escapeHtml(value: string): string {
 }
 
 function printDocument(title: string, bodyHtml: string): void {
-  const printWindow = window.open('', '_blank', 'noopener,noreferrer,width=960,height=700');
+  const printWindow = window.open('', '_blank', 'width=960,height=700');
   if (!printWindow) {
     toast.error('Could not open print window. Please allow pop-ups and try again.');
     return;
   }
 
-  printWindow.document.write(`<!doctype html>
+  try {
+    printWindow.document.open();
+    printWindow.document.write(`<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
@@ -70,7 +72,12 @@ function printDocument(title: string, bodyHtml: string): void {
   <button class="print-btn" onclick="window.print()">Print / Save as PDF</button>
 </body>
 </html>`);
-  printWindow.document.close();
+    printWindow.document.close();
+    printWindow.focus();
+  } catch {
+    printWindow.close();
+    toast.error('Could not render printable view. Please try again.');
+  }
 }
 
 export function ClientPortalPage() {
