@@ -10,7 +10,7 @@ import { ConfirmDialog } from '../components/shared/ConfirmDialog';
 import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
 import type { InvoiceStatus } from '../types/invoice';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 
 const TABS: { label: string; value: InvoiceStatus | 'all' }[] = [
   { label: 'All', value: 'all' }, { label: 'Draft', value: 'DRAFT' },

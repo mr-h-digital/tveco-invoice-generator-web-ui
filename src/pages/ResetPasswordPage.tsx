@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Eye, EyeOff, KeyRound } from 'lucide-react';
 import { authService } from '../services/authService';
-import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
+import tvecoLoginBg from '../assets/tveco-login-bg.webp';
 
 export function ResetPasswordPage() {
   const location = useLocation();

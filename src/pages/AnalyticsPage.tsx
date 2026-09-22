@@ -22,7 +22,7 @@ import {
   collectionRate, avgInvoiceValue, buildPresets, filterByDateRange,
   type DateRange,
 } from '../utils/analyticsData';
-import dashboardBg from '../assets/tveco-dashboard-bg.jpg';
+import dashboardBg from '../assets/tveco-dashboard-bg.webp';
 
 /* ── Design tokens ── */
 const C = {

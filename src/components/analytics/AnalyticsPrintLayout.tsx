@@ -14,7 +14,7 @@ import { formatDate } from '../../utils/formatDate';
 import type {
   MonthRevenue, StatusSlice, ClientRevenue, ServiceRevenue,
 } from '../../utils/analyticsData';
-import tvecoLogo from '../../assets/tveco-logo.png';
+import tvecoLogo from '../../assets/tveco-logo.webp';
 
 interface Props {
   monthly: MonthRevenue[];

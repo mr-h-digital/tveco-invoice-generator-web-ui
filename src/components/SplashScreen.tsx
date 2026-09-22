@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import tvecoLogo from '../assets/tveco-logo.png';
-import loginBg from '../assets/tveco-login-bg.jpg';
+import tvecoLogo from '../assets/tveco-logo.webp';
+import loginBg from '../assets/tveco-login-bg.webp';
 
 interface SplashScreenProps {
   onComplete: () => void;

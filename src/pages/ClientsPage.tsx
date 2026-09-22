@@ -15,7 +15,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
 import type { Client } from '../types/client';
 import type { ClientFormValues } from '../schemas/clientSchema';
-import clientsBg from '../assets/tveco-clients-bg.jpg';
+import clientsBg from '../assets/tveco-clients-bg.webp';
 
 export function ClientsPage() {
   const { clients, loading, addClient, updateClient, deleteClient } = useClients();

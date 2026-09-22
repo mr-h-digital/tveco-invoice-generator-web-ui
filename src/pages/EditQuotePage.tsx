@@ -4,7 +4,7 @@ import { useForm, useWatch, FormProvider, type SubmitHandler, type Resolver } fr
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Save } from 'lucide-react';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 import { quoteFormSchema, type QuoteFormValues } from '../schemas/quoteSchema';
 import { QuoteForm } from '../components/quote/QuoteForm';
 import { QuotePreview } from '../components/quote/QuotePreview';

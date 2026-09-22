@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, LayoutDashboard, FileText } from 'lucide-react';
-import tvecoLogo from '../assets/tveco-logo.png';
-import loginBg from '../assets/tveco-login-bg.jpg';
+import tvecoLogo from '../assets/tveco-logo.webp';
+import loginBg from '../assets/tveco-login-bg.webp';
 
 export function NotFoundPage() {
   return (

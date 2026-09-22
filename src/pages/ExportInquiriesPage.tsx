@@ -5,7 +5,7 @@ import { TopBar } from '../components/layout/TopBar';
 import { PageBackground } from '../components/layout/PageBackground';
 import { exportInquiryService } from '../services/exportInquiryService';
 import type { ExportInquiry, ExportInquiryStatus } from '../types/exportInquiry';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 
 const STATUS_OPTIONS: ExportInquiryStatus[] = [
   'SUBMITTED',

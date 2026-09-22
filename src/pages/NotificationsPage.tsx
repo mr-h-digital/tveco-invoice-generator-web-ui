@@ -6,7 +6,7 @@ import { PageBackground } from '../components/layout/PageBackground';
 import { useNotifications } from '../hooks/useNotifications';
 import { formatDateShort } from '../utils/formatDate';
 import { Modal } from '../components/shared/Modal';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 
 export function NotificationsPage() {
   const [previewMessageId, setPreviewMessageId] = useState<string | null>(null);

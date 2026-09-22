@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 import { toast } from 'sonner';
 import { Pencil, Copy, Send, Trash2, Printer, ArrowLeft, MoreVertical, FileText, Ship } from 'lucide-react';
 import { QuotePreview } from '../components/quote/QuotePreview';

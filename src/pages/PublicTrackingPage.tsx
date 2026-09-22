@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { formatDate, formatDateShort } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
 import { PageBackground } from '../components/layout/PageBackground';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 import { documentVaultStorageService } from '../services/documentVaultStorageService';
 import { exportJobService } from '../services/exportJobService';
 import type { ExportJob } from '../types/exportJob';

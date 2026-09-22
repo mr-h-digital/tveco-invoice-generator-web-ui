@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
-import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
+import tvecoLoginBg from '../assets/tveco-login-bg.webp';
 
 export function SignupPage() {
   const signup = useAuthStore((s) => s.signup);

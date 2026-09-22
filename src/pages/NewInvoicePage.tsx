@@ -14,7 +14,7 @@ import { invoiceService } from '../services/invoiceService';
 import { calculateTotals } from '../utils/invoiceTotals';
 import { todayISO, addDaysISO } from '../utils/formatDate';
 import { v4 as uuid } from 'uuid';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 
 export interface NewInvoicePreFill {
   exportJobId: string;

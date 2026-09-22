@@ -24,7 +24,7 @@ import { PageBackground } from '../components/layout/PageBackground';
 import { formatCurrency } from '../utils/formatCurrency';
 import { formatDateShort, todayISO } from '../utils/formatDate';
 import { useAuthStore } from '../store/authStore';
-import dashboardBg from '../assets/tveco-dashboard-bg.jpg';
+import dashboardBg from '../assets/tveco-dashboard-bg.webp';
 
 function KpiCard({
   label,

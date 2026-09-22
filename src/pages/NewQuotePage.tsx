@@ -14,7 +14,7 @@ import { quoteService } from '../services/quoteService';
 import { calculateTotals } from '../utils/invoiceTotals';
 import { todayISO, addDaysISO } from '../utils/formatDate';
 import { v4 as uuid } from 'uuid';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 
 export function NewQuotePage() {
   const navigate = useNavigate();

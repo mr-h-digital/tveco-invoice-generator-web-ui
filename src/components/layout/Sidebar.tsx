@@ -4,9 +4,9 @@ import { clsx } from 'clsx';
 import { toast } from 'sonner';
 import { useAuthStore } from '../../store/authStore';
 import { useOnboardingStore } from '../../store/onboardingStore';
-import tvecoLogo from '../../assets/tveco-logo.png';
-import mrhLogo from '../../assets/mrh-digital-logo.png';
-import navBg from '../../assets/tveco-nav-bg.jpg';
+import tvecoLogo from '../../assets/tveco-logo.webp';
+import mrhLogo from '../../assets/mrh-digital-logo.webp';
+import navBg from '../../assets/tveco-nav-bg.webp';
 
 const navItems = [
   { to: '/dashboard',      label: 'Dashboard',      icon: LayoutDashboard },

@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Eye, EyeOff, LogIn, AlertCircle, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
-import tvecoLogo from '../assets/tveco-logo.png';
-import mrhLogo from '../assets/mrh-digital-logo.png';
+import tvecoLoginBg from '../assets/tveco-login-bg.webp';
+import tvecoLogo from '../assets/tveco-logo.webp';
+import mrhLogo from '../assets/mrh-digital-logo.webp';
 
 export function LoginPage() {
   const login = useAuthStore((s) => s.login);

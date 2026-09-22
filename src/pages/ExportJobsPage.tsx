@@ -13,7 +13,7 @@ import { useClients } from '../hooks/useClients';
 import { useNotifications } from '../hooks/useNotifications';
 import type { ExportJob, ExportJobPaymentMilestone, ExportJobStatus } from '../types/exportJob';
 import type { NewInvoicePreFill } from './NewInvoicePage';
-import invoicesBg from '../assets/tveco-invoices-bg.jpg';
+import invoicesBg from '../assets/tveco-invoices-bg.webp';
 import { formatDateShort, todayISO } from '../utils/formatDate';
 import { formatCurrency } from '../utils/formatCurrency';
 import { documentVaultStorageService, isRemoteVaultEnabled } from '../services/documentVaultStorageService';

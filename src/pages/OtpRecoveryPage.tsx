@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { authService, type OtpRecoveryRequestPayload } from '../services/authService';
-import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
+import tvecoLoginBg from '../assets/tveco-login-bg.webp';
 
 type RecoveryPurpose = 'USERNAME_RECOVERY' | 'PASSWORD_RESET';
 type RecoveryChannel = 'EMAIL' | 'SMS' | 'WHATSAPP';

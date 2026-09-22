@@ -1,7 +1,7 @@
 import { formatCurrency } from '../../utils/formatCurrency';
 import { formatDate } from '../../utils/formatDate';
 import type { Quote } from '../../types/quote';
-import tvecoLogo from '../../assets/tveco-logo.png';
+import tvecoLogo from '../../assets/tveco-logo.webp';
 import { TVECO_COMPANY_PROFILE } from '../../constants/companyProfile';
 
 interface QuotePreviewProps {

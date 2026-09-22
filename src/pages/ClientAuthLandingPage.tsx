@@ -1,8 +1,8 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, Shield, UserRound, UserPlus2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import tvecoLoginBg from '../assets/tveco-login-bg.jpg';
-import tvecoLogo from '../assets/tveco-logo.png';
+import tvecoLoginBg from '../assets/tveco-login-bg.webp';
+import tvecoLogo from '../assets/tveco-logo.webp';
 
 export function ClientAuthLandingPage() {
   const C = {
