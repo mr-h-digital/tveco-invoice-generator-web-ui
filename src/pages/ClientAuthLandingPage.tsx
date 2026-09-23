@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Shield, UserRound, UserPlus2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Shield, UserRound, UserPlus2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import tvecoLoginBg from '../assets/tveco-login-bg.webp';
 import tvecoLogo from '../assets/tveco-logo.webp';
@@ -53,6 +53,12 @@ export function ClientAuthLandingPage() {
       >
         <div className="client-auth-stack" style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 0 }}>
           <div className="client-auth-left" style={{ padding: 'clamp(24px, 4.8vw, 44px) clamp(18px, 4vw, 38px) clamp(20px, 3.8vw, 34px)', borderRight: `1px solid ${C.border}` }}>
+            <a
+              href="https://tveco.co.za"
+              style={{ color: C.muted, textDecoration: 'none', fontFamily: "'Outfit', sans-serif", fontSize: 12, display: 'inline-flex', alignItems: 'center', gap: 6, marginBottom: 14 }}
+            >
+              <ArrowLeft size={13} /> Back to tveco.co.za
+            </a>
             <img src={tvecoLogo} alt="TVECO" style={{ width: 112, height: 112, objectFit: 'contain', filter: 'drop-shadow(0 0 20px rgba(255,107,0,0.34))' }} />
             <h1 style={{ margin: '10px 0 6px', color: C.white, fontFamily: "'Bebas Neue', sans-serif", fontWeight: 400, letterSpacing: 3, fontSize: 'clamp(30px, 9vw, 44px)', lineHeight: 1 }}>
               Client Zone
