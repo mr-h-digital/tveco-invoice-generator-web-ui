@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { LockKeyhole, Save } from 'lucide-react';
+import { Eye, EyeOff, LockKeyhole, Save } from 'lucide-react';
 import { TopBar } from '../components/layout/TopBar';
 import { useAuthStore } from '../store/authStore';
 import { profileService } from '../services/profileService';
@@ -30,6 +30,10 @@ export function ProfileSettingsPage() {
     newPassword: '',
     confirmPassword: '',
   });
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const passwordTooWeak = useMemo(() => {
     if (!pwForm.newPassword) return false;
@@ -219,17 +223,67 @@ export function ProfileSettingsPage() {
 
           <label>
             <span className="field-label">Current Password</span>
-            <input className="input-field" type="password" value={pwForm.currentPassword} onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))} required />
+            <div className="relative">
+              <input
+                className="input-field pr-10"
+                type={showCurrentPassword ? 'text' : 'password'}
+                value={pwForm.currentPassword}
+                onChange={(e) => setPwForm((p) => ({ ...p, currentPassword: e.target.value }))}
+                required
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword((v) => !v)}
+                aria-label={showCurrentPassword ? 'Hide current password' : 'Show current password'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-white"
+              >
+                {showCurrentPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </label>
 
           <label>
             <span className="field-label">New Password</span>
-            <input className="input-field" type="password" value={pwForm.newPassword} onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))} required minLength={10} />
+            <div className="relative">
+              <input
+                className="input-field pr-10"
+                type={showNewPassword ? 'text' : 'password'}
+                value={pwForm.newPassword}
+                onChange={(e) => setPwForm((p) => ({ ...p, newPassword: e.target.value }))}
+                required
+                minLength={10}
+              />
+              <button
+                type="button"
+                onClick={() => setShowNewPassword((v) => !v)}
+                aria-label={showNewPassword ? 'Hide new password' : 'Show new password'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-white"
+              >
+                {showNewPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </label>
 
           <label>
             <span className="field-label">Confirm New Password</span>
-            <input className="input-field" type="password" value={pwForm.confirmPassword} onChange={(e) => setPwForm((p) => ({ ...p, confirmPassword: e.target.value }))} required minLength={10} />
+            <div className="relative">
+              <input
+                className="input-field pr-10"
+                type={showConfirmPassword ? 'text' : 'password'}
+                value={pwForm.confirmPassword}
+                onChange={(e) => setPwForm((p) => ({ ...p, confirmPassword: e.target.value }))}
+                required
+                minLength={10}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword((v) => !v)}
+                aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-brand-muted hover:text-brand-white"
+              >
+                {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
           </label>
 
           {passwordTooWeak ? <p className="field-error">Password must include uppercase, lowercase, number, symbol, and be at least 10 characters.</p> : null}
